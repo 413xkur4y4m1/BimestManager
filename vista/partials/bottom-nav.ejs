@@ -1,0 +1,19 @@
+<%
+  // Items: array de { href, label, icon, key }
+  // active: la key activa
+  const items = typeof navItems !== 'undefined' ? navItems : [];
+  const activa = typeof active !== 'undefined' ? active : '';
+%>
+<nav class="bottom-nav" aria-label="Navegacion principal">
+  <% items.forEach(function(it, i) {
+       const isCenter = it.center === true;
+       const isActive = it.key === activa;
+  %>
+    <a href="<%= it.href %>" class="bottom-nav__item <%= isCenter ? 'bottom-nav__item--center' : '' %> <%= isActive ? 'is-active' : '' %>">
+      <span class="bottom-nav__icon">
+        <%- it.icon %>
+      </span>
+      <% if (!isCenter) { %><span><%= it.label %></span><% } %>
+    </a>
+  <% }) %>
+</nav>

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<%- include('partials/head', { titulo: 'Panel Admin · Quimica' }) %>
+</head>
+<body class="screen-app">
+<%- include('partials/header', { titulo: 'Admin · Quimica' }) %>
+
+<main class="app-content">
+  <div id="flash" class="flash" hidden></div>
+
+  <!-- ============== TAB: Inicio ============== -->
+  <section data-tab="home">
+    <h1 class="section-title">Panel admin</h1>
+    <p class="section-subtitle" id="welcomeSub">Cargando...</p>
+
+    <article class="card">
+      <h3>Resumen</h3>
+      <dl class="kv" id="resumenKv"><div><dt>Cargando</dt><dd>—</dd></div></dl>
+    </article>
+
+    <article class="card">
+      <h3>Atajos</h3>
+      <div class="btn-row">
+        <a class="btn btn-secondary" href="#users">Ver usuarios</a>
+        <a class="btn btn-primary" href="#practs">Prácticas</a>
+      </div>
+    </article>
+  </section>
+
+  <!-- ============== TAB: Usuarios ============== -->
+  <section data-tab="users">
+    <h1 class="section-title">Usuarios</h1>
+    <p class="section-subtitle">Maestros y administradores del laboratorio.</p>
+
+    <article class="card">
+      <ul class="list" id="usuariosList"><li class="empty-state">Cargando...</li></ul>
+    </article>
+
+    <article class="card">
+      <h3>+ Crear usuario</h3>
+      <form id="formUsuario" class="form-card">
+        <div class="field"><input name="nombre" placeholder="Nombre" minlength="3" maxlength="100" required></div>
+        <div class="field"><input name="email" type="email" placeholder="Email" required></div>
+        <div class="field"><input name="password" type="password" placeholder="Contraseña (8+)" minlength="8" required></div>
+        <div class="field"><select name="rol" required><option value="">Rol...</option><option value="MAESTRO">MAESTRO</option><option value="ADMIN">ADMIN</option></select></div>
+        <button class="btn btn-primary" type="submit">Crear usuario</button>
+      </form>
+    </article>
+  </section>
+
+  <!-- ============== TAB: Materiales ============== -->
+  <section data-tab="mats">
+    <h1 class="section-title">Materiales</h1>
+    <p class="section-subtitle">Inventario, préstamos, adeudos e incidencias.</p>
+
+    <div class="subtabs" role="tablist" aria-label="Secciones de materiales">
+      <button type="button" class="is-active" data-subtab="mats-inv">Inventario</button>
+      <button type="button" data-subtab="mats-loans">Préstamos</button>
+      <button type="button" data-subtab="mats-debts">Adeudos</button>
+      <button type="button" data-subtab="mats-inci">Incidencias</button>
+    </div>
+
+    <div data-subtab-panel="mats-inv">
+      <article class="card">
+        <h3>Inventario</h3>
+        <ul class="list" id="materialesList"><li class="empty-state">Cargando...</li></ul>
+      </article>
+      <article class="card">
+        <h3>+ Crear material</h3>
+        <form id="formMaterial" class="form-card">
+          <div class="field"><input name="nombre" placeholder="Nombre" maxlength="100" required></div>
+          <div class="field"><input name="stock" type="number" min="0" placeholder="Stock" required></div>
+          <button class="btn btn-primary" type="submit">Crear material</button>
+        </form>
+      </article>
+    </div>
+
+    <div data-subtab-panel="mats-loans" hidden>
+      <article class="card">
+        <h3>Préstamos</h3>
+        <ul class="list" id="prestamosList"><li class="empty-state">Cargando...</li></ul>
+      </article>
+    </div>
+
+    <div data-subtab-panel="mats-debts" hidden>
+      <article class="card">
+        <h3>Adeudos</h3>
+        <ul class="list" id="adeudosList"><li class="empty-state">Cargando...</li></ul>
+      </article>
+    </div>
+
+    <div data-subtab-panel="mats-inci" hidden>
+      <article class="card">
+        <h3>Incidencias</h3>
+        <ul class="list" id="incidenciasList"><li class="empty-state">Cargando...</li></ul>
+      </article>
+    </div>
+  </section>
+
+  <!-- ============== TAB: Prácticas ============== -->
+  <section data-tab="practs">
+    <h1 class="section-title">Prácticas</h1>
+    <p class="section-subtitle">Catálogo y kits de la práctica.</p>
+
+    <article class="card">
+      <h3>Prácticas registradas</h3>
+      <ul class="list" id="practicasList"><li class="empty-state">Cargando...</li></ul>
+    </article>
+
+    <article class="card">
+      <h3>+ Crear práctica</h3>
+      <form id="formPractica" class="form-card">
+        <div class="field"><input name="nombre" placeholder="Nombre de la práctica" required></div>
+        <div class="field"><textarea name="descripcion" placeholder="Descripción (opcional)"></textarea></div>
+        <p class="muted" style="font-size:12px;margin:0 12px 8px">Tipo: <strong>QUIMICA</strong> (asignado automáticamente).</p>
+        <button class="btn btn-primary" type="submit">Crear práctica</button>
+      </form>
+    </article>
+
+    <article class="card" id="kitsCard" hidden>
+      <h3>Kits de <span id="kitsPracticaNombre">—</span></h3>
+      <p class="muted" style="font-size:12px;margin:0 0 10px" id="kitsHint">Selecciona una práctica para gestionar sus kits.</p>
+      <div id="kitsContainer"><div class="empty-state">Cargando kits...</div></div>
+
+      <h3 style="margin-top:14px">+ Nuevo kit</h3>
+      <form id="formKit" class="form-card">
+        <div class="field"><input name="nombre" placeholder="Nombre del kit (opcional)"></div>
+        <button class="btn btn-secondary" type="submit">Crear kit vacío</button>
+      </form>
+    </article>
+  </section>
+</main>
+
+<%- include('partials/bottom-nav', {
+  active: 'home',
+  navItems: [
+    { key: 'home', label: 'Inicio', href: '#home',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>' },
+    { key: 'users', label: 'Usuarios', href: '#users',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>' },
+    { key: 'logo', label: '', href: '#home', center: true,
+      icon: '<svg viewBox="0 0 200 120"><g fill="none" stroke-width="14" stroke-linecap="round"><circle cx="60" cy="60" r="38" stroke="#1d5e6e"/><circle cx="140" cy="60" r="38" stroke="#e07338"/></g></svg>' },
+    { key: 'mats', label: 'Materiales', href: '#mats',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>' },
+    { key: 'practs', label: 'Prácticas', href: '#practs',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>' }
+  ]
+}) %>
+
+<script src="/js/common.js" defer></script>
+<script src="/js/admin.js" defer></script>
+</body>
+</html>

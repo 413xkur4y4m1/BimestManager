@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Monitoreo · BimestManager</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body { font-family: -apple-system, Segoe UI, Roboto, sans-serif; background:#0f172a; color:#e2e8f0; margin:0; padding:24px; }
+  h1 { margin:0 0 4px; font-size:22px; }
+  .sub { color:#94a3b8; font-size:13px; margin-bottom:20px; }
+  .grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(280px,1fr)); gap:14px; }
+  .card { background:#1e293b; border:1px solid #334155; border-radius:10px; padding:16px; }
+  .card h3 { margin:0 0 10px; font-size:14px; color:#cbd5e1; letter-spacing:.5px; text-transform:uppercase; }
+  .metric { font-size:28px; font-weight:600; }
+  .unit { font-size:14px; color:#94a3b8; margin-left:4px; }
+  .bar { height:8px; background:#334155; border-radius:4px; overflow:hidden; margin-top:8px; }
+  .bar > div { height:100%; background:linear-gradient(90deg,#10b981,#f59e0b,#ef4444); transition:width .4s; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th, td { padding:6px 8px; text-align:left; border-bottom:1px solid #334155; }
+  th { color:#94a3b8; font-weight:500; }
+  .ok { color:#10b981; }
+  .err { color:#ef4444; }
+  .footer { margin-top:16px; font-size:12px; color:#64748b; }
+  button { background:#3b82f6; color:white; border:0; padding:8px 14px; border-radius:6px; cursor:pointer; }
+</style>
+</head>
+<body>
+  <h1>Monitoreo de recursos · BimestManager</h1>
+  <div class="sub" id="meta">Cargando…</div>
+
+  <div class="grid">
+    <div class="card">
+      <h3>CPU</h3>
+      <div><span class="metric" id="cpuPct">--</span><span class="unit">%</span></div>
+      <div class="bar"><div id="cpuBar" style="width:0%"></div></div>
+      <div class="footer"><span id="cpuNucleos">--</span> núcleos · load avg: <span id="cpuLoad">--</span></div>
+    </div>
+
+    <div class="card">
+      <h3>Memoria RAM</h3>
+      <div><span class="metric" id="memPct">--</span><span class="unit">%</span></div>
+      <div class="bar"><div id="memBar" style="width:0%"></div></div>
+      <div class="footer"><span id="memUsada">--</span> MB / <span id="memTotal">--</span> MB</div>
+    </div>
+
+    <div class="card">
+      <h3>Base de datos (MySQL)</h3>
+      <div class="metric" id="dbEstado">--</div>
+      <div class="footer">Latencia ping: <span id="dbLat">--</span> ms</div>
+    </div>
+
+    <div class="card">
+      <h3>Proceso Node</h3>
+      <div>RSS: <span id="procRss">--</span> MB</div>
+      <div>Heap: <span id="procHeap">--</span> MB</div>
+      <div class="footer">PID <span id="procPid">--</span> · uptime <span id="procUp">--</span>s</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px;">
+    <h3>Disco</h3>
+    <table id="tablaDisco"><thead><tr><th>Volumen</th><th>Tipo</th><th>Usado</th><th>Total</th><th>%</th></tr></thead><tbody></tbody></table>
+  </div>
+
+  <div class="card" style="margin-top:14px;">
+    <h3>Red</h3>
+    <table id="tablaRed"><thead><tr><th>Interfaz</th><th>RX kbps</th><th>TX kbps</th><th>RX total MB</th><th>TX total MB</th></tr></thead><tbody></tbody></table>
+  </div>
+
+  <div class="footer" style="margin-top:18px;">
+    Actualiza cada 5s · <button onclick="cargar()">Refrescar ahora</button>
+  </div>
+
+<script>
+async function cargar() {
+  try {
+    const r = await fetch('/monitor/metricas', { credentials:'include' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const d = await r.json();
+    document.getElementById('meta').textContent = `${d.hostname} · ${d.timestamp} · uptime SO ${d.uptime_segundos}s`;
+
+    document.getElementById('cpuPct').textContent = d.cpu.porcentaje_global;
+    document.getElementById('cpuBar').style.width = d.cpu.porcentaje_global + '%';
+    document.getElementById('cpuNucleos').textContent = d.cpu.nucleos;
+    document.getElementById('cpuLoad').textContent = (d.cpu.load_avg_1min || 0).toFixed(2);
+
+    document.getElementById('memPct').textContent = d.memoria.uso_porcentaje;
+    document.getElementById('memBar').style.width = d.memoria.uso_porcentaje + '%';
+    document.getElementById('memUsada').textContent = d.memoria.usada_mb;
+    document.getElementById('memTotal').textContent = d.memoria.total_mb;
+
+    const dbE = document.getElementById('dbEstado');
+    dbE.textContent = d.base_datos.ok ? 'OK' : 'ERROR';
+    dbE.className = 'metric ' + (d.base_datos.ok ? 'ok' : 'err');
+    document.getElementById('dbLat').textContent = d.base_datos.latencia_ms ?? '—';
+
+    document.getElementById('procRss').textContent = d.proceso.memoria_rss_mb;
+    document.getElementById('procHeap').textContent = d.proceso.memoria_heap_mb;
+    document.getElementById('procPid').textContent = d.proceso.pid;
+    document.getElementById('procUp').textContent = d.proceso_uptime_segundos;
+
+    const tbD = document.querySelector('#tablaDisco tbody');
+    tbD.innerHTML = d.disco.map(x => `<tr><td>${x.sistema}</td><td>${x.tipo}</td><td>${x.usado_gb} GB</td><td>${x.total_gb} GB</td><td>${x.uso_porcentaje}%</td></tr>`).join('');
+
+    const tbR = document.querySelector('#tablaRed tbody');
+    tbR.innerHTML = d.red.map(x => `<tr><td>${x.interfaz}</td><td>${x.rx_kbps}</td><td>${x.tx_kbps}</td><td>${x.rx_total_mb}</td><td>${x.tx_total_mb}</td></tr>`).join('');
+  } catch (e) {
+    document.getElementById('meta').textContent = 'Error: ' + e.message;
+  }
+}
+cargar();
+setInterval(cargar, 5000);
+</script>
+</body>
+</html>

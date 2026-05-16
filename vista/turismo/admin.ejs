@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<%- include('../partials/head', { titulo: 'Panel Admin · Turismo' }) %>
+</head>
+<body class="screen-app">
+<%- include('../partials/header', { titulo: 'Admin · Turismo' }) %>
+
+<main class="app-content">
+  <div id="flash" class="flash" hidden></div>
+
+  <!-- ============== TAB: Inicio ============== -->
+  <section data-tab="home">
+    <h1 class="section-title">Panel admin Turismo</h1>
+    <p class="section-subtitle" id="welcomeSub">Cargando...</p>
+
+    <article class="card">
+      <h3>Resumen</h3>
+      <dl class="kv" id="resumenKv"><div><dt>Cargando</dt><dd>—</dd></div></dl>
+    </article>
+
+    <article class="card">
+      <h3>Atajos</h3>
+      <div class="btn-row">
+        <a class="btn btn-secondary" href="#users">Usuarios</a>
+        <a class="btn btn-primary" href="#practs">Prácticas</a>
+      </div>
+    </article>
+  </section>
+
+  <!-- ============== TAB: Usuarios ============== -->
+  <section data-tab="users">
+    <h1 class="section-title">Usuarios</h1>
+    <p class="section-subtitle">Autoriza alumnos, asígnales grupo y crea admins.</p>
+
+    <div class="subtabs" role="tablist" aria-label="Secciones de usuarios">
+      <button type="button" class="is-active" data-subtab="us-pend">Pendientes</button>
+      <button type="button" data-subtab="us-act">Activos</button>
+      <button type="button" data-subtab="us-new">Crear admin</button>
+    </div>
+
+    <div data-subtab-panel="us-pend">
+      <article class="card">
+        <h3>Pendientes de autorización</h3>
+        <ul class="list" id="pendientesList"><li class="empty-state">Cargando...</li></ul>
+      </article>
+    </div>
+
+    <div data-subtab-panel="us-act" hidden>
+      <article class="card">
+        <h3>Usuarios activos</h3>
+        <p class="muted" style="font-size:13px;margin:0 0 8px">Cambia grupo, activa o desactiva.</p>
+        <ul class="list" id="usuariosList"><li class="empty-state">Cargando...</li></ul>
+      </article>
+    </div>
+
+    <div data-subtab-panel="us-new" hidden>
+      <article class="card">
+        <h3>+ Crear admin</h3>
+        <form id="formUsuario" class="form-card">
+          <div class="field"><input name="nombre" placeholder="Nombre" minlength="3" maxlength="100" required></div>
+          <div class="field"><input name="email" type="email" placeholder="Email" required></div>
+          <div class="field"><input name="password" type="password" placeholder="Contraseña (8+)" minlength="8" required></div>
+          <input type="hidden" name="rol" value="ADMIN">
+          <button class="btn btn-primary" type="submit">Crear admin</button>
+        </form>
+      </article>
+    </div>
+  </section>
+
+  <!-- ============== TAB: Materiales ============== -->
+  <section data-tab="mats">
+    <h1 class="section-title">Materiales</h1>
+    <p class="section-subtitle">Inventario, préstamos e incidencias.</p>
+
+    <div class="subtabs" role="tablist" aria-label="Secciones de materiales">
+      <button type="button" class="is-active" data-subtab="mt-inv">Inventario</button>
+      <button type="button" data-subtab="mt-loans">Préstamos</button>
+      <button type="button" data-subtab="mt-inci">Incidencias</button>
+    </div>
+
+    <div data-subtab-panel="mt-inv">
+      <article class="card">
+        <h3>Inventario</h3>
+        <ul class="list" id="materialesList"><li class="empty-state">Cargando...</li></ul>
+      </article>
+      <article class="card">
+        <h3>+ Crear material</h3>
+        <form id="formMaterial" class="form-card">
+          <div class="field"><input name="nombre" placeholder="Nombre" maxlength="100" required></div>
+          <div class="field"><input name="stock" type="number" min="0" placeholder="Stock" required></div>
+          <div class="field">
+            <select name="estado">
+              <option value="DISPONIBLE">DISPONIBLE</option>
+              <option value="DAÑADO">DAÑADO</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" type="submit">Crear material</button>
+        </form>
+      </article>
+    </div>
+
+    <div data-subtab-panel="mt-loans" hidden>
+      <article class="card">
+        <h3>Préstamos</h3>
+        <p class="muted" style="font-size:13px;margin:0 0 6px">Marca devolución o adeudo.</p>
+        <ul class="list" id="prestamosList"><li class="empty-state">Cargando...</li></ul>
+      </article>
+
+      <article class="card">
+        <h3>+ Registrar préstamo manual</h3>
+        <p class="muted" style="font-size:12px;margin:0 0 8px">Útil cuando entregas el material en el mostrador. El alumno también puede solicitarlo desde su panel.</p>
+        <form id="formPrestamo" class="form-card">
+          <div class="field-tight">
+            <select name="sesion_id" id="sesionPrestSel" required>
+              <option value="">Sesión...</option>
+            </select>
+          </div>
+          <div class="field-tight">
+            <select name="alumno_id" id="alumnoPrestSel" required>
+              <option value="">Alumno (selecciona sesión primero)...</option>
+            </select>
+          </div>
+          <div class="field-tight">
+            <select name="material_id" id="matPrestSel" required>
+              <option value="">Material...</option>
+            </select>
+          </div>
+          <div class="field-tight">
+            <input name="cantidad" type="number" min="1" value="1" required>
+          </div>
+          <button class="btn btn-primary" type="submit">Registrar préstamo</button>
+        </form>
+      </article>
+    </div>
+
+    <div data-subtab-panel="mt-inci" hidden>
+      <article class="card">
+        <h3>Incidencias reportadas</h3>
+        <ul class="list" id="incidenciasList"><li class="empty-state">Cargando...</li></ul>
+      </article>
+    </div>
+  </section>
+
+  <!-- ============== TAB: Prácticas ============== -->
+  <section data-tab="practs">
+    <h1 class="section-title">Prácticas</h1>
+    <p class="section-subtitle">Catálogo, materiales sugeridos y sesiones.</p>
+
+    <div class="subtabs" role="tablist" aria-label="Secciones de prácticas">
+      <button type="button" class="is-active" data-subtab="pr-cat">Catálogo</button>
+      <button type="button" data-subtab="pr-sess">Sesiones</button>
+    </div>
+
+    <div data-subtab-panel="pr-cat">
+      <article class="card">
+        <h3>Prácticas registradas</h3>
+        <ul class="list" id="practicasList"><li class="empty-state">Cargando...</li></ul>
+      </article>
+
+      <article class="card">
+        <h3>+ Crear práctica</h3>
+        <form id="formPractica" class="form-card">
+          <div class="field"><input name="nombre" placeholder="Nombre de la práctica" required></div>
+          <div class="field"><textarea name="descripcion" placeholder="Descripción (opcional)"></textarea></div>
+          <div class="field"><input name="duracion_minutos" type="number" min="1" placeholder="Duración (min)"></div>
+          <button class="btn btn-primary" type="submit">Crear práctica</button>
+        </form>
+      </article>
+
+      <article class="card" id="sugerenciasCard" hidden>
+        <h3>Materiales sugeridos para <span id="sugerenciasPracticaNombre">—</span></h3>
+        <p class="muted" style="font-size:12px;margin:0 0 10px">Estos son los materiales que verá el alumno cuando solicite préstamo.</p>
+        <div id="sugerenciasContainer"><div class="empty-state">Cargando...</div></div>
+
+        <h3 style="margin-top:14px">+ Agregar sugerencia</h3>
+        <form id="formSugerencia" class="form-card">
+          <div class="field-tight">
+            <select name="material_id" id="sugMatSel" required>
+              <option value="">Material...</option>
+            </select>
+          </div>
+          <div class="field-tight">
+            <input name="cantidad_sugerida" type="number" min="1" value="1" required>
+          </div>
+          <button class="btn btn-secondary" type="submit">Agregar a la práctica</button>
+        </form>
+      </article>
+    </div>
+
+    <div data-subtab-panel="pr-sess" hidden>
+      <article class="card">
+        <h3>Sesiones</h3>
+        <ul class="list" id="sesionesList"><li class="empty-state">Cargando...</li></ul>
+      </article>
+
+      <article class="card">
+        <h3>+ Programar sesión</h3>
+        <form id="formSesion" class="form-card">
+          <label class="field-label">Práctica</label>
+          <div class="field"><select name="practica_id" id="practicaSel" required><option value="">Práctica...</option></select></div>
+          <label class="field-label">Grupo</label>
+          <div class="field"><input name="grupo" placeholder="Ej. GTU-1" maxlength="50" required></div>
+          <label class="field-label">Inicio</label>
+          <div class="field"><input name="fecha_inicio" type="datetime-local" required></div>
+          <label class="field-label">Fin</label>
+          <div class="field"><input name="fecha_fin" type="datetime-local" required></div>
+          <button class="btn btn-primary" type="submit">Crear sesión</button>
+        </form>
+      </article>
+    </div>
+  </section>
+</main>
+
+<%- include('../partials/bottom-nav', {
+  active: 'home',
+  navItems: [
+    { key: 'home', label: 'Inicio', href: '#home',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>' },
+    { key: 'users', label: 'Usuarios', href: '#users',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>' },
+    { key: 'logo', label: '', href: '#home', center: true,
+      icon: '<svg viewBox="0 0 200 120"><g fill="none" stroke-width="14" stroke-linecap="round"><circle cx="60" cy="60" r="38" stroke="#1d5e6e"/><circle cx="140" cy="60" r="38" stroke="#e07338"/></g></svg>' },
+    { key: 'mats', label: 'Materiales', href: '#mats',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>' },
+    { key: 'practs', label: 'Prácticas', href: '#practs',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>' }
+  ]
+}) %>
+
+<script src="/js/common.js" defer></script>
+<script src="/js/turismo-admin.js" defer></script>
+</body>
+</html>

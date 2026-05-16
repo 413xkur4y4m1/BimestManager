@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<%- include('partials/head', { titulo: 'Panel Maestro' }) %>
+</head>
+<body class="screen-app">
+<%- include('partials/header', { titulo: 'Maestro' }) %>
+
+<main class="app-content">
+  <div id="flash" class="flash" hidden></div>
+
+  <!-- ============== TAB: Inicio ============== -->
+  <section data-tab="home">
+    <h1 class="section-title" id="welcomeTitle">Panel maestro</h1>
+    <p class="section-subtitle" id="welcomeSub">Cargando...</p>
+
+    <article class="card">
+      <h3>Resumen</h3>
+      <dl class="kv" id="resumenKv"><div><dt>Cargando</dt><dd>—</dd></div></dl>
+    </article>
+
+    <article class="card">
+      <h3>Próxima sesión</h3>
+      <div id="proximaSesion"><div class="empty-state">Cargando...</div></div>
+    </article>
+
+    <article class="card">
+      <h3>Atajos</h3>
+      <div class="btn-row">
+        <a class="btn btn-secondary" href="#alumnos">Alumnos</a>
+        <a class="btn btn-secondary" href="#equipos">Equipos</a>
+        <a class="btn btn-primary" href="#sesiones">Sesiones</a>
+      </div>
+    </article>
+  </section>
+
+  <!-- ============== TAB: Sesiones ============== -->
+  <section data-tab="sesiones">
+    <h1 class="section-title">Sesiones</h1>
+    <p class="section-subtitle">Programa, controla estados y arma equipos.</p>
+
+    <div class="subtabs" role="tablist" aria-label="Secciones de sesiones">
+      <button type="button" class="is-active" data-subtab="ses-list">Mis sesiones</button>
+      <button type="button" data-subtab="ses-new">Crear sesión</button>
+      <button type="button" data-subtab="ses-teams">Armar equipos</button>
+    </div>
+
+    <div data-subtab-panel="ses-list">
+      <article class="card">
+        <h3>Mis sesiones</h3>
+        <ul class="list" id="sesionesList"><li class="empty-state">Cargando...</li></ul>
+      </article>
+    </div>
+
+    <div data-subtab-panel="ses-new" hidden>
+      <article class="card">
+        <h3>Crear sesión</h3>
+        <form id="formSesion" class="form-card">
+          <label class="field-label">Práctica</label>
+          <div class="field"><select name="practica_id" id="practicaSel" required><option value="">Selecciona...</option></select></div>
+
+          <label class="field-label">Grupo</label>
+          <div class="field"><select name="grupo_id" id="grupoSel" required><option value="">Selecciona...</option></select></div>
+
+          <label class="field-label">Fecha</label>
+          <div class="field"><input type="date" name="fecha" required></div>
+
+          <label class="field-label">Hora inicio</label>
+          <div class="field"><input type="time" name="hora_inicio"></div>
+
+          <label class="field-label">Duración (min)</label>
+          <div class="field"><input type="number" name="duracion_min" min="1" placeholder="60"></div>
+
+          <label class="field-label">Núm. equipos</label>
+          <div class="field"><input type="number" name="num_equipos" min="1" placeholder="6"></div>
+
+          <label class="field-label">Integrantes por equipo</label>
+          <div class="field"><input type="number" name="integrantes_por_equipo" min="1" placeholder="4"></div>
+
+          <button class="btn btn-primary" id="btnCrearSesion" type="submit">Crear sesión</button>
+        </form>
+      </article>
+    </div>
+
+    <div data-subtab-panel="ses-teams" hidden>
+      <article class="card">
+        <h3>Armar equipos</h3>
+        <p class="muted" style="font-size:13px;margin:0 0 8px">Elige una sesión y selecciona alumnos para crear cada equipo.</p>
+        <div class="field-tight">
+          <select id="sesionEquiposSel">
+            <option value="">Selecciona una sesión...</option>
+          </select>
+        </div>
+
+        <div id="equiposBloque" hidden>
+          <h4 style="margin:14px 0 6px;color:var(--c-teal-900);font-size:14px">Equipos creados</h4>
+          <p class="muted" style="font-size:12px;margin:0 0 8px">Cada equipo tiene una responsiva ACTIVA — todos sus integrantes responden por el material.</p>
+          <div id="equiposExistentes"><div class="empty-state">Sin equipos.</div></div>
+
+          <h4 style="margin:14px 0 6px;color:var(--c-teal-900);font-size:14px">Alumnos del grupo</h4>
+          <p class="muted" style="font-size:12px;margin:0 0 8px" id="hintAlumnos">—</p>
+          <ul class="picker-list" id="alumnosPicker"><li><div class="picker-row"><div class="picker-row__main"><div class="picker-row__sub">Cargando...</div></div></div></li></ul>
+
+          <form id="formEquipo" class="form-card" style="margin-top:12px">
+            <div class="field-tight"><input name="nombre" placeholder="Nombre del equipo (opcional)" maxlength="50"></div>
+            <button class="btn btn-primary" type="submit">Crear equipo con seleccionados</button>
+          </form>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- ============== TAB: Equipos ============== -->
+  <section data-tab="equipos">
+    <h1 class="section-title">Equipos</h1>
+    <p class="section-subtitle">Todos tus equipos. Reporta incidencias en un toque.</p>
+
+    <article class="card">
+      <h3>Filtro</h3>
+      <label style="display:flex;gap:8px;align-items:center;font-size:13px;color:var(--c-ink-soft);margin:0">
+        <input type="checkbox" id="chkIncluirFinalizadas" style="width:18px;height:18px;accent-color:var(--c-orange-600)">
+        Incluir sesiones finalizadas
+      </label>
+    </article>
+
+    <div id="equiposGlobalLista"><div class="empty-state">Cargando equipos...</div></div>
+  </section>
+
+  <!-- ============== TAB: Alumnos ============== -->
+  <section data-tab="alumnos">
+    <h1 class="section-title">Alumnos</h1>
+    <p class="section-subtitle">Autoriza, asigna grupo y administra los grupos.</p>
+
+    <div class="subtabs" role="tablist" aria-label="Secciones de alumnos">
+      <button type="button" class="is-active" data-subtab="al-pend">Pendientes</button>
+      <button type="button" data-subtab="al-grupo">Asignar grupo</button>
+      <button type="button" data-subtab="al-grps">Grupos</button>
+    </div>
+
+    <div data-subtab-panel="al-pend">
+      <article class="card">
+        <h3>Pendientes de autorización</h3>
+        <ul class="list" id="pendientesList"><li class="empty-state">Cargando...</li></ul>
+      </article>
+    </div>
+
+    <div data-subtab-panel="al-grupo" hidden>
+      <article class="card">
+        <h3>Asignar grupo a un alumno activo</h3>
+        <p class="muted" style="font-size:13px;margin:0 0 10px">Cambia o asigna el grupo del alumno (puede usarse en cualquier momento).</p>
+        <div class="field-tight">
+          <select id="grupoFiltroSel">
+            <option value="">Mostrar todos los grupos</option>
+          </select>
+        </div>
+        <ul class="list" id="alumnosActivosList"><li class="empty-state">Cargando...</li></ul>
+      </article>
+    </div>
+
+    <div data-subtab-panel="al-grps" hidden>
+      <article class="card">
+        <h3>Grupos registrados</h3>
+        <ul class="list" id="gruposList"><li class="empty-state">Cargando...</li></ul>
+      </article>
+
+      <article class="card">
+        <h3>+ Crear grupo</h3>
+        <form id="formGrupo" class="form-card">
+          <div class="field"><input name="nombre" placeholder="Ej. 4QM-1" maxlength="50" required></div>
+          <button class="btn btn-primary" type="submit">Crear grupo</button>
+        </form>
+      </article>
+    </div>
+  </section>
+</main>
+
+<%- include('partials/bottom-nav', {
+  active: 'home',
+  navItems: [
+    { key: 'home', label: 'Inicio', href: '#home',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>' },
+    { key: 'sesiones', label: 'Sesiones', href: '#sesiones',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>' },
+    { key: 'logo', label: '', href: '#home', center: true,
+      icon: '<svg viewBox="0 0 200 120"><g fill="none" stroke-width="14" stroke-linecap="round"><circle cx="60" cy="60" r="38" stroke="#1d5e6e"/><circle cx="140" cy="60" r="38" stroke="#e07338"/></g></svg>' },
+    { key: 'equipos', label: 'Equipos', href: '#equipos',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/><path d="M5 21v-1a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v1"/></svg>' },
+    { key: 'alumnos', label: 'Alumnos', href: '#alumnos',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>' }
+  ]
+}) %>
+
+<script src="/js/common.js" defer></script>
+<script src="/js/maestro.js" defer></script>
+</body>
+</html>

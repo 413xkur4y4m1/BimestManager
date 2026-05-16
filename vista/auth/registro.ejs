@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<%- include('../partials/head', { titulo: 'Registrarse' }) %>
+</head>
+<body class="screen-auth">
+  <div class="auth-brand">
+    <h1>Bimest Manager</h1>
+  </div>
+
+  <%- include('../partials/logo') %>
+
+  <main class="auth-form">
+    <h2 class="auth-title">Registrarse</h2>
+
+    <div class="auth-tabs" role="tablist" aria-label="Modulo">
+      <button type="button" data-fuente="QUIMICA" class="is-active" role="tab" aria-selected="true">Qu&iacute;mica</button>
+      <button type="button" data-fuente="TURISMO" role="tab" aria-selected="false">Turismo</button>
+    </div>
+
+    <div id="flash" class="flash" hidden></div>
+
+    <form id="registroForm" autocomplete="on" novalidate>
+      <input type="hidden" name="fuente" value="QUIMICA">
+
+      <div class="field">
+        <input type="text" name="nombre" placeholder="Nombre completo" minlength="3" maxlength="100" autocomplete="name" required>
+      </div>
+      <div class="field">
+        <input type="email" name="email" placeholder="Correo electronico" autocomplete="email" inputmode="email" required>
+      </div>
+      <div class="field">
+        <input type="password" name="password" placeholder="Contrase&ntilde;a (min 8)" autocomplete="new-password" minlength="8" required>
+      </div>
+      <div class="field">
+        <input type="password" name="password2" placeholder="Confirmar contrase&ntilde;a" autocomplete="new-password" minlength="8" required>
+      </div>
+
+      <div class="field" data-only="TURISMO" hidden>
+        <input type="text" name="grupo" placeholder="Grupo (opcional, ej. GTU-1)" maxlength="50">
+      </div>
+
+      <div style="height: 6px"></div>
+
+      <button class="btn btn-primary" type="submit" id="submitBtn">Crear cuenta</button>
+    </form>
+
+    <p class="auth-footer">
+      &iquest;Ya tienes una cuenta? <a href="/login">Inicia sesi&oacute;n</a>
+    </p>
+  </main>
+
+  <script src="/js/common.js" defer></script>
+  <script src="/js/auth.js" defer></script>
+</body>
+</html>
