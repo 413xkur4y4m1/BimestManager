@@ -321,16 +321,7 @@ Ver `docs/DESPLIEGUE.md` para la guía completa paso a paso.
 
 ---
 
-## Documentación adicional
 
-Toda la documentación operativa vive en `docs/`:
-
-- 📄 [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md) — Arquitectura DC/DB/WEB/MON y guía de despliegue
-- 📄 [`docs/OPERACION.md`](docs/OPERACION.md) — Runbook y checklist operativo
-- 📄 [`docs/BITACORA_INCIDENTE.md`](docs/BITACORA_INCIDENTE.md) — Plantilla y caso real de incidente
-- 📄 [`docs/CAMBIOS_PARCIAL2.md`](docs/CAMBIOS_PARCIAL2.md) — Changelog detallado
-
----
 
 ## Equipo
 
@@ -348,7 +339,7 @@ BimestManager es resultado del trabajo conjunto de un equipo multidisciplinario:
 
 ### Infra estructura 
 
-- **Juan Pablo Flores Varela - PO, Sysadmin e infrastructure **
+- **Juan Pablo Flores Varela - PO, Sysadmin e infrastructura**
 - **Pérez Arzate Carlos Daniel -  Diseñador BD e infraestructura**
 
 ---
