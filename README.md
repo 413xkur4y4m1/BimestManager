@@ -346,10 +346,10 @@ BimestManager es resultado del trabajo conjunto de un equipo multidisciplinario:
 - **Said Díaz Loya** — Diseño de interfaz y experiencia de usuario
 - **Kevin Sandoval Nieves** — Diseño visual y prototipado
 
-### Colaboradores
+### Infra estructura 
 
-- **Juan Pablo Flores Varela**
-- **Pérez Arzate Carlos Daniel**
+- **Juan Pablo Flores Varela - PO, Sysadmin e infrastructure **
+- **Pérez Arzate Carlos Daniel -  Diseñador BD e infraestructura**
 
 ---
 
