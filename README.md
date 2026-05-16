@@ -335,7 +335,7 @@ BimestManager es resultado del trabajo conjunto de un equipo multidisciplinario:
 ### Diseño
 
 - **Said Díaz Loya** — Diseño de interfaz y experiencia de usuario
-- **Kevin Sandoval Nieves** — Diseño visual y prototipado
+- **Kevin Sandoval Nieves** — Diseño visual y prototipado Despliegue Servidor BD
 
 ### Infra estructura 
 
