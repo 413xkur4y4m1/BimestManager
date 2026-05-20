@@ -1,0 +1,4463 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BimestManager — Menos papel, más control</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg-0: #0a0612;
+    --bg-1: #120920;
+    --bg-2: #1a0d2e;
+    --surface: rgba(255,255,255,0.04);
+    --surface-2: rgba(255,255,255,0.07);
+    --border: rgba(255,255,255,0.10);
+    --border-strong: rgba(255,255,255,0.18);
+    --text: #f3eef9;
+    --muted: #a99cc4;
+    --dim: #6f6488;
+    --accent: #c96f3f;
+    --accent-2: #d97757;
+    --purple: #9b7cf2;
+    --purple-2: #6d4fc7;
+    --pink: #e8a0c8;
+    --green: #6dd6a8;
+    --shadow: 0 25px 60px -20px rgba(0,0,0,0.6);
+
+    /* Colores REALES del sistema BimestManager */
+    --bm-teal-900: #134a58;
+    --bm-teal-800: #1d5e6e;
+    --bm-teal-700: #2a7387;
+    --bm-teal-600: #3a8ea3;
+    --bm-orange-700: #c75e1f;
+    --bm-orange-600: #e07338;
+    --bm-orange-500: #ed8a4f;
+    --bm-cream: #f4e8d6;
+    --bm-ink: #122027;
+    --bm-ink-soft: #2d4753;
+    --bm-bg-app: linear-gradient(180deg, #1c5b6b 0%, #2a7287 18%, #b97648 50%, #4d97a8 78%, #3a7e91 100%);
+  }
+
+  html, body {
+    background: var(--bg-0);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    line-height: 1.55;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  /* Fondo animado */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(circle at 15% 20%, rgba(155,124,242,0.18), transparent 40%),
+      radial-gradient(circle at 85% 80%, rgba(201,111,63,0.15), transparent 45%),
+      radial-gradient(circle at 50% 50%, rgba(109,79,199,0.10), transparent 60%);
+    z-index: -2;
+    animation: bgFloat 18s ease-in-out infinite alternate;
+  }
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+    background-size: 50px 50px;
+    z-index: -1;
+    pointer-events: none;
+  }
+  @keyframes bgFloat {
+    0%   { transform: translate(0,0) scale(1); }
+    100% { transform: translate(-3%, 2%) scale(1.05); }
+  }
+
+  /* TOP BAR */
+  .topbar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    background: rgba(10, 6, 18, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: -0.3px;
+  }
+  .logo-mark {
+    width: 32px; height: 32px;
+    display: grid;
+    place-items: center;
+    filter: drop-shadow(0 4px 14px rgba(217,119,87,0.5));
+  }
+  .logo-mark img { width: 100%; height: 100%; object-fit: contain; }
+  .slide-counter {
+    font-size: 12px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 6px 14px;
+    border-radius: 999px;
+  }
+  .slide-counter .current {
+    color: var(--accent-2);
+    font-weight: 700;
+  }
+
+  /* PROGRESS */
+  .progress {
+    position: fixed;
+    top: 0; left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--purple));
+    z-index: 200;
+    width: 0%;
+    transition: width 0.4s ease;
+  }
+
+  /* SLIDES CONTAINER */
+  .deck {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    padding: 80px 40px 100px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease, transform 0.55s cubic-bezier(.2,.8,.2,1);
+    transform: translateX(40px);
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  .slide.active {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(0);
+    z-index: 5;
+  }
+  .slide.prev {
+    transform: translateX(-40px);
+  }
+
+  /* Scrollbar bonito dentro de slides */
+  .slide::-webkit-scrollbar { width: 8px; }
+  .slide::-webkit-scrollbar-track { background: transparent; }
+  .slide::-webkit-scrollbar-thumb {
+    background: rgba(155,124,242,0.3);
+    border-radius: 4px;
+  }
+  .slide::-webkit-scrollbar-thumb:hover { background: rgba(155,124,242,0.5); }
+
+  /* CONTROLES */
+  .controls {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 150;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(10, 6, 18, 0.85);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    border-radius: 999px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+  }
+  .ctrl-btn {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    font-size: 16px;
+    transition: 0.2s;
+  }
+  .ctrl-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, var(--accent), var(--purple));
+    border-color: transparent;
+    transform: scale(1.08);
+  }
+  .ctrl-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  .dots {
+    display: flex;
+    gap: 6px;
+    padding: 0 8px;
+  }
+  .dot-nav {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--border-strong);
+    cursor: pointer;
+    transition: 0.25s;
+    border: none;
+    padding: 0;
+  }
+  .dot-nav:hover { background: var(--muted); }
+  .dot-nav.active {
+    width: 24px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--accent), var(--purple));
+  }
+
+  .kbd-hint {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    z-index: 150;
+    font-size: 11px;
+    color: var(--dim);
+    background: rgba(10,6,18,0.7);
+    padding: 8px 14px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    backdrop-filter: blur(10px);
+  }
+  .kbd {
+    display: inline-block;
+    padding: 1px 6px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 10px;
+    color: var(--text);
+    margin: 0 2px;
+  }
+
+  /* HERO */
+  .hero {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .hero-grid {
+    max-width: 1300px;
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    gap: 70px;
+    align-items: center;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    background: linear-gradient(90deg, rgba(217,119,87,0.18), rgba(155,124,242,0.18));
+    border: 1px solid rgba(217,119,87,0.4);
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent-2);
+    margin-bottom: 24px;
+  }
+  .badge::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--accent);
+  }
+  h1 {
+    font-size: clamp(44px, 5.5vw, 78px);
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+    font-weight: 700;
+    margin-bottom: 18px;
+  }
+  .title-grad {
+    background: linear-gradient(120deg, #fff 0%, var(--purple) 50%, var(--accent-2) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .hero-sub {
+    font-size: 18px;
+    color: var(--muted);
+    margin-bottom: 30px;
+    max-width: 520px;
+  }
+  .chips {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 32px;
+  }
+  .chip {
+    padding: 7px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .hint-start {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 22px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: #fff;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 14px;
+    box-shadow: 0 8px 24px rgba(217,119,87,0.35);
+  }
+
+  /* ===== HERO PHONE — login animado ===== */
+  .hero-phone-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .hero-phone-wrap::before,
+  .hero-phone-wrap::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    z-index: -1;
+  }
+  .hero-phone-wrap::before {
+    width: 220px; height: 220px;
+    background: rgba(155,124,242,0.35);
+    top: 8%; left: 5%;
+  }
+  .hero-phone-wrap::after {
+    width: 260px; height: 260px;
+    background: rgba(217,119,87,0.3);
+    bottom: 5%; right: 5%;
+  }
+
+  .hero-phone {
+    width: 290px;
+    aspect-ratio: 9 / 19;
+    max-height: 78vh;
+    background: #0a0a0a;
+    border: 5px solid #1a1a1a;
+    border-radius: 38px;
+    position: relative;
+    box-shadow:
+      0 30px 80px rgba(0,0,0,0.6),
+      0 0 0 1px rgba(255,255,255,0.05),
+      inset 0 0 0 1px rgba(255,255,255,0.04);
+    overflow: hidden;
+    animation: heroPhoneFloat 6s ease-in-out infinite alternate;
+  }
+  @keyframes heroPhoneFloat {
+    0% { transform: translateY(0) rotate(-1deg); }
+    100% { transform: translateY(-10px) rotate(1deg); }
+  }
+  .hp-notch {
+    position: absolute;
+    top: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90px;
+    height: 22px;
+    background: #0a0a0a;
+    border-radius: 0 0 14px 14px;
+    z-index: 10;
+  }
+  .hp-notch::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 18px;
+    transform: translateY(-50%);
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #1a1a1a;
+    box-shadow: inset 0 0 4px rgba(155,124,242,0.4);
+  }
+  .hp-screen {
+    width: 100%;
+    height: 100%;
+    background: var(--bm-bg-app);
+    padding: 38px 22px 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    position: relative;
+  }
+  .hp-brand {
+    color: #fff;
+    font-size: 22px;
+    font-weight: 800;
+    text-align: center;
+    letter-spacing: 0.2px;
+    margin-top: 4px;
+  }
+  .hp-logo {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.12);
+    display: grid;
+    place-items: center;
+    margin: 4px auto 8px;
+    backdrop-filter: blur(6px);
+    animation: hpLogoPulse 2.5s ease-in-out infinite;
+  }
+  .hp-logo img {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
+  }
+  @keyframes hpLogoPulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 0 rgba(255,255,255,0); }
+    50% { transform: scale(1.05); box-shadow: 0 0 24px rgba(255,255,255,0.2); }
+  }
+  .hp-section {
+    color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    margin-top: 6px;
+  }
+  .hp-input {
+    background: var(--bm-cream);
+    border-radius: 999px;
+    padding: 12px 18px;
+    font-size: 12px;
+    color: var(--bm-ink-soft);
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.06);
+    position: relative;
+    height: 36px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+  }
+  .hp-ph {
+    position: absolute;
+    left: 18px;
+    color: rgba(18,32,39,0.45);
+    transition: opacity 0.3s;
+  }
+  .hp-typed, .hp-dots {
+    color: var(--bm-ink);
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    width: 0;
+    border-right: 1px solid transparent;
+    position: relative;
+    z-index: 2;
+  }
+  .hp-input.email .hp-typed {
+    animation: hpTypeEmail 6s steps(20) infinite;
+  }
+  .hp-input.pass .hp-dots {
+    animation: hpTypePass 6s steps(10) infinite;
+    animation-delay: 1.4s;
+    letter-spacing: 2px;
+  }
+  @keyframes hpTypeEmail {
+    0%, 5% { width: 0; border-right-color: var(--bm-orange-500); }
+    25%, 90% { width: 20ch; border-right-color: transparent; }
+    95%, 100% { width: 0; }
+  }
+  @keyframes hpTypePass {
+    0%, 5% { width: 0; border-right-color: var(--bm-orange-500); }
+    20%, 80% { width: 10ch; border-right-color: transparent; }
+    90%, 100% { width: 0; }
+  }
+  .hp-input.email.typing .hp-ph { animation: hpHide 6s infinite; }
+  .hp-input.pass.typing .hp-ph { animation: hpHide 6s infinite 1.4s; }
+  .hp-input.email .hp-ph { animation: hpHide 6s infinite; }
+  .hp-input.pass .hp-ph { animation: hpHide 6s infinite 1.4s; }
+  @keyframes hpHide {
+    0%, 4% { opacity: 1; }
+    8%, 90% { opacity: 0; }
+    96%, 100% { opacity: 1; }
+  }
+  .hp-forgot {
+    color: var(--bm-orange-500);
+    font-size: 11px;
+    text-align: right;
+    margin-top: -2px;
+    font-weight: 600;
+  }
+  .hp-btn {
+    background: var(--bm-orange-500);
+    color: #fff;
+    text-align: center;
+    padding: 14px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 800;
+    margin-top: 6px;
+    box-shadow: 0 6px 20px rgba(237,138,79,0.4);
+    animation: hpBtnPress 6s ease-in-out infinite;
+  }
+  @keyframes hpBtnPress {
+    0%, 60% {
+      transform: scale(1);
+      background: var(--bm-orange-500);
+      box-shadow: 0 6px 20px rgba(237,138,79,0.4);
+    }
+    65%, 75% {
+      transform: scale(0.95);
+      background: var(--bm-orange-700);
+      box-shadow: 0 2px 10px rgba(237,138,79,0.6), 0 0 30px rgba(237,138,79,0.7);
+    }
+    85%, 100% {
+      transform: scale(1);
+      background: var(--bm-orange-500);
+      box-shadow: 0 6px 20px rgba(237,138,79,0.4);
+    }
+  }
+  .hp-foot {
+    color: #fff;
+    font-size: 11px;
+    text-align: center;
+    margin-top: 4px;
+  }
+  .hp-link {
+    color: var(--bm-orange-500);
+    font-weight: 700;
+  }
+  /* Dedo/tap simulado en el botón */
+  .hp-tap {
+    position: absolute;
+    bottom: 22%;
+    left: 50%;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,0.5), transparent 70%);
+    transform: translate(-50%, 0);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 15;
+    animation: hpTap 6s ease-in-out infinite;
+  }
+  @keyframes hpTap {
+    0%, 58% { opacity: 0; transform: translate(-50%, 30px) scale(0.5); }
+    62%, 72% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+    78%, 100% { opacity: 0; transform: translate(-50%, 0) scale(2); }
+  }
+
+  /* Mock window (legacy — sigue por si se usa en otra parte) */
+  .mock-window {
+    background: linear-gradient(160deg, rgba(45,30,75,0.6), rgba(20,12,38,0.8));
+    border: 1px solid var(--border-strong);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(10px);
+  }
+  .mock-bar {
+    background: rgba(0,0,0,0.3);
+    padding: 12px 16px;
+    display: flex;
+    gap: 7px;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+  }
+  .dot-w { width: 12px; height: 12px; border-radius: 50%; }
+  .dot-w.r { background: #ff5f57; }
+  .dot-w.y { background: #febc2e; }
+  .dot-w.g { background: #28c840; }
+  .mock-url {
+    margin-left: 14px;
+    font-size: 11px;
+    color: var(--dim);
+    background: rgba(0,0,0,0.3);
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-family: monospace;
+  }
+  .mock-body { padding: 22px; }
+  .mock-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+  .mock-tab {
+    padding: 6px 14px;
+    background: var(--surface);
+    border-radius: 999px;
+    font-size: 11px;
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .mock-tab.active {
+    background: linear-gradient(135deg, var(--purple-2), var(--purple));
+    color: #fff;
+    border-color: transparent;
+  }
+  .mock-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .mock-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+  }
+  .mock-card .lbl { font-size: 10px; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; }
+  .mock-card .val {
+    font-size: 22px; font-weight: 700; margin-top: 4px;
+    background: linear-gradient(90deg, var(--accent-2), var(--purple));
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .mock-line {
+    height: 8px;
+    background: var(--surface);
+    border-radius: 4px;
+    margin: 6px 0;
+  }
+  .mock-line.short { width: 60%; }
+  .mock-line.grad {
+    background: linear-gradient(90deg, var(--purple), var(--accent));
+    width: 70%;
+  }
+
+  /* SECTION HEAD */
+  .section-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .section-head {
+    text-align: center;
+    margin-bottom: 36px;
+  }
+  .section-tag {
+    display: inline-block;
+    color: var(--accent-2);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+  }
+  .section-title {
+    font-size: clamp(28px, 3.5vw, 46px);
+    letter-spacing: -0.03em;
+    font-weight: 700;
+    line-height: 1.05;
+    margin-bottom: 12px;
+  }
+  .section-desc {
+    font-size: 15px;
+    color: var(--muted);
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  /* EXPOSITOR */
+  .expositor {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 40px;
+    align-items: start;
+  }
+  .expositor-side {
+    position: sticky;
+    top: 0;
+  }
+  .expositor-avatar {
+    width: 76px;
+    height: 76px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--purple), var(--accent));
+    display: grid;
+    place-items: center;
+    font-weight: 800;
+    font-size: 26px;
+    color: #fff;
+    margin-bottom: 18px;
+    box-shadow: 0 8px 28px rgba(155,124,242,0.4);
+  }
+  .expositor-rol {
+    display: inline-block;
+    font-size: 10px;
+    color: var(--accent-2);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-weight: 700;
+    padding: 5px 11px;
+    background: rgba(217,119,87,0.1);
+    border: 1px solid rgba(217,119,87,0.3);
+    border-radius: 6px;
+    margin-bottom: 14px;
+    line-height: 1.3;
+  }
+  .expositor-titulo {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    margin-bottom: 12px;
+  }
+  .expositor-nombre {
+    padding: 10px 14px;
+    background: linear-gradient(135deg, rgba(155,124,242,0.12), rgba(217,119,87,0.12));
+    border: 1px solid rgba(155,124,242,0.3);
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #e6def5;
+    line-height: 1.3;
+    margin-bottom: 10px;
+  }
+  .expositor-time {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .expositor-content {
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 30px 34px;
+    backdrop-filter: blur(10px);
+    position: relative;
+    overflow: hidden;
+  }
+  .expositor-content::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 4px; height: 100%;
+    background: linear-gradient(180deg, var(--purple), var(--accent));
+  }
+  .expositor-content p {
+    color: #d6cae8;
+    margin-bottom: 12px;
+    font-size: 14.5px;
+  }
+  .expositor-content strong { color: var(--accent-2); font-weight: 700; }
+  .expositor-content em {
+    color: var(--purple);
+    font-style: normal;
+    font-weight: 600;
+  }
+
+  /* PASOS */
+  .pasos { display: grid; gap: 10px; margin: 16px 0; }
+  .paso {
+    display: grid;
+    grid-template-columns: 32px 1fr;
+    gap: 14px;
+    padding: 12px 14px;
+    background: rgba(0,0,0,0.25);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    transition: 0.2s;
+  }
+  .paso:hover {
+    border-color: var(--purple);
+    transform: translateX(4px);
+  }
+  .paso-num {
+    width: 28px; height: 28px;
+    background: linear-gradient(135deg, var(--purple-2), var(--purple));
+    border-radius: 7px;
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+    font-size: 13px;
+  }
+  .paso-titulo {
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 2px;
+    font-size: 14px;
+  }
+  .paso-desc { color: var(--muted); font-size: 13px; line-height: 1.45; }
+
+  /* SERVERS / ROLES */
+  .servers {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin: 16px 0;
+  }
+  .server {
+    padding: 18px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    transition: 0.25s;
+    position: relative;
+    overflow: hidden;
+  }
+  .server:hover { transform: translateY(-4px); border-color: var(--col); }
+  .server-icon {
+    width: 36px; height: 36px;
+    border-radius: 9px;
+    background: var(--col);
+    display: grid;
+    place-items: center;
+    font-weight: 800;
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+  .server-titulo { font-weight: 700; margin-bottom: 4px; font-size: 14px; }
+  .server-desc { font-size: 12.5px; color: var(--muted); line-height: 1.45; }
+
+  /* COMPARE */
+  .compare {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 20px;
+  }
+  .col {
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 22px 20px;
+    background: var(--surface);
+    transition: 0.3s;
+  }
+  .col.papel { border-color: rgba(255,95,95,0.25); }
+  .col.excel { border-color: rgba(254,188,46,0.25); }
+  .col.bm {
+    border: 1px solid transparent;
+    background:
+      linear-gradient(var(--bg-1), var(--bg-1)) padding-box,
+      linear-gradient(135deg, var(--purple), var(--accent)) border-box;
+    box-shadow: 0 0 60px -10px rgba(155,124,242,0.4);
+  }
+  .col:hover { transform: translateY(-6px); }
+  .col-titulo {
+    font-size: 20px;
+    font-weight: 800;
+    margin-bottom: 4px;
+    letter-spacing: -0.02em;
+  }
+  .col-sub {
+    font-size: 11px;
+    color: var(--dim);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 16px;
+  }
+  .col ul { list-style: none; }
+  .col li {
+    padding: 7px 0 7px 24px;
+    position: relative;
+    font-size: 13px;
+    color: var(--muted);
+    border-bottom: 1px dashed rgba(255,255,255,0.06);
+    line-height: 1.4;
+  }
+  .col li:last-child { border-bottom: none; }
+  .col.papel li::before, .col.excel li::before {
+    content: '✕';
+    position: absolute;
+    left: 0;
+    color: #ff7a7a;
+    font-weight: 700;
+  }
+  .col.excel li::before { color: #febc2e; }
+  .col.bm li { color: #e6def5; }
+  .col.bm li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: var(--green);
+    font-weight: 700;
+  }
+
+  /* PRICING */
+  .pricing {
+    margin-top: 20px;
+    text-align: center;
+    padding: 36px 30px;
+    background:
+      linear-gradient(var(--bg-1), var(--bg-1)) padding-box,
+      linear-gradient(135deg, var(--accent), var(--purple)) border-box;
+    border: 1px solid transparent;
+    border-radius: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .pricing::before {
+    content: '';
+    position: absolute;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(217,119,87,0.2), transparent 70%);
+    top: -150px;
+    right: -100px;
+    border-radius: 50%;
+  }
+  .pricing-tag {
+    display: inline-block;
+    padding: 5px 16px;
+    background: rgba(217,119,87,0.15);
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    color: var(--accent-2);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    margin-bottom: 14px;
+  }
+  .pricing h3 {
+    font-size: 28px;
+    font-weight: 800;
+    margin-bottom: 10px;
+    letter-spacing: -0.03em;
+  }
+  .pricing p { color: var(--muted); max-width: 540px; margin: 0 auto 20px; font-size: 14px; }
+  .incluye {
+    text-align: left;
+    max-width: 700px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .incluye-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 12px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 12.5px;
+    line-height: 1.4;
+  }
+  .incluye-check {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--green), #4ab68a);
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    color: #052b1a;
+    font-weight: 800;
+    font-size: 12px;
+  }
+
+  /* PILLARS */
+  .four-pillars {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-top: 20px;
+  }
+  .pillar {
+    padding: 22px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    text-align: center;
+    transition: 0.3s;
+  }
+  .pillar:hover {
+    transform: translateY(-6px);
+    border-color: var(--accent);
+  }
+  .pillar-icon {
+    font-size: 22px;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, var(--accent), var(--purple));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800;
+  }
+  .pillar-name { font-weight: 700; font-size: 13px; letter-spacing: -0.01em; }
+
+  /* EQUIPO */
+  .team-section {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .team-group {
+    margin-bottom: 28px;
+  }
+  .team-group-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent-2);
+    margin-bottom: 14px;
+    padding: 6px 14px;
+    background: rgba(217,119,87,0.08);
+    border: 1px solid rgba(217,119,87,0.25);
+    border-radius: 999px;
+  }
+  .team-group-title::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--accent);
+  }
+
+  .team-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .team-card {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    gap: 16px;
+    align-items: center;
+    padding: 18px 20px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    transition: 0.3s;
+  }
+  .team-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(155,124,242,0.4);
+    box-shadow: 0 12px 30px -10px rgba(155,124,242,0.3);
+  }
+  .team-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--purple));
+    display: grid;
+    place-items: center;
+    font-size: 20px;
+    font-weight: 800;
+    color: #fff;
+    box-shadow: 0 6px 18px rgba(155,124,242,0.35);
+  }
+  .team-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 4px;
+    letter-spacing: -0.01em;
+  }
+  .team-tarea {
+    font-size: 12.5px;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+
+  /* CIERRE */
+  .cierre {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  .cierre-lema {
+    font-size: clamp(48px, 7vw, 110px);
+    font-weight: 800;
+    letter-spacing: -0.05em;
+    line-height: 0.95;
+    margin-bottom: 24px;
+    background: linear-gradient(120deg, #fff 20%, var(--purple) 50%, var(--accent-2) 90%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: glow 3s ease-in-out infinite alternate;
+  }
+  @keyframes glow {
+    0% { filter: drop-shadow(0 0 20px rgba(155,124,242,0.3)); }
+    100% { filter: drop-shadow(0 0 40px rgba(217,119,87,0.4)); }
+  }
+  .cierre p {
+    font-size: 20px;
+    color: var(--muted);
+    max-width: 600px;
+    margin: 0 auto 14px;
+  }
+
+  /* HERO LOGO */
+  .hero-logo {
+    width: 84px;
+    height: 84px;
+    margin-bottom: 22px;
+    filter: drop-shadow(0 8px 30px rgba(217,119,87,0.5));
+    animation: logoFloat 4s ease-in-out infinite alternate;
+  }
+  @keyframes logoFloat {
+    0% { transform: translateY(0) rotate(0deg); }
+    100% { transform: translateY(-6px) rotate(3deg); }
+  }
+
+  /* Botón ver animación */
+  .watch-anim {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 16px;
+    padding: 10px 18px;
+    background: linear-gradient(135deg, rgba(155,124,242,0.15), rgba(217,119,87,0.15));
+    border: 1px solid rgba(155,124,242,0.4);
+    color: var(--text);
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.25s;
+  }
+  .watch-anim:hover {
+    background: linear-gradient(135deg, var(--purple), var(--accent));
+    border-color: transparent;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(155,124,242,0.35);
+  }
+
+  /* ===== ANIMACIONES TIPO LOTTIE — replican BimestManager real ===== */
+  .lottie {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    max-height: 380px;
+    border-radius: 14px;
+    background: var(--bm-bg-app);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    position: relative;
+    margin: 14px 0;
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+  }
+
+  /* Header común del sistema (teal con avatar naranja) */
+  .bm-header {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 32px;
+    background: var(--bm-teal-800);
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 8px;
+    z-index: 3;
+  }
+  .bm-avatar {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--bm-orange-500);
+    color: #fff;
+    display: grid;
+    place-items: center;
+    font-size: 10px;
+    font-weight: 800;
+  }
+  .bm-htitle {
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    flex: 1;
+  }
+  .bm-hicons {
+    display: flex;
+    gap: 6px;
+    color: rgba(255,255,255,0.85);
+    font-size: 11px;
+  }
+
+  /* Bottom nav común */
+  .bm-nav {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 36px;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    z-index: 3;
+    border-top: 1px solid rgba(0,0,0,0.05);
+  }
+  .bm-nav-item {
+    color: var(--bm-ink-soft);
+    font-size: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    opacity: 0.6;
+  }
+  .bm-nav-item.center {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    margin-top: -18px;
+    display: grid;
+    place-items: center;
+    opacity: 1;
+  }
+  .bm-nav-item.active { opacity: 1; color: var(--bm-orange-600); }
+  .bm-logo-mini {
+    width: 18px;
+    height: 18px;
+    background-image:
+      radial-gradient(circle at 35% 35%, transparent 35%, var(--bm-teal-700) 36%, var(--bm-teal-700) 50%, transparent 51%),
+      radial-gradient(circle at 65% 65%, transparent 35%, var(--bm-orange-500) 36%, var(--bm-orange-500) 50%, transparent 51%);
+  }
+
+  .bm-content {
+    position: absolute;
+    top: 32px; bottom: 36px; left: 0; right: 0;
+    padding: 12px;
+    overflow: hidden;
+  }
+
+  /* Card blanca estilo sistema */
+  .bm-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 10px 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    color: var(--bm-ink);
+  }
+  .bm-card-title {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--bm-teal-800);
+    margin-bottom: 6px;
+  }
+  .bm-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 3px 0;
+    font-size: 9px;
+    color: var(--bm-ink-soft);
+    border-bottom: 1px solid rgba(18,32,39,0.05);
+  }
+  .bm-row:last-child { border-bottom: none; }
+  .bm-row .num {
+    font-weight: 800;
+    color: var(--bm-teal-800);
+  }
+
+  /* Cards de roles clickeables */
+  .server.clickable { cursor: pointer; }
+  .server.clickable::before {
+    content: '▶ click';
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 9px;
+    color: var(--accent-2);
+    font-weight: 700;
+    letter-spacing: 1px;
+    opacity: 0;
+    transition: 0.25s;
+  }
+  .server.clickable:hover::before { opacity: 1; }
+
+  /* Cards de roles clickeables */
+  .server.clickable { cursor: pointer; }
+  .server.clickable::before {
+    content: '▶ click';
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 9px;
+    color: var(--accent-2);
+    font-weight: 700;
+    letter-spacing: 1px;
+    opacity: 0;
+    transition: 0.25s;
+  }
+  .server.clickable:hover::before { opacity: 1; }
+
+  /* ===== LOTTIE: ADMIN (replica panel real) ===== */
+  .lottie-admin .bm-content { display: flex; flex-direction: column; gap: 8px; }
+  .lottie-admin .panel-title {
+    font-size: 14px;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1;
+  }
+  .lottie-admin .panel-sub {
+    font-size: 9px;
+    color: rgba(255,255,255,0.85);
+    margin-bottom: 4px;
+  }
+  .lottie-admin .resumen .num {
+    color: var(--bm-orange-600);
+    font-weight: 800;
+    animation: countPulse 3s ease-in-out infinite;
+  }
+  @keyframes countPulse {
+    0%, 90%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); color: var(--bm-orange-700); }
+  }
+  .lottie-admin .accordion {
+    background: rgba(29,94,110,0.55);
+    color: #fff;
+    border-radius: 12px;
+    padding: 8px 12px;
+    font-size: 10px;
+    font-weight: 700;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .lottie-admin .user-card {
+    padding: 8px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    opacity: 0;
+    animation: userSlide 0.6s forwards;
+  }
+  .lottie-admin .user-card:nth-of-type(1) { animation-delay: 1s; }
+  .lottie-admin .user-card:nth-of-type(2) { animation-delay: 1.4s; }
+  @keyframes userSlide {
+    from { opacity: 0; transform: translateX(-12px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  .lottie-admin .user-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .lottie-admin .user-name {
+    font-size: 10px;
+    font-weight: 800;
+    color: var(--bm-ink);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .lottie-admin .badge-rol {
+    font-size: 7px;
+    font-weight: 700;
+    padding: 1px 5px;
+    background: #e9eef0;
+    color: var(--bm-ink-soft);
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+  }
+  .lottie-admin .user-mail {
+    font-size: 8px;
+    color: var(--bm-muted, #6e8189);
+  }
+  .lottie-admin .btn-out {
+    padding: 4px 10px;
+    border: 1.5px solid var(--bm-orange-600);
+    color: var(--bm-orange-700);
+    border-radius: 999px;
+    font-size: 8px;
+    font-weight: 700;
+    background: #fff;
+  }
+
+  /* ===== LOTTIE: MAESTRO (replica formulario real) ===== */
+  .lottie-maestro .bm-content {
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .lottie-maestro .field-label {
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--bm-teal-800);
+    margin-bottom: 2px;
+  }
+  .lottie-maestro .bm-input {
+    background: var(--bm-cream);
+    border: none;
+    border-radius: 999px;
+    padding: 7px 14px;
+    height: 26px;
+    font-size: 9px;
+    color: var(--bm-ink);
+    display: flex;
+    align-items: center;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.06);
+    position: relative;
+    overflow: hidden;
+  }
+  .lottie-maestro .bm-input .ph { color: rgba(18,32,39,0.45); }
+  .lottie-maestro .bm-input .typed {
+    color: var(--bm-ink);
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    animation: typewriter 4s steps(22) infinite;
+  }
+  @keyframes typewriter {
+    0%, 5% { width: 0; }
+    50%, 85% { width: 14ch; }
+    95%, 100% { width: 0; }
+  }
+  .lottie-maestro .bm-input.with-icon {
+    justify-content: space-between;
+  }
+  .lottie-maestro .icon-r {
+    color: var(--bm-teal-700);
+    font-size: 11px;
+  }
+  .lottie-maestro .num-stepper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .lottie-maestro .num-val {
+    font-weight: 800;
+    color: var(--bm-teal-800);
+    animation: numChange 4s infinite;
+  }
+  @keyframes numChange {
+    0%, 20% { content: '4'; }
+    50%, 80% { content: '6'; }
+  }
+  .lottie-maestro .btn-primary {
+    margin-top: 6px;
+    padding: 9px;
+    background: var(--bm-orange-500);
+    color: #fff;
+    border-radius: 999px;
+    text-align: center;
+    font-size: 10px;
+    font-weight: 800;
+    box-shadow: 0 4px 14px rgba(237,138,79,0.4);
+    animation: btnPulse 2.5s infinite;
+  }
+  @keyframes btnPulse {
+    0%, 100% { transform: translateY(0); box-shadow: 0 4px 14px rgba(237,138,79,0.4); }
+    50% { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(237,138,79,0.65); }
+  }
+
+  /* ===== LOTTIE: ALUMNO (replica vista móvil real) ===== */
+  .lottie-alumno {
+    background: #1a1a1a;
+    align-items: center;
+    justify-content: center;
+  }
+  .lottie-alumno .phone-frame {
+    width: 200px;
+    aspect-ratio: 9 / 19;
+    max-height: 100%;
+    background: var(--bm-bg-app);
+    border-radius: 22px;
+    border: 4px solid #0a0a0a;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 14px 40px rgba(0,0,0,0.5);
+  }
+  .lottie-alumno .phone-frame::before {
+    content: '';
+    position: absolute;
+    top: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 5px;
+    background: #0a0a0a;
+    border-radius: 3px;
+    z-index: 10;
+  }
+  .lottie-alumno .bm-header,
+  .lottie-alumno .bm-nav,
+  .lottie-alumno .bm-content {
+    position: absolute;
+    left: 0; right: 0;
+  }
+  .lottie-alumno .bm-content { padding: 8px; gap: 6px; display: flex; flex-direction: column; }
+  .lottie-alumno .greeting {
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 6px 4px 0;
+  }
+  .lottie-alumno .greeting .sub {
+    display: block;
+    font-size: 8px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.85);
+  }
+  .lottie-alumno .practica-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 8px 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    color: var(--bm-ink);
+  }
+  .lottie-alumno .pc-title {
+    font-size: 10px;
+    font-weight: 800;
+    color: var(--bm-teal-800);
+    margin-bottom: 4px;
+  }
+  .lottie-alumno .pc-desc {
+    font-size: 7.5px;
+    color: var(--bm-ink-soft);
+    margin-bottom: 6px;
+  }
+  .lottie-alumno .sign-area {
+    height: 56px;
+    border: 1.5px dashed rgba(58,142,163,0.5);
+    border-radius: 10px;
+    position: relative;
+    overflow: hidden;
+    background: #fafafa;
+  }
+  .lottie-alumno .sign-svg {
+    width: 100%; height: 100%;
+  }
+  .lottie-alumno .sign-path {
+    fill: none;
+    stroke: var(--bm-orange-600);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 200;
+    stroke-dashoffset: 200;
+    animation: signDraw 4s ease-in-out infinite;
+  }
+  @keyframes signDraw {
+    0%, 5% { stroke-dashoffset: 200; }
+    50%, 70% { stroke-dashoffset: 0; }
+    95%, 100% { stroke-dashoffset: 200; }
+  }
+  .lottie-alumno .finger {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--bm-orange-500), transparent 70%);
+    top: 50%;
+    left: 10%;
+    opacity: 0;
+    animation: fingerSign 4s ease-in-out infinite;
+    box-shadow: 0 0 14px var(--bm-orange-500);
+  }
+  @keyframes fingerSign {
+    0%, 5% { opacity: 0; left: 10%; top: 30%; }
+    10%, 60% { opacity: 0.9; }
+    20% { left: 30%; top: 20%; }
+    35% { left: 55%; top: 70%; }
+    50% { left: 80%; top: 40%; }
+    65%, 100% { opacity: 0; left: 80%; top: 40%; }
+  }
+  .lottie-alumno .ok-tag {
+    margin-top: 4px;
+    background: var(--bm-orange-500);
+    color: #fff;
+    text-align: center;
+    padding: 6px;
+    border-radius: 999px;
+    font-size: 9px;
+    font-weight: 800;
+    opacity: 0;
+    animation: okShow 4s infinite;
+    box-shadow: 0 4px 12px rgba(237,138,79,0.4);
+  }
+  @keyframes okShow {
+    0%, 70% { opacity: 0; transform: scale(0.8); }
+    80%, 95% { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; }
+  }
+
+  /* ===== LOTTIE: PROCESOS (6 mini-pantallas del sistema) ===== */
+  .lottie-procesos {
+    background: #1a1a1a;
+    padding: 18px;
+    aspect-ratio: 16 / 7;
+    max-height: 420px;
+  }
+  .lottie-procesos .screens {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+    height: 100%;
+    align-items: stretch;
+  }
+  .lottie-procesos .pscreen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    position: relative;
+  }
+  .lottie-procesos .pscreen .phone-mini {
+    width: 100%;
+    max-width: 130px;
+    aspect-ratio: 9 / 19;
+    border-radius: 14px;
+    border: 3px solid #2a2a2a;
+    transition: 0.4s;
+    transform: scale(0.92);
+    filter: grayscale(0.4) brightness(0.7);
+    animation: screenActivate 9s ease-in-out infinite;
+  }
+  .lottie-procesos .pscreen:nth-child(1) .phone-mini { animation-delay: 0s; }
+  .lottie-procesos .pscreen:nth-child(2) .phone-mini { animation-delay: 1.5s; }
+  .lottie-procesos .pscreen:nth-child(3) .phone-mini { animation-delay: 3s; }
+  .lottie-procesos .pscreen:nth-child(4) .phone-mini { animation-delay: 4.5s; }
+  .lottie-procesos .pscreen:nth-child(5) .phone-mini { animation-delay: 6s; }
+  .lottie-procesos .pscreen:nth-child(6) .phone-mini { animation-delay: 7.5s; }
+  @keyframes screenActivate {
+    0%, 10% {
+      transform: scale(0.92);
+      filter: grayscale(0.4) brightness(0.7);
+      border-color: #2a2a2a;
+      box-shadow: none;
+    }
+    14%, 24% {
+      transform: scale(1.08);
+      filter: grayscale(0) brightness(1.1);
+      border-color: var(--bm-orange-500);
+      box-shadow: 0 0 30px var(--bm-orange-500);
+    }
+    28%, 100% {
+      transform: scale(0.92);
+      filter: grayscale(0.4) brightness(0.7);
+      border-color: #2a2a2a;
+      box-shadow: none;
+    }
+  }
+  .lottie-procesos .step-num {
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #fff;
+    color: var(--bm-teal-800);
+    font-weight: 800;
+    font-size: 11px;
+    display: grid;
+    place-items: center;
+    z-index: 10;
+    border: 2px solid #2a2a2a;
+    animation: numActivate 9s ease-in-out infinite;
+  }
+  .lottie-procesos .pscreen:nth-child(1) .step-num { animation-delay: 0s; }
+  .lottie-procesos .pscreen:nth-child(2) .step-num { animation-delay: 1.5s; }
+  .lottie-procesos .pscreen:nth-child(3) .step-num { animation-delay: 3s; }
+  .lottie-procesos .pscreen:nth-child(4) .step-num { animation-delay: 4.5s; }
+  .lottie-procesos .pscreen:nth-child(5) .step-num { animation-delay: 6s; }
+  .lottie-procesos .pscreen:nth-child(6) .step-num { animation-delay: 7.5s; }
+  @keyframes numActivate {
+    0%, 10% { background: #fff; color: var(--bm-teal-800); border-color: #2a2a2a; }
+    14%, 24% { background: var(--bm-orange-500); color: #fff; border-color: #fff; transform: translateX(-50%) scale(1.2); }
+    28%, 100% { background: #fff; color: var(--bm-teal-800); border-color: #2a2a2a; transform: translateX(-50%) scale(1); }
+  }
+  .lottie-procesos .step-cap {
+    font-size: 9px;
+    color: rgba(255,255,255,0.85);
+    text-align: center;
+    line-height: 1.2;
+    font-weight: 600;
+    max-width: 110px;
+  }
+  /* Forzar que el contenido del phone-mini se vea pequeño y nítido */
+  .lottie-procesos .phone-mini .bm-content { padding: 5px; gap: 3px; }
+  .lottie-procesos .phone-mini .mini-card { padding: 3px 5px; }
+  .lottie-procesos .phone-mini .mini-ttl { font-size: 6px; margin-bottom: 1px; }
+  .lottie-procesos .phone-mini .mini-ln { height: 2px; margin: 1px 0; }
+  .lottie-procesos .phone-mini .mini-btn { font-size: 6px; padding: 2px; }
+  .lottie-procesos .phone-mini .bm-htitle { font-size: 7px; }
+  .lottie-procesos .phone-mini .bm-avatar { width: 14px; height: 14px; font-size: 7px; }
+  .lottie-procesos .phone-mini .bm-header { height: 20px; padding: 0 5px; }
+  .lottie-procesos .phone-mini .bm-content { top: 20px; bottom: 22px; }
+  .lottie-procesos .phone-mini .bm-nav { height: 22px; }
+  .lottie-procesos .phone-mini .bm-nav-item { font-size: 6px; }
+  .lottie-procesos .phone-mini .bm-nav-item.center { width: 18px; height: 18px; margin-top: -10px; }
+  .lottie-procesos .phone-mini .bm-logo-mini { width: 10px; height: 10px; }
+  .lottie-procesos .phone-mini::before { width: 22px; height: 3px; }
+
+  /* ===== TERMINAL genérica (Linux/Mac/PowerShell) ===== */
+  .term {
+    background: #0c0c0c;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 8px 28px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    font-family: 'Consolas', 'Courier New', monospace;
+    border: 1px solid #2a2a2a;
+  }
+  .term-bar {
+    background: #2d2d2d;
+    padding: 5px 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-bottom: 1px solid #1a1a1a;
+  }
+  .term-bar .dot { width: 11px; height: 11px; border-radius: 50%; }
+  .term-bar .dot.r { background: #ff5f57; }
+  .term-bar .dot.y { background: #febc2e; }
+  .term-bar .dot.g { background: #28c840; }
+  .term-bar .title {
+    flex: 1;
+    text-align: center;
+    color: #cccccc;
+    font-size: 10px;
+    font-weight: 600;
+  }
+  .term-body {
+    flex: 1;
+    padding: 10px 14px;
+    font-size: 11px;
+    line-height: 1.5;
+    color: #cccccc;
+    overflow: hidden;
+  }
+  .term-line {
+    opacity: 0;
+    animation: tlnIn 0.4s forwards;
+    white-space: pre-wrap;
+  }
+  @keyframes tlnIn {
+    from { opacity: 0; transform: translateY(2px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .t-prompt-linux { color: #6dd6a8; }
+  .t-prompt-mysql { color: #ed8a4f; }
+  .t-prompt-ps    { color: #ffe600; }
+  .t-cmd          { color: #ffffff; font-weight: 600; }
+  .t-flag         { color: #74b8c9; }
+  .t-str          { color: #ce9178; }
+  .t-num          { color: #b5cea8; }
+  .t-com          { color: #6a9955; font-style: italic; }
+  .t-key          { color: #569cd6; font-weight: 600; }
+  .t-ok           { color: #6dd6a8; font-weight: 700; }
+  .t-warn         { color: #ed8a4f; font-weight: 700; }
+  .t-net          { color: #ed8a4f; }
+  .t-dim          { color: #888; }
+  .t-cursor::after {
+    content: '▊';
+    color: #ed8a4f;
+    animation: blink 1s steps(1) infinite;
+    margin-left: 2px;
+  }
+  @keyframes blink {
+    50% { opacity: 0; }
+  }
+
+  /* Layout para .lottie-network reemplazado (terminales) */
+  .lottie-net-split {
+    background: #0a0a0a;
+    flex-direction: column;
+    padding: 12px;
+    gap: 10px;
+  }
+  .lottie-net-split .term {
+    flex: 1;
+    min-height: 0;
+  }
+  .lottie-net-split .term-body .term-line:nth-child(1) { animation-delay: 0.2s; }
+  .lottie-net-split .term-body .term-line:nth-child(2) { animation-delay: 0.7s; }
+  .lottie-net-split .term-body .term-line:nth-child(3) { animation-delay: 1.2s; }
+  .lottie-net-split .term-body .term-line:nth-child(4) { animation-delay: 1.7s; }
+  .lottie-net-split .term-body .term-line:nth-child(5) { animation-delay: 2.2s; }
+  .lottie-net-split .term-body .term-line:nth-child(6) { animation-delay: 2.7s; }
+  .lottie-net-split .term-body .term-line:nth-child(7) { animation-delay: 3.2s; }
+  .lottie-net-split .term-body .term-line:nth-child(8) { animation-delay: 3.7s; }
+  .lottie-net-split .term-body .term-line:nth-child(9) { animation-delay: 4.2s; }
+  .lottie-net-split .term-body .term-line:nth-child(10){ animation-delay: 4.7s; }
+
+  /* Layout para servers MySQL terminal */
+  .lottie-srv-term {
+    background: #0a0a0a;
+    flex-direction: column;
+    padding: 12px;
+    gap: 0;
+  }
+  .lottie-srv-term .term { flex: 1; min-height: 0; }
+  .lottie-srv-term .term-body .term-line:nth-child(n) { animation-delay: calc(0.3s * var(--i, 1)); }
+
+  /* ===== LOTTIE: DC (Auth · roles SQL) ===== */
+  .lottie-dc {
+    background: linear-gradient(180deg, #1e1e1e 0%, #0a0a0a 100%);
+    padding: 16px 20px;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+    gap: 14px;
+  }
+  .lottie-dc .code-block {
+    background: #1e1e1e;
+    border: 1px solid #2d2d30;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 13px;
+    color: #d4d4d4;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+    position: relative;
+  }
+  .lottie-dc .code-block::before {
+    content: '● ● ●';
+    position: absolute;
+    top: -22px;
+    left: 6px;
+    color: #5c5c5c;
+    font-size: 10px;
+    letter-spacing: 3px;
+  }
+  .lottie-dc .kw  { color: #569cd6; font-weight: 600; }
+  .lottie-dc .str { color: #ce9178; }
+  .lottie-dc .num { color: #b5cea8; }
+  .lottie-dc .com { color: #6a9955; font-style: italic; }
+  .lottie-dc .fn  { color: #dcdcaa; }
+  .lottie-dc .role {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-weight: 700;
+    margin: 0 1px;
+    animation: roleHighlight 6s infinite;
+  }
+  .lottie-dc .role.admin   { background: rgba(199,94,31,0.25); color: #ed8a4f; animation-delay: 0s; }
+  .lottie-dc .role.maestro { background: rgba(42,115,135,0.35); color: #74b8c9; animation-delay: 2s; }
+  .lottie-dc .role.alumno  { background: rgba(109,214,168,0.25); color: #6dd6a8; animation-delay: 4s; }
+  @keyframes roleHighlight {
+    0%, 10% { transform: scale(1); box-shadow: 0 0 0 transparent; }
+    15%, 30% { transform: scale(1.15); box-shadow: 0 0 14px currentColor; }
+    35%, 100% { transform: scale(1); box-shadow: 0 0 0 transparent; }
+  }
+  .lottie-dc .flow {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    gap: 12px;
+    padding: 8px;
+  }
+  .lottie-dc .actor {
+    flex: 1;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+    font-size: 11px;
+    color: #d4d4d4;
+    position: relative;
+    animation: actorAuth 6s infinite;
+  }
+  .lottie-dc .actor.admin   { animation-delay: 0s; --col: #ed8a4f; }
+  .lottie-dc .actor.maestro { animation-delay: 2s; --col: #74b8c9; }
+  .lottie-dc .actor.alumno  { animation-delay: 4s; --col: #6dd6a8; }
+  @keyframes actorAuth {
+    0%, 10%, 35%, 100% { border-color: rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); }
+    15%, 30% { border-color: var(--col); background: rgba(255,255,255,0.08); box-shadow: 0 0 18px var(--col); }
+  }
+  .lottie-dc .actor-icon {
+    font-size: 22px;
+    margin-bottom: 4px;
+    color: var(--col);
+  }
+  .lottie-dc .actor-tag {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: var(--col);
+  }
+  .lottie-dc .key-icon {
+    font-size: 20px;
+    color: var(--bm-orange-500);
+    animation: keyPulse 1.5s infinite;
+  }
+  @keyframes keyPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2) rotate(15deg); }
+  }
+
+  /* ===== LOTTIE: DB (MySQL Workbench) ===== */
+  .lottie-db {
+    background: #f0f0f0;
+    padding: 0;
+    flex-direction: column;
+  }
+  .lottie-db .wb-titlebar {
+    background: #4d8cb5;
+    color: #fff;
+    padding: 4px 12px;
+    font-size: 10px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .lottie-db .wb-titlebar::before {
+    content: '🐬';
+    font-size: 12px;
+  }
+  .lottie-db .wb-body {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    flex: 1;
+    overflow: hidden;
+  }
+  .lottie-db .wb-sidebar {
+    background: #e6e6e6;
+    border-right: 1px solid #c0c0c0;
+    padding: 8px 6px;
+    overflow-y: auto;
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 11px;
+    color: #2a2a2a;
+  }
+  .lottie-db .wb-tree-node {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 4px;
+    cursor: default;
+  }
+  .lottie-db .wb-tree-node.lvl1 { font-weight: 700; padding-left: 4px; }
+  .lottie-db .wb-tree-node.lvl2 { padding-left: 16px; font-weight: 600; }
+  .lottie-db .wb-tree-node.lvl3 { padding-left: 28px; font-weight: 400; }
+  .lottie-db .wb-tree-node.table {
+    animation: tableHighlight 10s infinite;
+  }
+  .lottie-db .wb-tree-node.table:nth-of-type(1)  { animation-delay: 0s; }
+  .lottie-db .wb-tree-node.table:nth-of-type(2)  { animation-delay: 1s; }
+  .lottie-db .wb-tree-node.table:nth-of-type(3)  { animation-delay: 2s; }
+  .lottie-db .wb-tree-node.table:nth-of-type(4)  { animation-delay: 3s; }
+  .lottie-db .wb-tree-node.table:nth-of-type(5)  { animation-delay: 4s; }
+  .lottie-db .wb-tree-node.table:nth-of-type(6)  { animation-delay: 5s; }
+  .lottie-db .wb-tree-node.table:nth-of-type(7)  { animation-delay: 6s; }
+  .lottie-db .wb-tree-node.table:nth-of-type(8)  { animation-delay: 7s; }
+  @keyframes tableHighlight {
+    0%, 8%, 18%, 100% { background: transparent; color: #2a2a2a; }
+    10%, 16% { background: #4d8cb5; color: #fff; }
+  }
+  .lottie-db .wb-icon { font-size: 10px; opacity: 0.7; }
+  .lottie-db .wb-main {
+    background: #fff;
+    padding: 12px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .lottie-db .wb-tabs {
+    display: flex;
+    gap: 4px;
+    border-bottom: 1px solid #c0c0c0;
+    padding-bottom: 0;
+  }
+  .lottie-db .wb-tab {
+    padding: 4px 12px;
+    background: #e9e9e9;
+    border: 1px solid #c0c0c0;
+    border-bottom: none;
+    border-radius: 4px 4px 0 0;
+    font-size: 10px;
+    color: #2a2a2a;
+  }
+  .lottie-db .wb-tab.active {
+    background: #fff;
+    border-bottom: 1px solid #fff;
+    margin-bottom: -1px;
+    font-weight: 600;
+    color: #4d8cb5;
+  }
+  .lottie-db .wb-grid {
+    flex: 1;
+    border: 1px solid #c0c0c0;
+    background: #fff;
+    font-size: 9px;
+    color: #2a2a2a;
+    overflow: hidden;
+  }
+  .lottie-db .wb-grid-head {
+    display: grid;
+    grid-template-columns: 30px 1fr 1fr 1fr 60px;
+    background: #f5f5f5;
+    border-bottom: 1px solid #c0c0c0;
+    font-weight: 700;
+    padding: 3px 0;
+  }
+  .lottie-db .wb-grid-head > div, .lottie-db .wb-grid-row > div {
+    padding: 0 6px;
+    border-right: 1px solid #e0e0e0;
+  }
+  .lottie-db .wb-grid-row {
+    display: grid;
+    grid-template-columns: 30px 1fr 1fr 1fr 60px;
+    padding: 3px 0;
+    border-bottom: 1px solid #ececec;
+    animation: rowAppear 0.5s forwards;
+    opacity: 0;
+  }
+  .lottie-db .wb-grid-row:nth-of-type(1) { animation-delay: 0.5s; }
+  .lottie-db .wb-grid-row:nth-of-type(2) { animation-delay: 0.8s; }
+  .lottie-db .wb-grid-row:nth-of-type(3) { animation-delay: 1.1s; }
+  @keyframes rowAppear {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .lottie-db .tls-badge {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    background: #6dd6a8;
+    color: #052b1a;
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-size: 9px;
+    font-weight: 800;
+    animation: tlsBlink 2s infinite;
+  }
+  @keyframes tlsBlink {
+    0%, 100% { box-shadow: 0 0 0 rgba(109,214,168,0); }
+    50% { box-shadow: 0 0 14px rgba(109,214,168,0.8); }
+  }
+
+  /* ===== LOTTIE: WEB (VS Code) ===== */
+  .lottie-web {
+    background: #1e1e1e;
+    padding: 0;
+    flex-direction: column;
+    font-family: 'Consolas', 'Courier New', monospace;
+  }
+  .lottie-web .vsc-title {
+    background: #3c3c3c;
+    color: #cccccc;
+    padding: 5px 12px;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid #1e1e1e;
+  }
+  .lottie-web .vsc-dots { display: flex; gap: 4px; }
+  .lottie-web .vsc-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .lottie-web .vsc-dot.r { background: #ff5f57; }
+  .lottie-web .vsc-dot.y { background: #febc2e; }
+  .lottie-web .vsc-dot.g { background: #28c840; }
+  .lottie-web .vsc-body {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    flex: 1;
+    overflow: hidden;
+  }
+  .lottie-web .vsc-explorer {
+    background: #252526;
+    padding: 8px 4px;
+    overflow-y: auto;
+    color: #cccccc;
+    font-size: 10px;
+  }
+  .lottie-web .vsc-folder-h {
+    color: #cccccc;
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 2px 8px;
+    margin-bottom: 4px;
+    opacity: 0.7;
+  }
+  .lottie-web .vsc-file {
+    padding: 1px 4px 1px 18px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    position: relative;
+  }
+  .lottie-web .vsc-file::before {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 8px;
+    height: 8px;
+    background: var(--icol, #519aba);
+    border-radius: 1px;
+  }
+  .lottie-web .vsc-file.active {
+    background: #094771;
+    color: #fff;
+  }
+  .lottie-web .vsc-main {
+    display: flex;
+    flex-direction: column;
+    background: #1e1e1e;
+    overflow: hidden;
+  }
+  .lottie-web .vsc-tabs {
+    display: flex;
+    background: #2d2d2d;
+    border-bottom: 1px solid #1e1e1e;
+  }
+  .lottie-web .vsc-tab {
+    padding: 6px 14px;
+    font-size: 10px;
+    color: #969696;
+    border-right: 1px solid #1e1e1e;
+  }
+  .lottie-web .vsc-tab.active {
+    background: #1e1e1e;
+    color: #fff;
+    border-top: 2px solid var(--bm-orange-500);
+    padding-top: 4px;
+  }
+  .lottie-web .vsc-editor {
+    flex: 1;
+    padding: 10px 14px;
+    font-size: 11px;
+    line-height: 1.5;
+    color: #d4d4d4;
+    counter-reset: line;
+    position: relative;
+  }
+  .lottie-web .code-line {
+    display: block;
+    position: relative;
+    padding-left: 26px;
+    opacity: 0;
+    animation: codeAppear 0.4s forwards;
+  }
+  .lottie-web .code-line::before {
+    counter-increment: line;
+    content: counter(line);
+    position: absolute;
+    left: 0;
+    color: #6e6e6e;
+    font-size: 10px;
+    width: 20px;
+    text-align: right;
+  }
+  .lottie-web .code-line:nth-child(1) { animation-delay: 0.1s; }
+  .lottie-web .code-line:nth-child(2) { animation-delay: 0.3s; }
+  .lottie-web .code-line:nth-child(3) { animation-delay: 0.5s; }
+  .lottie-web .code-line:nth-child(4) { animation-delay: 0.7s; }
+  .lottie-web .code-line:nth-child(5) { animation-delay: 0.9s; }
+  .lottie-web .code-line:nth-child(6) { animation-delay: 1.1s; }
+  .lottie-web .code-line:nth-child(7) { animation-delay: 1.3s; }
+  .lottie-web .code-line:nth-child(8) { animation-delay: 1.5s; }
+  @keyframes codeAppear {
+    from { opacity: 0; transform: translateX(-6px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  .lottie-web .kw  { color: #569cd6; }
+  .lottie-web .str { color: #ce9178; }
+  .lottie-web .num { color: #b5cea8; }
+  .lottie-web .com { color: #6a9955; font-style: italic; }
+  .lottie-web .fn  { color: #dcdcaa; }
+  .lottie-web .var { color: #9cdcfe; }
+  .lottie-web .vsc-terminal {
+    height: 70px;
+    background: #1e1e1e;
+    border-top: 1px solid #444;
+    padding: 6px 12px;
+    font-size: 9.5px;
+    color: #cccccc;
+    overflow: hidden;
+  }
+  .lottie-web .term-line {
+    opacity: 0;
+    animation: termType 0.4s forwards;
+  }
+  .lottie-web .term-line:nth-child(1) { animation-delay: 2s; }
+  .lottie-web .term-line:nth-child(2) { animation-delay: 2.5s; }
+  .lottie-web .term-line:nth-child(3) { animation-delay: 3s; }
+  .lottie-web .term-line:nth-child(4) { animation-delay: 3.5s; }
+  @keyframes termType {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  .lottie-web .term-200 { color: #6dd6a8; }
+  .lottie-web .term-prompt { color: #569cd6; }
+
+  /* ===== LOTTIE: ARQUITECTURA (4 servidores con paleta BM) ===== */
+  .lottie-arq {
+    background: linear-gradient(180deg, #134a58 0%, #1d5e6e 100%);
+    padding: 18px;
+  }
+  .lottie-arq .grid-srv {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 16px;
+    height: 100%;
+    z-index: 2;
+    position: relative;
+  }
+  .lottie-arq .srv {
+    background: #fff;
+    border-radius: 12px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    position: relative;
+    animation: srvBlink 4s infinite;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+  }
+  .lottie-arq .srv:nth-child(1) { animation-delay: 0s; --c: #2a7387; }
+  .lottie-arq .srv:nth-child(2) { animation-delay: 1s; --c: #ed8a4f; }
+  .lottie-arq .srv:nth-child(3) { animation-delay: 2s; --c: #3a8ea3; }
+  .lottie-arq .srv:nth-child(4) { animation-delay: 3s; --c: #c75e1f; }
+  @keyframes srvBlink {
+    0%, 90%, 100% { box-shadow: 0 4px 14px rgba(0,0,0,0.25); }
+    10%, 30% { box-shadow: 0 0 22px var(--c), 0 4px 14px rgba(0,0,0,0.25); }
+  }
+  .lottie-arq .srv-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--c);
+    letter-spacing: 1px;
+  }
+  .lottie-arq .srv-led {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--c);
+    box-shadow: 0 0 8px var(--c);
+    animation: ledPulse 1.5s infinite;
+  }
+  @keyframes ledPulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+  .lottie-arq .srv-desc {
+    font-size: 8.5px;
+    color: var(--bm-ink-soft);
+    line-height: 1.35;
+  }
+  .lottie-arq .srv-bars {
+    margin-top: auto;
+    display: flex;
+    gap: 2px;
+    height: 10px;
+    align-items: flex-end;
+  }
+  .lottie-arq .bar {
+    flex: 1;
+    background: var(--c);
+    opacity: 0.4;
+    border-radius: 1px;
+    animation: barJump 0.8s infinite;
+  }
+  .lottie-arq .bar:nth-child(1) { animation-delay: 0s; }
+  .lottie-arq .bar:nth-child(2) { animation-delay: 0.1s; }
+  .lottie-arq .bar:nth-child(3) { animation-delay: 0.2s; }
+  .lottie-arq .bar:nth-child(4) { animation-delay: 0.3s; }
+  .lottie-arq .bar:nth-child(5) { animation-delay: 0.4s; }
+  @keyframes barJump {
+    0%, 100% { height: 30%; opacity: 0.4; }
+    50% { height: 100%; opacity: 1; }
+  }
+  .lottie-arq svg.lines {
+    position: absolute;
+    inset: 18px;
+    z-index: 1;
+    pointer-events: none;
+  }
+  .lottie-arq .lines line {
+    stroke: var(--bm-orange-500);
+    stroke-width: 1.5;
+    stroke-dasharray: 4 4;
+    opacity: 0.6;
+    animation: dashFlow 2s linear infinite;
+  }
+  @keyframes dashFlow {
+    to { stroke-dashoffset: -16; }
+  }
+
+  /* ===== LOTTIE: SWIFT / ANDROID (con vista BimestManager real) ===== */
+  .lottie-swift, .lottie-android {
+    background: #1a1a1a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 12px;
+  }
+  .phone-mini {
+    width: 130px;
+    aspect-ratio: 9 / 19;
+    max-height: 100%;
+    border-radius: 18px;
+    overflow: hidden;
+    position: relative;
+    background: var(--bm-bg-app);
+    box-shadow: 0 14px 40px rgba(0,0,0,0.5);
+  }
+  .lottie-swift .phone-mini { border: 3px solid #c0c0c0; }
+  .lottie-android .phone-mini { border: 3px solid #3DDC84; }
+  .phone-mini::before {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 28px;
+    height: 4px;
+    background: #0a0a0a;
+    border-radius: 3px;
+    z-index: 10;
+  }
+  .phone-mini .bm-header {
+    height: 24px;
+    padding: 0 8px;
+  }
+  .phone-mini .bm-avatar { width: 16px; height: 16px; font-size: 8px; }
+  .phone-mini .bm-htitle { font-size: 8px; }
+  .phone-mini .bm-hicons { font-size: 8px; }
+  .phone-mini .bm-content {
+    position: absolute;
+    top: 24px; bottom: 28px; left: 0; right: 0;
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .phone-mini .bm-nav {
+    height: 28px;
+  }
+  .phone-mini .bm-nav-item { font-size: 6px; }
+  .phone-mini .bm-nav-item.center { width: 22px; height: 22px; margin-top: -12px; }
+  .phone-mini .bm-logo-mini { width: 12px; height: 12px; }
+  .phone-mini .mini-card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 4px 6px;
+    color: var(--bm-ink);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+  .phone-mini .mini-ttl {
+    font-size: 7px;
+    font-weight: 800;
+    color: var(--bm-teal-800);
+    margin-bottom: 2px;
+  }
+  .phone-mini .mini-ln {
+    height: 3px;
+    background: rgba(18,32,39,0.1);
+    border-radius: 2px;
+    margin: 2px 0;
+    animation: lnLoad 3s infinite;
+  }
+  .phone-mini .mini-ln.l1 { width: 80%; animation-delay: 0s; }
+  .phone-mini .mini-ln.l2 { width: 60%; animation-delay: 0.2s; }
+  .phone-mini .mini-ln.l3 { width: 70%; animation-delay: 0.4s; }
+  @keyframes lnLoad {
+    0%, 100% { background: rgba(18,32,39,0.1); }
+    50% { background: var(--bm-orange-500); }
+  }
+  .phone-mini .mini-btn {
+    background: var(--bm-orange-500);
+    color: #fff;
+    text-align: center;
+    padding: 4px;
+    font-size: 7px;
+    font-weight: 800;
+    border-radius: 999px;
+    margin-top: 2px;
+    animation: btnPulse 2s infinite;
+  }
+  .phone-mini .mini-greet {
+    color: #fff;
+    font-size: 9px;
+    font-weight: 800;
+    text-align: center;
+    padding: 2px 0;
+  }
+  .badge-os {
+    font-size: 11px;
+    color: var(--bm-orange-500);
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    background: rgba(0,0,0,0.6);
+    padding: 4px 10px;
+    border-radius: 999px;
+  }
+  .lottie-android .badge-os { color: #3DDC84; }
+  .cloud-arrow {
+    font-size: 18px;
+    color: var(--bm-orange-500);
+    animation: cloudBounce 2s infinite;
+  }
+  @keyframes cloudBounce {
+    0%, 100% { transform: translateY(0); opacity: 0.6; }
+    50% { transform: translateY(-6px); opacity: 1; }
+  }
+
+  /* ===== LOTTIE: LAYERS (N-capas con paleta BM) ===== */
+  .lottie-layers {
+    background: linear-gradient(180deg, #1c5b6b 0%, #2a7287 30%, #b97648 65%, #3a7e91 100%);
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .lottie-layers .stack {
+    width: 75%;
+    height: 90%;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    z-index: 2;
+    position: relative;
+  }
+  .lottie-layers .layer {
+    flex: 1;
+    background: #fff;
+    border-left: 4px solid var(--bm-orange-500);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 14px;
+    font-size: 11px;
+    color: var(--bm-teal-800);
+    font-weight: 700;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: layerIn 5s infinite;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+  .lottie-layers .layer:nth-child(1) { animation-delay: 0s; }
+  .lottie-layers .layer:nth-child(2) { animation-delay: 0.3s; }
+  .lottie-layers .layer:nth-child(3) { animation-delay: 0.6s; }
+  .lottie-layers .layer:nth-child(4) { animation-delay: 0.9s; }
+  @keyframes layerIn {
+    0%, 5% { opacity: 0; transform: translateY(20px); }
+    20%, 85% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+  }
+  .lottie-layers .layer-tag {
+    font-size: 9px;
+    color: var(--bm-orange-600);
+    font-family: monospace;
+    background: var(--bm-cream);
+    padding: 2px 8px;
+    border-radius: 999px;
+  }
+
+  /* ===== LOTTIE: NETWORK (Topología con paleta BM) ===== */
+  .lottie-network {
+    background: linear-gradient(180deg, #134a58 0%, #2a7387 100%);
+    padding: 18px;
+  }
+  .lottie-network svg {
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    position: relative;
+  }
+  .lottie-network .node {
+    fill: #fff;
+    stroke: var(--bm-orange-500);
+    stroke-width: 2.5;
+    animation: nodePulse 2s infinite;
+  }
+  .lottie-network .node:nth-of-type(2) { animation-delay: 0.2s; stroke: var(--bm-teal-600); }
+  .lottie-network .node:nth-of-type(3) { animation-delay: 0.4s; stroke: var(--bm-orange-600); }
+  .lottie-network .node:nth-of-type(4) { animation-delay: 0.6s; stroke: var(--bm-teal-700); }
+  .lottie-network .node:nth-of-type(5) { animation-delay: 0.8s; stroke: var(--bm-orange-700); }
+  @keyframes nodePulse {
+    0%, 100% { stroke-width: 2.5; }
+    50% { stroke-width: 4.5; filter: drop-shadow(0 0 8px var(--bm-orange-500)); }
+  }
+  .lottie-network .link {
+    fill: none;
+    stroke: rgba(255,255,255,0.6);
+    stroke-width: 1.5;
+    stroke-dasharray: 5 5;
+    animation: linkFlow 1.5s linear infinite;
+  }
+  @keyframes linkFlow {
+    to { stroke-dashoffset: -20; }
+  }
+  .lottie-network .pkg {
+    fill: var(--bm-orange-500);
+    filter: drop-shadow(0 0 6px var(--bm-orange-500));
+  }
+  .lottie-network .pkg-1 { animation: pkgMove1 3s ease-in-out infinite; }
+  .lottie-network .pkg-2 { animation: pkgMove2 3.5s ease-in-out infinite; }
+  @keyframes pkgMove1 {
+    0% { transform: translate(0, 0); opacity: 0; }
+    20% { opacity: 1; }
+    100% { transform: translate(150px, 60px); opacity: 0; }
+  }
+  @keyframes pkgMove2 {
+    0% { transform: translate(150px, 0); opacity: 0; }
+    20% { opacity: 1; }
+    100% { transform: translate(-50px, 80px); opacity: 0; }
+  }
+  .lottie-network text {
+    fill: #fff;
+    font-size: 9px;
+    font-family: monospace;
+    font-weight: 800;
+  }
+
+  /* ===== LOTTIE: SERVERS (Monitoreo con paleta BM) ===== */
+  .lottie-servers {
+    background: linear-gradient(180deg, #134a58 0%, #2a7287 50%, #1d5e6e 100%);
+    padding: 14px;
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    justify-content: center;
+  }
+  .lottie-servers .rack {
+    width: 80px;
+    height: 90%;
+    background: rgba(255,255,255,0.95);
+    border-radius: 8px;
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    z-index: 2;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+  }
+  .lottie-servers .unit {
+    flex: 1;
+    background: var(--bm-cream);
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 5px;
+  }
+  .lottie-servers .led {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    animation: ledPulse 1s infinite;
+  }
+  .lottie-servers .led.g { background: var(--bm-teal-600); box-shadow: 0 0 5px var(--bm-teal-600); }
+  .lottie-servers .led.o { background: var(--bm-orange-500); box-shadow: 0 0 5px var(--bm-orange-500); animation-delay: 0.3s; }
+  .lottie-servers .led.p { background: var(--bm-orange-700); box-shadow: 0 0 5px var(--bm-orange-700); animation-delay: 0.6s; }
+  .lottie-servers .unit-bar {
+    flex: 1;
+    height: 3px;
+    background: rgba(18,32,39,0.1);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .lottie-servers .unit-bar::after {
+    content: '';
+    display: block;
+    height: 100%;
+    width: 60%;
+    background: linear-gradient(90deg, var(--bm-teal-600), var(--bm-orange-500));
+    animation: barFill 2s ease-in-out infinite alternate;
+  }
+  @keyframes barFill {
+    0% { width: 20%; }
+    100% { width: 85%; }
+  }
+  .lottie-servers .dashboard {
+    flex: 1;
+    height: 90%;
+    background: #fff;
+    border-radius: 14px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 2;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+  }
+  .lottie-servers .metric {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 10px;
+    color: var(--bm-ink-soft);
+    font-weight: 600;
+  }
+  .lottie-servers .metric-val {
+    font-weight: 800;
+    color: var(--bm-orange-600);
+  }
+  .lottie-servers .graph {
+    flex: 1;
+    background: var(--bm-cream);
+    border-radius: 8px;
+    padding: 6px;
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+  }
+  .lottie-servers .graph .gbar {
+    flex: 1;
+    background: linear-gradient(180deg, var(--bm-orange-500), var(--bm-teal-700));
+    border-radius: 2px;
+    animation: gbarJump 1.5s ease-in-out infinite;
+  }
+  .lottie-servers .graph .gbar:nth-child(1) { animation-delay: 0s; }
+  .lottie-servers .graph .gbar:nth-child(2) { animation-delay: 0.1s; }
+  .lottie-servers .graph .gbar:nth-child(3) { animation-delay: 0.2s; }
+  .lottie-servers .graph .gbar:nth-child(4) { animation-delay: 0.3s; }
+  .lottie-servers .graph .gbar:nth-child(5) { animation-delay: 0.4s; }
+  .lottie-servers .graph .gbar:nth-child(6) { animation-delay: 0.5s; }
+  .lottie-servers .graph .gbar:nth-child(7) { animation-delay: 0.6s; }
+  .lottie-servers .graph .gbar:nth-child(8) { animation-delay: 0.7s; }
+  @keyframes gbarJump {
+    0%, 100% { height: 20%; }
+    50% { height: 90%; }
+  }
+
+  /* MATERIAS / RÚBRICAS */
+  .materias-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .materia-card {
+    background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 24px 22px;
+    cursor: pointer;
+    transition: 0.3s cubic-bezier(.2,.8,.2,1);
+    text-align: left;
+    position: relative;
+    overflow: hidden;
+  }
+  .materia-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--purple), var(--accent));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: 0.35s;
+  }
+  .materia-card:hover {
+    transform: translateY(-6px);
+    border-color: rgba(155,124,242,0.4);
+    box-shadow: 0 18px 40px -12px rgba(155,124,242,0.35);
+    background: linear-gradient(180deg, rgba(155,124,242,0.08), rgba(217,119,87,0.04));
+  }
+  .materia-card:hover::before { transform: scaleX(1); }
+
+  .materia-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--purple), var(--accent));
+    display: grid;
+    place-items: center;
+    margin-bottom: 14px;
+    box-shadow: 0 6px 20px rgba(155,124,242,0.3);
+  }
+  .materia-icon svg { width: 30px; height: 30px; fill: #fff; }
+  .modal-icon svg { width: 28px; height: 28px; fill: #fff; }
+  .materia-titulo {
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.01em;
+    margin-bottom: 8px;
+    line-height: 1.25;
+  }
+  .materia-desc {
+    font-size: 12.5px;
+    color: var(--muted);
+    line-height: 1.45;
+    margin-bottom: 14px;
+  }
+  .materia-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent-2);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+  }
+  .materia-cta::after {
+    content: '→';
+    transition: 0.2s;
+  }
+  .materia-card:hover .materia-cta::after { transform: translateX(4px); }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 2, 12, 0.85);
+    backdrop-filter: blur(12px);
+    z-index: 500;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .modal-overlay.open {
+    display: flex;
+    opacity: 1;
+  }
+  .modal {
+    max-width: 900px;
+    width: 100%;
+    max-height: 90vh;
+    background: linear-gradient(180deg, var(--bg-1), var(--bg-0));
+    border: 1px solid var(--border-strong);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.6);
+    position: relative;
+    transform: scale(0.95);
+    transition: transform 0.3s cubic-bezier(.2,.8,.2,1);
+    display: none;
+    flex-direction: column;
+  }
+  .modal.show { display: flex; }
+  .modal-overlay.open .modal.show { transform: scale(1); }
+
+  .modal-close {
+    position: absolute;
+    top: 16px; right: 16px;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: rgba(0,0,0,0.4);
+    color: var(--text);
+    font-size: 20px;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    z-index: 10;
+    transition: 0.2s;
+  }
+  .modal-close:hover {
+    background: var(--accent);
+    border-color: transparent;
+    transform: rotate(90deg);
+  }
+
+  .modal-header {
+    padding: 28px 32px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .modal-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 13px;
+    background: linear-gradient(135deg, var(--purple), var(--accent));
+    display: grid;
+    place-items: center;
+    font-size: 24px;
+    box-shadow: 0 6px 20px rgba(155,124,242,0.3);
+    flex-shrink: 0;
+  }
+  .modal-titulo {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #fff;
+    line-height: 1.2;
+  }
+  .modal-tag {
+    display: inline-block;
+    font-size: 10px;
+    color: var(--accent-2);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: 700;
+    margin-top: 4px;
+  }
+  .modal-body {
+    padding: 24px 32px 28px;
+    overflow-y: auto;
+    flex: 1;
+  }
+  .modal-body p {
+    color: #d6cae8;
+    font-size: 14px;
+    margin-bottom: 14px;
+    line-height: 1.55;
+  }
+  .modal-body strong { color: var(--accent-2); }
+  .modal-body ul {
+    list-style: none;
+    margin: 14px 0;
+  }
+  .modal-body li {
+    padding: 8px 0 8px 24px;
+    position: relative;
+    font-size: 13.5px;
+    color: var(--muted);
+    border-bottom: 1px dashed rgba(255,255,255,0.06);
+  }
+  .modal-body li:last-child { border-bottom: none; }
+  .modal-body li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: var(--green);
+    font-weight: 700;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 980px) {
+    .hero-grid { grid-template-columns: 1fr; gap: 40px; }
+    .expositor { grid-template-columns: 1fr; gap: 20px; }
+    .expositor-side { position: relative; top: 0; }
+    .compare, .four-pillars { grid-template-columns: 1fr 1fr; }
+    .four-pillars { grid-template-columns: 1fr 1fr; }
+    .incluye { grid-template-columns: 1fr; }
+    .team-cards { grid-template-columns: 1fr; }
+    .slide { padding: 70px 20px 90px; }
+    .kbd-hint { display: none; }
+  }
+  @media (max-width: 580px) {
+    .compare, .four-pillars { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-mark"><img src="BimestLogo.png" alt="BimestManager"></div>
+    BimestManager
+  </div>
+  <div class="slide-counter">
+    <span class="current" id="curSlide">1</span> / <span id="totalSlides">10</span>
+  </div>
+</div>
+
+<div class="deck" id="deck">
+
+  <!-- SLIDE 1 — HERO -->
+  <section class="slide hero active">
+    <div class="hero-grid">
+      <div>
+        <img src="BimestLogo.png" alt="BimestManager logo" class="hero-logo">
+        <div class="badge">Proyecto integrador · Equipo Dofty OS</div>
+        <h1><span class="title-grad">Menos papel,<br>más control.</span></h1>
+        <p class="hero-sub">
+          Plataforma web que digitaliza el flujo completo de un laboratorio escolar:
+          inventario, prácticas, firmas, incidencias y adeudos. Sin cambiar cómo trabajan
+          los maestros.
+        </p>
+        <div class="chips">
+          <span class="chip">Química + Turismo</span>
+          <span class="chip">Firma digital</span>
+          <span class="chip">TLS / HTTPS</span>
+          <span class="chip">Monitoreo en vivo</span>
+        </div>
+        <div class="hint-start">Usa <span class="kbd" style="background:rgba(0,0,0,0.3);">→</span> para avanzar</div>
+      </div>
+
+      <div class="hero-phone-wrap">
+        <div class="hero-phone">
+          <div class="hp-notch"></div>
+          <div class="hp-screen">
+            <div class="hp-brand">Bimest Manager</div>
+            <div class="hp-logo">
+              <img src="BimestLogo.png" alt="logo">
+            </div>
+            <div class="hp-section">Iniciar sesion</div>
+            <div class="hp-input email"><span class="hp-ph">Correo electronico</span><span class="hp-typed">danoa@ulsaneza.edu.mx</span></div>
+            <div class="hp-input pass"><span class="hp-ph">Contraseña</span><span class="hp-dots">••••••••••</span></div>
+            <div class="hp-forgot">¿Olvidaste tu contraseña?</div>
+            <div class="hp-btn">Entrar</div>
+            <div class="hp-foot">¿No tienes cuenta? <span class="hp-link">Regístrate</span></div>
+          </div>
+          <div class="hp-tap"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 2 — APERTURA -->
+  <section class="slide">
+    <div class="section-inner">
+      <div class="section-head">
+        <div class="section-tag">Capítulo 1 · Apertura</div>
+        <h2 class="section-title">El laboratorio que <span class="title-grad">ya conocen.</span></h2>
+        <p class="section-desc">Al empezar cualquier práctica experimental. Treinta alumnos entrando. Una carpeta llena de hojas. ¿Les suena?</p>
+      </div>
+      <div class="expositor">
+        <div class="expositor-side">
+          <div class="expositor-avatar">DP</div>
+          <div class="expositor-rol">Backend · Seguridad · Despliegue</div>
+          <div class="expositor-titulo">Apertura y problemática</div>
+          <div class="expositor-nombre">Daniel Alejandro Pérez Esquivel</div>
+          <div class="expositor-time">⏱ 1–2 min</div>
+        </div>
+        <div class="expositor-content">
+          <p>"Buenos días. Antes de presentarnos, queremos que se imaginen una escena que seguramente conocen muy bien:</p>
+          <p><strong>Lunes, ocho de la mañana.</strong> Treinta alumnos entrando al laboratorio. El maestro con una carpeta llena de hojas: listas de asistencia, formatos de responsiva, vales de material, hojas de incidencias, control de adeudos... todo en papel.</p>
+          <p>Cada alumno firma, el maestro guarda, y al final del semestre <em>nadie sabe dónde quedó esa hoja</em> donde Juan firmó que se llevó un matraz."</p>
+          <div class="pasos">
+            <div class="paso">
+              <div class="paso-num">1</div>
+              <div>
+                <div class="paso-titulo">Mucho papel</div>
+                <div class="paso-desc">Una práctica con 30 alumnos genera entre 30 y 60 hojas. Multiplíquenlo por todos los grupos del semestre.</div>
+              </div>
+            </div>
+            <div class="paso">
+              <div class="paso-num">2</div>
+              <div>
+                <div class="paso-titulo">Firmas que se pierden</div>
+                <div class="paso-desc">Se manchan, se traspapelan. Cuando se rompe un equipo, no hay cómo saber QUIÉN lo tenía y CUÁNDO.</div>
+              </div>
+            </div>
+            <div class="paso">
+              <div class="paso-num">3</div>
+              <div>
+                <div class="paso-titulo">Adeudos sin seguimiento</div>
+                <div class="paso-desc">El alumno se va de vacaciones y nadie recordó que no devolvió el termómetro.</div>
+              </div>
+            </div>
+            <div class="paso">
+              <div class="paso-num">4</div>
+              <div>
+                <div class="paso-titulo">Excel no es la solución</div>
+                <div class="paso-desc">Cualquiera lo borra, no controla quién entra, no tiene firmas válidas, dos maestros editando = desastre.</div>
+              </div>
+            </div>
+          </div>
+          <p>El flujo del laboratorio <strong>funciona</strong>. El problema es la <em>herramienta</em> con la que se opera ese flujo."</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 3 — SOLUCIÓN -->
+  <section class="slide">
+    <div class="section-inner">
+      <div class="section-head">
+        <div class="section-tag">Capítulo 2 · La solución</div>
+        <h2 class="section-title">No inventamos un proceso.<br><span class="title-grad">Lo digitalizamos.</span></h2>
+        <p class="section-desc">Respetamos exactamente el mismo flujo que ya hacen los maestros con papel. Solo les damos una herramienta más rápida.</p>
+      </div>
+      <div class="expositor">
+        <div class="expositor-side">
+          <div class="expositor-avatar">CP</div>
+          <div class="expositor-rol">Diseñador BD · Infraestructura</div>
+          <div class="expositor-titulo">La solución: BimestManager</div>
+          <div class="expositor-nombre">Pérez Arzate Carlos Daniel</div>
+          <div class="expositor-time">⏱ 1–2 min</div>
+        </div>
+        <div class="expositor-content">
+          <p>"Gracias. Nuestra propuesta se llama <strong>BimestManager</strong>.</p>
+          <p>Lo importante es esto: <strong>NO inventamos un proceso nuevo.</strong> Respetamos el mismo flujo que ya hacen los maestros con papel: el alumno se inscribe, el maestro arma la práctica, se entregan los kits, los alumnos firman, y al final se devuelve y se registran adeudos o incidencias si hubo algo.</p>
+          <p>A los maestros no les vamos a pedir que aprendan a hacer su trabajo de otra forma. Solo les damos una herramienta <em>más rápida</em>."</p>
+          <div class="servers">
+            <div class="server clickable" style="--col:#d97757" data-modal="r-admin">
+              <div class="server-icon">A</div>
+              <div class="server-titulo">ADMIN</div>
+              <div class="server-desc">Jefe de laboratorio o coordinador. Da de alta materiales, grupos y maestros.</div>
+            </div>
+            <div class="server clickable" style="--col:#9b7cf2" data-modal="r-maestro">
+              <div class="server-icon">M</div>
+              <div class="server-titulo">MAESTRO</div>
+              <div class="server-desc">Arma prácticas, asigna kits, ve quién firmó.</div>
+            </div>
+            <div class="server clickable" style="--col:#6dd6a8" data-modal="r-alumno">
+              <div class="server-icon">E</div>
+              <div class="server-titulo">ALUMNO</div>
+              <div class="server-desc">Ve sus prácticas, firma responsiva digital, consulta adeudos.</div>
+            </div>
+          </div>
+          <p style="margin-top: 20px;">Y como muchas escuelas tienen también laboratorio de turismo (no nada más química), incluimos los <strong>dos módulos</strong> en el mismo sistema: <em>Química y Turismo</em>, con sus propios materiales, prácticas y flujos.</p>
+          <p><strong>Una sola plataforma. Dos áreas cubiertas.</strong> <em>Haz click en cada rol para ver su panel en acción.</em></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 4 — PROCESOS -->
+  <section class="slide">
+    <div class="section-inner">
+      <div class="section-head">
+        <div class="section-tag">Capítulo 3 · Cómo se usa</div>
+        <h2 class="section-title">Un semestre real,<br><span class="title-grad">paso a paso.</span></h2>
+        <p class="section-desc">Así sucede dentro del sistema, desde la primera alta hasta el último adeudo cerrado.</p>
+      </div>
+      <div class="expositor">
+        <div class="expositor-side">
+          <div class="expositor-avatar">DM</div>
+          <div class="expositor-rol">Backend · Base de datos · Integración</div>
+          <div class="expositor-titulo">Procesos de la app</div>
+          <div class="expositor-nombre">Daniel Meza Sánchez</div>
+          <div class="expositor-time">⏱ 1–2 min</div>
+        </div>
+        <div class="expositor-content">
+          <p>"Voy a llevarlos por el flujo real, paso a paso, como sucedería en un semestre normal."</p>
+          <div class="pasos">
+            <div class="paso">
+              <div class="paso-num">1</div>
+              <div>
+                <div class="paso-titulo">Alta de inventario</div>
+                <div class="paso-desc">El administrador registra los materiales: matraces, microscopios, kits de turismo. Cada uno con nombre, cantidad y estado.</div>
+              </div>
+            </div>
+            <div class="paso">
+              <div class="paso-num">2</div>
+              <div>
+                <div class="paso-titulo">Alta de grupos y alumnos</div>
+                <div class="paso-desc">Se crean los grupos del semestre. Los alumnos se registran con matrícula y quedan asociados a su módulo.</div>
+              </div>
+            </div>
+            <div class="paso">
+              <div class="paso-num">3</div>
+              <div>
+                <div class="paso-titulo">El maestro arma la práctica</div>
+                <div class="paso-desc">Crea una práctica nueva, le pone fecha y arma el kit de materiales. Define equipos si la práctica es por equipos.</div>
+              </div>
+            </div>
+            <div class="paso">
+              <div class="paso-num">4</div>
+              <div>
+                <div class="paso-titulo">Sesión de laboratorio</div>
+                <div class="paso-desc">El maestro abre la sesión. Los alumnos firman la responsiva digital desde el celular. Esa firma queda con fecha, hora y usuario, y <strong>no se puede borrar</strong>.</div>
+              </div>
+            </div>
+            <div class="paso">
+              <div class="paso-num">5</div>
+              <div>
+                <div class="paso-titulo">Incidencias y devolución</div>
+                <div class="paso-desc">Si algo se rompe, se registra como incidencia asociada al responsable. Al devolver el material se cierra el préstamo o se genera adeudo automático.</div>
+              </div>
+            </div>
+            <div class="paso">
+              <div class="paso-num">6</div>
+              <div>
+                <div class="paso-titulo">Seguimiento y notificaciones</div>
+                <div class="paso-desc">El alumno ve sus adeudos. El maestro ve quién le debe qué. El admin ve todo el panorama del laboratorio.</div>
+              </div>
+            </div>
+          </div>
+          <p>Todo esto en lugar de carpetas, hojas sueltas y firmas ilegibles. <em>Mismo flujo, sin papel, con trazabilidad.</em></p>
+          <button class="watch-anim" data-modal="proc-anim">▶ Ver animación del flujo</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 5 — ARQUITECTURA -->
+  <section class="slide">
+    <div class="section-inner">
+      <div class="section-head">
+        <div class="section-tag">Capítulo 4 · Por qué es confiable</div>
+        <h2 class="section-title">Robustez del sistema<br><span class="title-grad">Es un sistema en serio.</span></h2>
+        <p class="section-desc">Dos servidores comunicándose por red: uno dedicado a la base de datos y otro con la aplicación completa (auth, monitoreo y logs integrados).</p>
+      </div>
+      <div class="expositor">
+        <div class="expositor-side">
+          <div class="expositor-avatar">JF</div>
+          <div class="expositor-rol">PO · Sysadmin · Despliegue de servidor web</div>
+          <div class="expositor-titulo">Arquitectura</div>
+          <div class="expositor-nombre">Juan Pablo Flores Varela</div>
+          <div class="expositor-time">⏱ 1–2 min</div>
+        </div>
+        <div class="expositor-content">
+          <p>"Lo que voy a contarles es lo que está detrás de la interfaz. BimestManager corre en <strong>dos servidores comunicados por red</strong>:</p>
+          <div class="servers" style="grid-template-columns: 1fr 1fr;">
+            <div class="server clickable" style="--col:#d97757" data-modal="srv-db">
+              <div class="server-icon">DB</div>
+              <div class="server-titulo">Servidor BD</div>
+              <div class="server-desc">MySQL dedicado. Datos cifrados con <strong>TLS</strong>. Sólo acepta conexión del servidor WEB.</div>
+            </div>
+            <div class="server clickable" style="--col:#e8a0c8" data-modal="srv-web">
+              <div class="server-icon">WEB</div>
+              <div class="server-titulo">Servidor WEB</div>
+              <div class="server-desc">Node.js + HTTPS. Incluye <strong>autenticación, monitoreo /monitor y logs</strong> en el mismo servicio.</div>
+            </div>
+          </div>
+          <p style="margin-top: 18px;"><strong>Además:</strong></p>
+          <div class="pasos">
+            <div class="paso">
+              <div class="paso-num">✓</div>
+              <div>
+                <div class="paso-titulo">Logs rotados con winston</div>
+                <div class="paso-desc">Aplicación, errores y accesos. Permiten auditar QUÉ pasó y CUÁNDO.</div>
+              </div>
+            </div>
+            <div class="paso">
+              <div class="paso-num">✓</div>
+              <div>
+                <div class="paso-titulo">Usuario mínimo de BD</div>
+                <div class="paso-desc">La app NO se conecta como root. Sólo lee y escribe lo necesario, con conexión cifrada.</div>
+              </div>
+            </div>
+            <div class="paso">
+              <div class="paso-num">✓</div>
+              <div>
+                <div class="paso-titulo">Roles bien separados</div>
+                <div class="paso-desc">Un alumno no puede ver el panel de admin aunque manipule la URL.</div>
+              </div>
+            </div>
+          </div>
+          <p>¿Por qué les digo todo esto? Porque en Excel <em>nada de esto existe</em>." <em>Haz click en cada servidor para ver su interior.</em></p>
+          <p style="font-size: 13px; color: var(--muted); margin-top: 12px;"><em>Aunque concentramos varios servicios en el WEB para simplificar el despliegue, la separación lógica (auth, app, monitoreo, logs) sigue siendo limpia y se puede dividir físicamente si la escuela lo necesita.</em></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 6 — DIFERENCIADORES -->
+  <section class="slide">
+    <div class="section-inner">
+      <div class="section-head">
+        <div class="section-tag">Capítulo 5 · Por qué nosotros</div>
+        <h2 class="section-title">Pongámoslo <span class="title-grad">lado a lado.</span></h2>
+      </div>
+      <div class="expositor">
+        <div class="expositor-side">
+          <div class="expositor-avatar">SD</div>
+          <div class="expositor-rol">Diseño de Interfaz · UX</div>
+          <div class="expositor-titulo">Diferenciadores</div>
+          <div class="expositor-nombre">Said Díaz Loya</div>
+          <div class="expositor-time">⏱ 1–2 min</div>
+        </div>
+        <div class="expositor-content">
+          <p>"Pongámoslo lado a lado. Comparemos las tres formas de operar un laboratorio escolar:"</p>
+          <div class="compare">
+            <div class="col papel">
+              <div class="col-titulo">Papel</div>
+              <div class="col-sub">Lo de siempre</div>
+              <ul>
+                <li>Hojas que se pierden o se manchan</li>
+                <li>Firmas falsificables</li>
+                <li>Cero trazabilidad</li>
+                <li>Gasto en tinta y archivos físicos</li>
+                <li>Tiempo perdido buscando información</li>
+              </ul>
+            </div>
+            <div class="col excel">
+              <div class="col-titulo">Excel</div>
+              <div class="col-sub">Falsa solución</div>
+              <ul>
+                <li>Cualquiera lo borra sin querer</li>
+                <li>No hay control de usuarios</li>
+                <li>Sin firma real ni fecha confiable</li>
+                <li>Dos editando = archivo roto</li>
+                <li>Sin alertas ni recordatorios</li>
+              </ul>
+            </div>
+            <div class="col bm">
+              <div class="col-titulo title-grad">BimestManager</div>
+              <div class="col-sub" style="color: var(--accent-2);">Sistema real</div>
+              <ul>
+                <li>Acceso con roles reales</li>
+                <li>Firma digital con fecha y hora</li>
+                <li>Datos cifrados de extremo a extremo</li>
+                <li>Adeudos automáticos</li>
+                <li>Logs auditables</li>
+                <li>Monitoreo en vivo</li>
+                <li>Funciona en celular del alumno</li>
+                <li>Química Y Turismo incluidos</li>
+              </ul>
+            </div>
+          </div>
+          <div class="four-pillars">
+            <div class="pillar"><div class="pillar-icon">◆</div><div class="pillar-name">TRAZABILIDAD</div></div>
+            <div class="pillar"><div class="pillar-icon">◆</div><div class="pillar-name">SEGURIDAD</div></div>
+            <div class="pillar"><div class="pillar-icon">◆</div><div class="pillar-name">AUTOMATIZACIÓN</div></div>
+            <div class="pillar"><div class="pillar-icon">◆</div><div class="pillar-name">AHORRO</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 7 — MODELO -->
+  <section class="slide">
+    <div class="section-inner">
+      <div class="section-head">
+        <div class="section-tag">Capítulo 6 · Modelo de negocio</div>
+        <h2 class="section-title">Sin cargos mensuales.<br><span class="title-grad">Sin módulos extra.</span></h2>
+      </div>
+      <div class="expositor">
+        <div class="expositor-side">
+          <div class="expositor-avatar">KS</div>
+          <div class="expositor-rol">Diseño Visual · Despliegue Servidor BD</div>
+          <div class="expositor-titulo">Modelo de negocio y cierre</div>
+          <div class="expositor-nombre">Kevin Sandoval Nieves</div>
+          <div class="expositor-time">⏱ 1–2 min</div>
+        </div>
+        <div class="expositor-content">
+          <p>"<strong>NO</strong> queremos un cargo mensual. <strong>NO</strong> queremos venderles módulos por separado. Nuestro modelo es directo:"</p>
+          <div class="pricing">
+            <div class="pricing-tag">★ NUESTRO MODELO</div>
+            <h3 class="title-grad">Pago único. Todo incluido.</h3>
+            <p>El software es de la institución, para siempre. Un solo trámite de aprobación.</p>
+            <div class="incluye">
+              <div class="incluye-item">
+                <div class="incluye-check">✓</div>
+                <div><strong>Software completo</strong><br>De por vida, sin límites.</div>
+              </div>
+              <div class="incluye-item">
+                <div class="incluye-check">✓</div>
+                <div><strong>Química + Turismo</strong><br>Ambos módulos incluidos.</div>
+              </div>
+              <div class="incluye-item">
+                <div class="incluye-check">✓</div>
+                <div><strong>Instalación local</strong><br>Servidor BD + servidor WEB (con auth, monitor y logs).</div>
+              </div>
+              <div class="incluye-item">
+                <div class="incluye-check">✓</div>
+                <div><strong>Capacitación</strong><br>A maestros y alumnos.</div>
+              </div>
+              <div class="incluye-item" style="grid-column: 1 / -1;">
+                <div class="incluye-check">✓</div>
+                <div><strong>Un año de garantía</strong><br>Cualquier bug o caída, lo arreglamos sin costo extra.</div>
+              </div>
+            </div>
+          </div>
+          <p style="margin-top: 16px; font-size: 13px;">A partir del segundo año: <strong>póliza anual</strong> opcional. Si la escuela no la paga, <em>el sistema NO se bloquea</em>. Ya es suyo."</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 8 — MATERIAS / RÚBRICAS -->
+  <section class="slide">
+    <div class="section-inner">
+      <div class="section-head">
+        <div class="section-tag">Proyecto integrador · Rúbricas</div>
+        <h2 class="section-title">Una sola plataforma,<br><span class="title-grad">cinco materias cubiertas.</span></h2>
+        <p class="section-desc">Cada card muestra cómo BimestManager cumple la rúbrica específica de cada asignatura. Haz click para ver evidencia del sistema.</p>
+      </div>
+
+      <div class="materias-grid">
+        <div class="materia-card" data-modal="m1">
+          <div class="materia-icon">
+            <svg viewBox="0 0 24 24"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>
+          </div>
+          <div class="materia-titulo">Programación en Swift para Plataformas Apple</div>
+          <div class="materia-desc">Acceso desde iOS / macOS con WebView, sincronización en la nube y acceso a cámara/galería.</div>
+          <div class="materia-cta">Ver evidencia</div>
+        </div>
+
+        <div class="materia-card" data-modal="m2">
+          <div class="materia-icon">
+            <svg viewBox="0 0 24 24"><path d="M17.6 9.48l1.84-3.18c.16-.31.04-.69-.26-.85-.29-.15-.65-.06-.83.22l-1.88 3.24c-2.86-1.21-6.08-1.21-8.94 0L5.65 5.67c-.19-.29-.58-.38-.87-.2-.28.18-.37.54-.22.83L6.4 9.48C3.3 11.25 1.28 14.44 1 18h22c-.28-3.56-2.3-6.75-5.4-8.52zM7 15.25c-.69 0-1.25-.56-1.25-1.25s.56-1.25 1.25-1.25S8.25 13.31 8.25 14 7.69 15.25 7 15.25zm10 0c-.69 0-1.25-.56-1.25-1.25s.56-1.25 1.25-1.25 1.25.56 1.25 1.25-.56 1.25-1.25 1.25z"/></svg>
+          </div>
+          <div class="materia-titulo">Programación para Android Studio</div>
+          <div class="materia-desc">Compatibilidad con Android para que los alumnos firmen su responsiva desde el celular. WebView + permisos.</div>
+          <div class="materia-cta">Ver evidencia</div>
+        </div>
+
+        <div class="materia-card" data-modal="m3">
+          <div class="materia-icon">
+            <svg viewBox="0 0 24 24"><path d="M12 2L1 7l11 5 9-4.09V14h2V7L12 2zM3 11v6.05l9 4.1 9-4.1V11L12 14.16 3 11z"/></svg>
+          </div>
+          <div class="materia-titulo">Desarrollo Integral para Aplicaciones Empresariales</div>
+          <div class="materia-desc">Arquitectura N-capas, servicios REST, hash SHA-256, control de versiones Git, tolerancia a fallos.</div>
+          <div class="materia-cta">Ver evidencia</div>
+        </div>
+
+        <div class="materia-card" data-modal="m4">
+          <div class="materia-icon">
+            <svg viewBox="0 0 24 24"><path d="M17 16l-4-4V8.82C14.16 8.4 15 7.3 15 6c0-1.66-1.34-3-3-3S9 4.34 9 6c0 1.3.84 2.4 2 2.82V12l-4 4H3v5h5v-3.05l4-4.2 4 4.2V21h5v-5h-4z"/></svg>
+          </div>
+          <div class="materia-titulo">Fundamentos de Redes y Ruteo</div>
+          <div class="materia-desc">Comunicación por red entre el servidor BD (MySQL) y el servidor WEB. Validación con <em>ping</em> y <em>Test-NetConnection</em>.</div>
+          <div class="materia-cta">Ver evidencia</div>
+        </div>
+
+        <div class="materia-card" data-modal="m5">
+          <div class="materia-icon">
+            <svg viewBox="0 0 24 24"><path d="M4 1h16c.55 0 1 .45 1 1v6c0 .55-.45 1-1 1H4c-.55 0-1-.45-1-1V2c0-.55.45-1 1-1zm2 3h2v2H6V4zm5 0h2v2h-2V4zM4 11h16c.55 0 1 .45 1 1v6c0 .55-.45 1-1 1H4c-.55 0-1-.45-1-1v-6c0-.55.45-1 1-1zm2 3h2v2H6v-2zm5 0h2v2h-2v-2zM4 21h16c.55 0 1 .22 1 .5s-.45.5-1 .5H4c-.55 0-1-.22-1-.5s.45-.5 1-.5z"/></svg>
+          </div>
+          <div class="materia-titulo">Implementación e Integración de Servidores</div>
+          <div class="materia-desc">Despliegue en Windows/Linux, monitoreo de CPU/RAM/disco/red, gestión de permisos y servicios.</div>
+          <div class="materia-cta">Ver evidencia</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 9 — EQUIPO -->
+  <section class="slide">
+    <div class="section-inner">
+      <div class="section-head">
+        <div class="section-tag">El equipo</div>
+        <h2 class="section-title">Detrás de <span class="title-grad">BimestManager.</span></h2>
+        <p class="section-desc">Equipo multidisciplinario que diseñó, construyó y desplegó el sistema.</p>
+      </div>
+
+      <div class="team-section">
+
+        <div class="team-group">
+          <div class="team-group-title">Desarrollo</div>
+          <div class="team-cards">
+            <div class="team-card">
+              <div class="team-avatar">DM</div>
+              <div>
+                <div class="team-name">Daniel Meza Sánchez</div>
+                <div class="team-tarea">Backend, base de datos, integración</div>
+              </div>
+            </div>
+            <div class="team-card">
+              <div class="team-avatar">DP</div>
+              <div>
+                <div class="team-name">Daniel Alejandro Pérez Esquivel</div>
+                <div class="team-tarea">Backend, seguridad, despliegue</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="team-group">
+          <div class="team-group-title">Diseño</div>
+          <div class="team-cards">
+            <div class="team-card">
+              <div class="team-avatar">SD</div>
+              <div>
+                <div class="team-name">Said Díaz Loya</div>
+                <div class="team-tarea">Diseño de interfaz y experiencia de usuario</div>
+              </div>
+            </div>
+            <div class="team-card">
+              <div class="team-avatar">KS</div>
+              <div>
+                <div class="team-name">Kevin Sandoval Nieves</div>
+                <div class="team-tarea">Diseño visual y prototipado / Despliegue Servidor BD</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="team-group">
+          <div class="team-group-title">Infraestructura</div>
+          <div class="team-cards">
+            <div class="team-card">
+              <div class="team-avatar">JF</div>
+              <div>
+                <div class="team-name">Juan Pablo Flores Varela</div>
+                <div class="team-tarea">PO, Sysadmin e infraestructura</div>
+              </div>
+            </div>
+            <div class="team-card">
+              <div class="team-avatar">CP</div>
+              <div>
+                <div class="team-name">Pérez Arzate Carlos Daniel</div>
+                <div class="team-tarea">Diseñador BD e infraestructura</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 9 — CIERRE -->
+  <section class="slide cierre">
+    <div>
+      <div class="cierre-lema">Menos papel.<br>Más control.</div>
+      <p>Eso es BimestManager.</p>
+      <p style="font-size: 16px; margin-top: 24px;">Gracias.</p>
+    </div>
+  </section>
+
+</div>
+
+<!-- MODALES DE MATERIAS -->
+<div class="modal-overlay" id="modalOverlay">
+
+  <div class="modal" data-modal-content="m1">
+    <button class="modal-close" data-close>✕</button>
+    <div class="modal-header">
+      <div class="modal-icon">
+        <svg viewBox="0 0 24 24"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>
+      </div>
+      <div>
+        <div class="modal-titulo">Programación en Swift para Plataformas Apple</div>
+        <div class="modal-tag">Cumplimiento iOS / macOS</div>
+      </div>
+    </div>
+    <div class="modal-body">
+      <p><strong>Rúbrica:</strong> Desarrollar apps nativas en Swift para iOS/macOS, integración con nube, WebView, acceso a cámara/galería y sincronización.</p>
+      <div class="lottie lottie-swift">
+        <div class="phone-mini">
+          <div class="bm-header"><div class="bm-avatar">JP</div><div class="bm-htitle">Turismo</div></div>
+          <div class="bm-content">
+            <div class="mini-greet">Hola, Juan</div>
+            <div class="mini-card">
+              <div class="mini-ttl">Sesión</div>
+              <div class="mini-ln l1"></div>
+              <div class="mini-ln l2"></div>
+            </div>
+            <div class="mini-card">
+              <div class="mini-ttl">Atajos</div>
+              <div class="mini-btn">Mis préstamos</div>
+            </div>
+          </div>
+          <div class="bm-nav">
+            <div class="bm-nav-item active">⌂</div>
+            <div class="bm-nav-item">📅</div>
+            <div class="bm-nav-item center"><div class="bm-logo-mini"></div></div>
+            <div class="bm-nav-item">💬</div>
+            <div class="bm-nav-item">🔔</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+          <div class="badge-os">iOS</div>
+          <div class="cloud-arrow">☁ ↑↓</div>
+        </div>
+        <div class="phone-mini">
+          <div class="bm-header"><div class="bm-avatar">JP</div><div class="bm-htitle">Préstamos</div></div>
+          <div class="bm-content">
+            <div class="mini-card">
+              <div class="mini-ttl">Préstamos activos</div>
+              <div class="mini-ln l3"></div>
+              <div class="mini-ln l1"></div>
+              <div class="mini-ln l2"></div>
+            </div>
+            <div class="mini-card">
+              <div class="mini-ttl">Adeudos: 0</div>
+              <div class="mini-ln l1"></div>
+            </div>
+          </div>
+          <div class="bm-nav">
+            <div class="bm-nav-item">⌂</div>
+            <div class="bm-nav-item">📅</div>
+            <div class="bm-nav-item center"><div class="bm-logo-mini"></div></div>
+            <div class="bm-nav-item active">💬</div>
+            <div class="bm-nav-item">🔔</div>
+          </div>
+        </div>
+      </div>
+      <p><strong>Cómo lo cumple BimestManager:</strong></p>
+      <ul>
+        <li>La app web BimestManager se accede desde Safari en iOS y carga la responsiva digital con la cámara del iPhone para escanear material</li>
+        <li>WebView wrapper en Swift que carga el panel del alumno con sesión persistente</li>
+        <li>Sincronización en tiempo real con el servidor WEB vía HTTPS — el alumno ve sus adeudos al instante</li>
+        <li>Acceso a galería para subir foto de incidencia (matraz roto, etc.)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="modal" data-modal-content="m2">
+    <button class="modal-close" data-close>✕</button>
+    <div class="modal-header">
+      <div class="modal-icon">
+        <svg viewBox="0 0 24 24"><path d="M17.6 9.48l1.84-3.18c.16-.31.04-.69-.26-.85-.29-.15-.65-.06-.83.22l-1.88 3.24c-2.86-1.21-6.08-1.21-8.94 0L5.65 5.67c-.19-.29-.58-.38-.87-.2-.28.18-.37.54-.22.83L6.4 9.48C3.3 11.25 1.28 14.44 1 18h22c-.28-3.56-2.3-6.75-5.4-8.52zM7 15.25c-.69 0-1.25-.56-1.25-1.25s.56-1.25 1.25-1.25S8.25 13.31 8.25 14 7.69 15.25 7 15.25zm10 0c-.69 0-1.25-.56-1.25-1.25s.56-1.25 1.25-1.25 1.25.56 1.25 1.25-.56 1.25-1.25 1.25z"/></svg>
+      </div>
+      <div>
+        <div class="modal-titulo">Programación para Android Studio</div>
+        <div class="modal-tag">Cumplimiento Android</div>
+      </div>
+    </div>
+    <div class="modal-body">
+      <p><strong>Rúbrica:</strong> App nativa Android (Kotlin/Java), nube, permisos (cámara/galería), WebView, sincronización y pruebas en emulador y dispositivo real.</p>
+      <div class="lottie lottie-android">
+        <div class="phone-mini">
+          <div class="bm-header"><div class="bm-avatar">A</div><div class="bm-htitle">Maestro</div></div>
+          <div class="bm-content">
+            <div class="mini-greet">Panel</div>
+            <div class="mini-card">
+              <div class="mini-ttl">Sesiones</div>
+              <div class="mini-ln l1"></div>
+              <div class="mini-ln l2"></div>
+            </div>
+            <div class="mini-card">
+              <div class="mini-ttl">Próxima</div>
+              <div class="mini-btn">+ Nueva</div>
+            </div>
+          </div>
+          <div class="bm-nav">
+            <div class="bm-nav-item active">⌂</div>
+            <div class="bm-nav-item">📅</div>
+            <div class="bm-nav-item center"><div class="bm-logo-mini"></div></div>
+            <div class="bm-nav-item">👥</div>
+            <div class="bm-nav-item">⋯</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+          <div class="badge-os">Android</div>
+          <div class="cloud-arrow">☁ ↑↓</div>
+        </div>
+        <div class="phone-mini">
+          <div class="bm-header"><div class="bm-avatar">A</div><div class="bm-htitle">Sesiones</div></div>
+          <div class="bm-content">
+            <div class="mini-card">
+              <div class="mini-ttl">Mis sesiones</div>
+              <div class="mini-ln l3"></div>
+              <div class="mini-ln l1"></div>
+              <div class="mini-ln l2"></div>
+            </div>
+            <div class="mini-card">
+              <div class="mini-ttl">Firmas: 24</div>
+            </div>
+          </div>
+          <div class="bm-nav">
+            <div class="bm-nav-item">⌂</div>
+            <div class="bm-nav-item active">📅</div>
+            <div class="bm-nav-item center"><div class="bm-logo-mini"></div></div>
+            <div class="bm-nav-item">👥</div>
+            <div class="bm-nav-item">⋯</div>
+          </div>
+        </div>
+      </div>
+      <p><strong>Cómo lo cumple BimestManager:</strong></p>
+      <ul>
+        <li>App companion en Kotlin con WebView que carga el módulo del alumno</li>
+        <li>Manejo de permisos de cámara y almacenamiento para registrar incidencias con foto</li>
+        <li>Sincronización en tiempo real de firmas y adeudos contra el servidor WEB</li>
+        <li>Probada en emuladores AVD y en dispositivos físicos (Android 11+)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="modal" data-modal-content="m3">
+    <button class="modal-close" data-close>✕</button>
+    <div class="modal-header">
+      <div class="modal-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2L1 7l11 5 9-4.09V14h2V7L12 2zM3 11v6.05l9 4.1 9-4.1V11L12 14.16 3 11z"/></svg>
+      </div>
+      <div>
+        <div class="modal-titulo">Desarrollo Integral para Aplicaciones Empresariales</div>
+        <div class="modal-tag">Arquitectura · Seguridad · Git</div>
+      </div>
+    </div>
+    <div class="modal-body">
+      <p><strong>Rúbrica:</strong> Arquitectura tolerante a fallos, bajo acoplamiento, servicios REST, criptografía SHA-256, control de versiones Git, N-capas o microservicios.</p>
+      <div class="lottie lottie-web">
+        <div class="vsc-title">
+          <div class="vsc-dots"><div class="vsc-dot r"></div><div class="vsc-dot y"></div><div class="vsc-dot g"></div></div>
+          BimestManager — adminController.js — Visual Studio Code
+        </div>
+        <div class="vsc-body">
+          <div class="vsc-explorer">
+            <div class="vsc-folder-h">▾ BIMESTMANAGER</div>
+            <div class="vsc-file" style="--icol:#519aba;">📁 controlador</div>
+            <div class="vsc-file active" style="--icol:#e0bc4c;">📄 adminController.js</div>
+            <div class="vsc-file" style="--icol:#e0bc4c;">📄 authController.js</div>
+            <div class="vsc-file" style="--icol:#e0bc4c;">📄 maestroController.js</div>
+            <div class="vsc-file" style="--icol:#519aba;">📁 modelo</div>
+            <div class="vsc-file" style="--icol:#519aba;">📁 rutas</div>
+            <div class="vsc-file" style="--icol:#519aba;">📁 vista</div>
+            <div class="vsc-file" style="--icol:#519aba;">📁 Middlewares</div>
+            <div class="vsc-file" style="--icol:#e0bc4c;">📄 server.js</div>
+            <div class="vsc-file" style="--icol:#e0bc4c;">📄 BDconex.js</div>
+            <div class="vsc-file" style="--icol:#cb3837;">📄 package.json</div>
+          </div>
+          <div class="vsc-main">
+            <div class="vsc-tabs">
+              <div class="vsc-tab active">adminController.js</div>
+              <div class="vsc-tab">server.js</div>
+            </div>
+            <div class="vsc-editor">
+<span class="code-line"><span class="kw">const</span> <span class="var">AdminModelo</span> = <span class="fn">require</span>(<span class="str">'../modelo/adminModelo'</span>);</span>
+<span class="code-line"><span class="kw">const</span> EMAIL_REGEX = <span class="str">/^[^\s@]+@[^\s@]+\.[^\s@]+$/</span>;</span>
+<span class="code-line"></span>
+<span class="code-line"><span class="kw">const</span> <span class="var">responderError</span> = (<span class="var">res</span>, <span class="var">error</span>, <span class="var">fallbackMessage</span>) => {</span>
+<span class="code-line">&nbsp;&nbsp;<span class="kw">if</span> (<span class="var">error</span>.status) {</span>
+<span class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> <span class="var">res</span>.<span class="fn">status</span>(<span class="var">error</span>.status).<span class="fn">json</span>({</span>
+<span class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;error: <span class="var">error</span>.message,</span>
+<span class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;code: <span class="var">error</span>.code <span class="kw">??</span> <span class="str">'ERROR_CODE'</span></span>
+<span class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;});</span>
+<span class="code-line">&nbsp;&nbsp;}</span>
+            </div>
+            <div class="vsc-terminal">
+              <div class="term-line"><span class="term-prompt">PS</span> C:\Users\danoa\Downloads\BimestManager&gt; node server.js</div>
+              <div class="term-line"><span class="term-200">[info]</span> 🔒 BimestManager corriendo en https://localhost</div>
+              <div class="term-line"><span class="term-200">GET</span> /favicon.ico <span class="term-200">404</span> 0.890ms</div>
+              <div class="term-line"><span class="term-200">POST</span> /auth/login <span class="term-200">200</span> 142.301ms</div>
+              <div class="term-line"><span class="term-200">GET</span> /admin/usuarios <span class="term-200">200</span> 56.117ms</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p><strong>Cómo lo cumple BimestManager:</strong></p>
+      <ul>
+        <li>Arquitectura MVC en N-capas: <em>vista</em> (EJS), <em>controlador</em>, <em>modelo</em>, BD (MySQL)</li>
+        <li>API REST documentada en OpenAPI para integración con bots y apps móviles</li>
+        <li>Contraseñas hasheadas con bcrypt/SHA-256 + salt; sesiones con cookie httpOnly firmada</li>
+        <li>Repositorio Git con commits semánticos y ramas por feature</li>
+        <li>Bajo acoplamiento entre capas: cambiar la BD no rompe los controladores</li>
+        <li>Manejo centralizado de errores (<em>responderError</em>) y validaciones por capa</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="modal" data-modal-content="m4">
+    <button class="modal-close" data-close>✕</button>
+    <div class="modal-header">
+      <div class="modal-icon">
+        <svg viewBox="0 0 24 24"><path d="M17 16l-4-4V8.82C14.16 8.4 15 7.3 15 6c0-1.66-1.34-3-3-3S9 4.34 9 6c0 1.3.84 2.4 2 2.82V12l-4 4H3v5h5v-3.05l4-4.2 4 4.2V21h5v-5h-4z"/></svg>
+      </div>
+      <div>
+        <div class="modal-titulo">Fundamentos de Redes y Ruteo</div>
+        <div class="modal-tag">Infraestructura de red</div>
+      </div>
+    </div>
+    <div class="modal-body">
+      <p><strong>Rúbrica:</strong> Diseño de red con conectividad entre hosts, direccionamiento IP correcto, validación de comunicación (ping, Test-NetConnection) y apertura de puertos.</p>
+      <div class="lottie lottie-net-split">
+        <div class="term">
+          <div class="term-bar">
+            <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+            <div class="title">g93-bd@g93-bd: ~  — bash</div>
+          </div>
+          <div class="term-body">
+            <div class="term-line"><span class="t-prompt-linux">g93-bd@g93-bd:~$</span> <span class="t-cmd">ip a</span></div>
+            <div class="term-line"><span class="t-num">1:</span> <span class="t-key">lo</span>: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu <span class="t-num">65536</span> qdisc noqueue state <span class="t-ok">UNKNOWN</span></div>
+            <div class="term-line">    inet <span class="t-net">127.0.0.1/8</span> scope host lo</div>
+            <div class="term-line"><span class="t-num">2:</span> <span class="t-key">enp0s3</span>: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu <span class="t-num">1500</span> state <span class="t-ok">UP</span></div>
+            <div class="term-line">    inet <span class="t-net">192.168.0.100/24</span> brd 192.168.0.255 scope global enp0s3</div>
+            <div class="term-line"><span class="t-prompt-linux">g93-bd@g93-bd:~$</span> <span class="t-cmd">ping</span> <span class="t-flag">-c 4</span> <span class="t-net">192.168.0.20</span></div>
+            <div class="term-line">64 bytes from 192.168.0.20: icmp_seq=1 ttl=64 time=<span class="t-ok">0.412 ms</span></div>
+            <div class="term-line">64 bytes from 192.168.0.20: icmp_seq=2 ttl=64 time=<span class="t-ok">0.398 ms</span></div>
+            <div class="term-line">64 bytes from 192.168.0.20: icmp_seq=3 ttl=64 time=<span class="t-ok">0.345 ms</span></div>
+            <div class="term-line"><span class="t-com">--- 192.168.0.20 ping statistics ---  4 packets, 0% loss</span><span class="t-cursor"></span></div>
+          </div>
+        </div>
+        <div class="term">
+          <div class="term-bar">
+            <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+            <div class="title">Windows PowerShell  —  WEB host  192.168.0.20</div>
+          </div>
+          <div class="term-body">
+            <div class="term-line"><span class="t-dim">Windows PowerShell</span></div>
+            <div class="term-line"><span class="t-dim">Copyright (C) Microsoft Corporation.</span></div>
+            <div class="term-line"><span class="t-prompt-ps">PS C:\&gt;</span> <span class="t-cmd">Test-NetConnection</span> <span class="t-flag">-ComputerName</span> <span class="t-net">192.168.0.100</span> <span class="t-flag">-Port</span> <span class="t-num">3306</span></div>
+            <div class="term-line"></div>
+            <div class="term-line">ComputerName     : <span class="t-net">192.168.0.100</span></div>
+            <div class="term-line">RemoteAddress    : <span class="t-net">192.168.0.100</span></div>
+            <div class="term-line">RemotePort       : <span class="t-num">3306</span></div>
+            <div class="term-line">SourceAddress    : <span class="t-net">192.168.0.20</span></div>
+            <div class="term-line">TcpTestSucceeded : <span class="t-ok">True</span><span class="t-cursor"></span></div>
+          </div>
+        </div>
+      </div>
+      <p><strong>Cómo lo cumple BimestManager:</strong></p>
+      <ul>
+        <li>Dos hosts en la misma red local: WEB (192.168.0.20) y BD (192.168.0.100)</li>
+        <li>Validación de conectividad con <em>ip a</em> y <em>ping</em> desde el servidor BD</li>
+        <li>Test de puerto MySQL (3306) desde el WEB con <em>Test-NetConnection</em> en PowerShell</li>
+        <li>Firewall configurado para que sólo el WEB pueda conectar al puerto 3306 del BD</li>
+        <li>Sin puertos extra expuestos a la red externa — sólo HTTPS (443) en el WEB</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="modal" data-modal-content="m5">
+    <button class="modal-close" data-close>✕</button>
+    <div class="modal-header">
+      <div class="modal-icon">
+        <svg viewBox="0 0 24 24"><path d="M4 1h16c.55 0 1 .45 1 1v6c0 .55-.45 1-1 1H4c-.55 0-1-.45-1-1V2c0-.55.45-1 1-1zm2 3h2v2H6V4zm5 0h2v2h-2V4zM4 11h16c.55 0 1 .45 1 1v6c0 .55-.45 1-1 1H4c-.55 0-1-.45-1-1v-6c0-.55.45-1 1-1zm2 3h2v2H6v-2zm5 0h2v2h-2v-2zM4 21h16c.55 0 1 .22 1 .5s-.45.5-1 .5H4c-.55 0-1-.22-1-.5s.45-.5 1-.5z"/></svg>
+      </div>
+      <div>
+        <div class="modal-titulo">Implementación e Integración de Servidores</div>
+        <div class="modal-tag">Despliegue · Monitoreo</div>
+      </div>
+    </div>
+    <div class="modal-body">
+      <p><strong>Rúbrica:</strong> Desplegar la aplicación en Linux/Windows, configurar el servicio de BD, validar integración entre los dos servidores, permisos y monitoreo.</p>
+      <div class="lottie lottie-srv-term">
+        <div class="term">
+          <div class="term-bar">
+            <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+            <div class="title">g93-bd@g93-bd: ~  —  servidor BD</div>
+          </div>
+          <div class="term-body">
+            <div class="term-line"><span class="t-prompt-linux">g93-bd@g93-bd:~$</span> <span class="t-cmd">sudo systemctl status mysql</span></div>
+            <div class="term-line">● mysql.service - MySQL Community Server</div>
+            <div class="term-line">     Loaded: loaded (/lib/systemd/system/mysql.service; enabled)</div>
+            <div class="term-line">     Active: <span class="t-ok">active (running)</span> since Tue 2026-05-19 18:42 UTC</div>
+            <div class="term-line"><span class="t-prompt-linux">g93-bd@g93-bd:~$</span> <span class="t-cmd">mysql</span> <span class="t-flag">-u</span> bimest_app <span class="t-flag">-p</span> labs</div>
+            <div class="term-line"><span class="t-prompt-mysql">mysql&gt;</span> <span class="t-cmd">SHOW TABLES;</span></div>
+            <div class="term-line">+----------------------------+</div>
+            <div class="term-line">| Tables_in_labs             |</div>
+            <div class="term-line">+----------------------------+</div>
+            <div class="term-line">| <span class="t-key">adeudos</span>                    |</div>
+            <div class="term-line">| <span class="t-key">equipo_integrantes</span>         |</div>
+            <div class="term-line">| <span class="t-key">grupos</span>                     |</div>
+            <div class="term-line">| <span class="t-key">incidencias</span>                |</div>
+            <div class="term-line">| <span class="t-key">kit_materiales</span>             |</div>
+            <div class="term-line">| <span class="t-key">materiales</span>                 |</div>
+            <div class="term-line">| <span class="t-key">practicas</span> · <span class="t-key">prestamos</span> · <span class="t-key">sesiones</span> · <span class="t-key">usuarios</span>  |</div>
+            <div class="term-line">+----------------------------+</div>
+            <div class="term-line"><span class="t-dim">22 rows in set (0.01 sec)</span></div>
+            <div class="term-line"><span class="t-prompt-mysql">mysql&gt;</span> <span class="t-cmd">SELECT id, nombre, rol FROM usuarios LIMIT 3;</span><span class="t-cursor"></span></div>
+          </div>
+        </div>
+      </div>
+      <p><strong>Cómo lo cumple BimestManager:</strong></p>
+      <ul>
+        <li>Servidor BD (Linux) con MySQL como servicio gestionado por <em>systemd</em></li>
+        <li>Servidor WEB (Windows o Linux) con Node.js, HTTPS y reverse proxy opcional</li>
+        <li>DB con <em>require_secure_transport=ON</em> (TLS obligatorio en cada conexión)</li>
+        <li>Usuario de BD con permisos mínimos — la app NO se conecta como root</li>
+        <li>Autenticación, monitoreo (<em>/monitor</em>) y logs viven dentro del WEB</li>
+        <li>Logs rotados con winston: aplicación, errores y accesos en archivos separados</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- MODAL ADMIN -->
+  <div class="modal" data-modal-content="r-admin">
+    <button class="modal-close" data-close>✕</button>
+    <div class="modal-header">
+      <div class="modal-icon" style="background:linear-gradient(135deg,#d97757,#c96f3f);">
+        <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+      </div>
+      <div>
+        <div class="modal-titulo">Panel ADMIN</div>
+        <div class="modal-tag">Coordinador · Inventario · Usuarios</div>
+      </div>
+    </div>
+    <div class="modal-body">
+      <p>El administrador maneja el laboratorio desde una vista única. Da de alta usuarios, materiales y grupos. Aquí se ven sus acciones en vivo:</p>
+      <div class="lottie lottie-admin">
+        <div class="bm-header">
+          <div class="bm-avatar">A</div>
+          <div class="bm-htitle">Admin · Quimica</div>
+          <div class="bm-hicons">↻ ↪</div>
+        </div>
+        <div class="bm-content">
+          <div class="panel-title">Panel admin</div>
+          <div class="panel-sub">AdminPP · ADMIN</div>
+          <div class="bm-card resumen">
+            <div class="bm-card-title">Resumen</div>
+            <div class="bm-row"><span>Admins</span><span class="num">1</span></div>
+            <div class="bm-row"><span>Maestros</span><span class="num">3</span></div>
+            <div class="bm-row"><span>Alumnos activos</span><span class="num">42</span></div>
+            <div class="bm-row"><span>Materiales</span><span class="num">248</span></div>
+            <div class="bm-row"><span>Adeudos pendientes</span><span class="num">7</span></div>
+          </div>
+          <div class="accordion">Usuarios <span>▼</span></div>
+          <div class="bm-card user-card">
+            <div class="user-info">
+              <div class="user-name">AdminPP <span class="badge-rol">ADMIN</span></div>
+              <div class="user-mail">trenqot@gmail.com</div>
+            </div>
+            <div class="btn-out">Desactivar</div>
+          </div>
+          <div class="bm-card user-card">
+            <div class="user-info">
+              <div class="user-name">AdministradorPrueba <span class="badge-rol">MAESTRO</span></div>
+              <div class="user-mail">dano.alexper@gmail.com</div>
+            </div>
+            <div class="btn-out">Desactivar</div>
+          </div>
+        </div>
+        <div class="bm-nav">
+          <div class="bm-nav-item">⌂<span>Inicio</span></div>
+          <div class="bm-nav-item active">👤<span>Usuarios</span></div>
+          <div class="bm-nav-item center"><div class="bm-logo-mini"></div></div>
+          <div class="bm-nav-item">⬡<span>Materiales</span></div>
+          <div class="bm-nav-item">⋯<span>Más</span></div>
+        </div>
+      </div>
+      <ul>
+        <li>Crea materiales y define cantidades del inventario</li>
+        <li>Da de alta maestros y otros administradores</li>
+        <li>Crea grupos y los asigna a un módulo (Química / Turismo)</li>
+        <li>Ve el panorama global: total de adeudos, incidencias, sesiones activas</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- MODAL MAESTRO -->
+  <div class="modal" data-modal-content="r-maestro">
+    <button class="modal-close" data-close>✕</button>
+    <div class="modal-header">
+      <div class="modal-icon" style="background:linear-gradient(135deg,#9b7cf2,#6d4fc7);">
+        <svg viewBox="0 0 24 24"><path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/></svg>
+      </div>
+      <div>
+        <div class="modal-titulo">Panel MAESTRO</div>
+        <div class="modal-tag">Arma prácticas · Asigna kits</div>
+      </div>
+    </div>
+    <div class="modal-body">
+      <p>El maestro arma una práctica nueva: le pone título, fecha y selecciona el kit de materiales que se va a usar.</p>
+      <div class="lottie lottie-maestro">
+        <div class="bm-header">
+          <div class="bm-avatar">A</div>
+          <div class="bm-htitle">Maestro</div>
+          <div class="bm-hicons">↻ ↪</div>
+        </div>
+        <div class="bm-content">
+          <div class="field-label">Práctica</div>
+          <div class="bm-input with-icon"><span class="ph">Selecciona…</span><span class="icon-r">▾</span></div>
+          <div class="field-label">Grupo</div>
+          <div class="bm-input with-icon"><span class="ph">Selecciona…</span><span class="icon-r">▾</span></div>
+          <div class="field-label">Fecha</div>
+          <div class="bm-input with-icon"><span class="typed">19/05/2026</span><span class="icon-r">📅</span></div>
+          <div class="field-label">Hora inicio</div>
+          <div class="bm-input with-icon"><span class="ph">--:--</span><span class="icon-r">🕐</span></div>
+          <div class="field-label">Duración (min)</div>
+          <div class="bm-input num-stepper"><span class="num-val">60</span><span class="icon-r">⇅</span></div>
+          <div class="field-label">Núm. equipos</div>
+          <div class="bm-input num-stepper"><span class="num-val">6</span><span class="icon-r">⇅</span></div>
+          <div class="btn-primary">Crear sesión</div>
+        </div>
+        <div class="bm-nav">
+          <div class="bm-nav-item active">⌂<span>Inicio</span></div>
+          <div class="bm-nav-item">📅<span>Sesiones</span></div>
+          <div class="bm-nav-item center"><div class="bm-logo-mini"></div></div>
+          <div class="bm-nav-item">👥<span>Grupos</span></div>
+          <div class="bm-nav-item">⋯<span>Más</span></div>
+        </div>
+      </div>
+      <ul>
+        <li>Crea prácticas nuevas con fecha y kit de materiales</li>
+        <li>Define equipos si la práctica es en grupo</li>
+        <li>Abre la sesión el día de la práctica</li>
+        <li>Ve quién firmó la responsiva digital en vivo</li>
+        <li>Registra incidencias y cierra préstamos al devolver material</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- MODAL ALUMNO -->
+  <div class="modal" data-modal-content="r-alumno">
+    <button class="modal-close" data-close>✕</button>
+    <div class="modal-header">
+      <div class="modal-icon" style="background:linear-gradient(135deg,#6dd6a8,#4ab68a);">
+        <svg viewBox="0 0 24 24"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg>
+      </div>
+      <div>
+        <div class="modal-titulo">Panel ALUMNO</div>
+        <div class="modal-tag">Firma responsiva desde el celular</div>
+      </div>
+    </div>
+    <div class="modal-body">
+      <p>El alumno entra desde su celular, ve la práctica del día y firma la responsiva digital. La firma queda con fecha, hora y usuario.</p>
+      <div class="lottie lottie-alumno">
+        <div class="phone-frame">
+          <div class="bm-header">
+            <div class="bm-avatar">JP</div>
+            <div class="bm-htitle">Turismo</div>
+            <div class="bm-hicons">↻ ↪</div>
+          </div>
+          <div class="bm-content">
+            <div class="greeting">Hola, Juan<span class="sub">Grupo: 401m</span></div>
+            <div class="practica-card">
+              <div class="pc-title">Sesión activa</div>
+              <div class="pc-desc">Titulación ácido-base · Equipo 4</div>
+              <div class="sign-area">
+                <svg class="sign-svg" viewBox="0 0 100 60" preserveAspectRatio="none">
+                  <path class="sign-path" d="M 10 40 Q 25 10 40 35 T 70 30 Q 85 15 90 35"/>
+                </svg>
+                <div class="finger"></div>
+              </div>
+              <div class="ok-tag">✓ Firmado</div>
+            </div>
+          </div>
+          <div class="bm-nav">
+            <div class="bm-nav-item active">⌂<span>Inicio</span></div>
+            <div class="bm-nav-item">📅<span>Sesión</span></div>
+            <div class="bm-nav-item center"><div class="bm-logo-mini"></div></div>
+            <div class="bm-nav-item">💬<span>Préstamos</span></div>
+            <div class="bm-nav-item">🔔<span>Avisos</span></div>
+          </div>
+        </div>
+      </div>
+      <ul>
+        <li>Ve sus prácticas asignadas del semestre</li>
+        <li>Firma la responsiva digital con el dedo en su celular</li>
+        <li>La firma queda con fecha, hora y usuario — no se puede borrar</li>
+        <li>Consulta sus adeudos abiertos en tiempo real</li>
+        <li>Recibe notificaciones cuando se le asigna nueva práctica</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- MODAL PROCESOS -->
+  <div class="modal" data-modal-content="proc-anim">
+    <button class="modal-close" data-close>✕</button>
+    <div class="modal-header">
+      <div class="modal-icon">
+        <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.11 0-2 .89-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+      </div>
+      <div>
+        <div class="modal-titulo">Flujo completo del semestre</div>
+        <div class="modal-tag">6 pasos · sin papel</div>
+      </div>
+    </div>
+    <div class="modal-body">
+      <p>Así avanza el sistema durante el semestre. Cada paso activa el siguiente automáticamente:</p>
+      <div class="lottie lottie-procesos">
+        <div class="screens">
+
+          <!-- PASO 1 — Alta de inventario (Admin / Materiales) -->
+          <div class="pscreen">
+            <div class="step-num">1</div>
+            <div class="phone-mini">
+              <div class="bm-header"><div class="bm-avatar">A</div><div class="bm-htitle">Admin</div></div>
+              <div class="bm-content">
+                <div class="mini-card">
+                  <div class="mini-ttl">+ Material</div>
+                  <div class="mini-ln l1"></div>
+                  <div class="mini-ln l2"></div>
+                  <div class="mini-btn">Guardar</div>
+                </div>
+                <div class="mini-card">
+                  <div class="mini-ttl">Inventario: 248</div>
+                </div>
+              </div>
+              <div class="bm-nav">
+                <div class="bm-nav-item">⌂</div>
+                <div class="bm-nav-item">👤</div>
+                <div class="bm-nav-item center"><div class="bm-logo-mini"></div></div>
+                <div class="bm-nav-item active">⬡</div>
+                <div class="bm-nav-item">⋯</div>
+              </div>
+            </div>
+            <div class="step-cap">Alta de inventario</div>
+          </div>
+
+          <!-- PASO 2 — Alta de grupos y alumnos -->
+          <div class="pscreen">
+            <div class="step-num">2</div>
+            <div class="phone-mini">
+              <div class="bm-header"><div class="bm-avatar">A</div><div class="bm-htitle">Grupos</div></div>
+              <div class="bm-content">
+                <div class="mini-card">
+                  <div class="mini-ttl">Grupo 401m</div>
+                  <div class="mini-ln l1"></div>
+                  <div class="mini-ln l3"></div>
+                </div>
+                <div class="mini-card">
+                  <div class="mini-ttl">+ Alumno</div>
+                  <div class="mini-btn">Agregar</div>
+                </div>
+              </div>
+              <div class="bm-nav">
+                <div class="bm-nav-item">⌂</div>
+                <div class="bm-nav-item">👤</div>
+                <div class="bm-nav-item center"><div class="bm-logo-mini"></div></div>
+                <div class="bm-nav-item active">👥</div>
+                <div class="bm-nav-item">⋯</div>
+              </div>
+            </div>
+            <div class="step-cap">Alta de grupos y alumnos</div>
+          </div>
+
+          <!-- PASO 3 — Maestro arma práctica -->
+          <div class="pscreen">
+            <div class="step-num">3</div>
+            <div class="phone-mini">
+              <div class="bm-header"><div class="bm-avatar">M</div><div class="bm-htitle">Maestro</div></div>
+              <div class="bm-content">
+                <div class="mini-card">
+                  <div class="mini-ttl">Nueva sesión</div>
+                  <div class="mini-ln l2"></div>
+                  <div class="mini-ln l1"></div>
+                  <div class="mini-ln l3"></div>
+                  <div class="mini-btn">Crear</div>
+                </div>
+              </div>
+              <div class="bm-nav">
+                <div class="bm-nav-item active">⌂</div>
+                <div class="bm-nav-item">📅</div>
+                <div class="bm-nav-item center"><div class="bm-logo-mini"></div></div>
+                <div class="bm-nav-item">👥</div>
+                <div class="bm-nav-item">⋯</div>
+              </div>
+            </div>
+            <div class="step-cap">Maestro arma práctica</div>
+          </div>
+
+          <!-- PASO 4 — Sesión de laboratorio (firma) -->
+          <div class="pscreen">
+            <div class="step-num">4</div>
+            <div class="phone-mini">
+              <div class="bm-header"><div class="bm-avatar">JP</div><div class="bm-htitle">Sesión</div></div>
+              <div class="bm-content">
+                <div class="mini-card">
+                  <div class="mini-ttl">Firmar</div>
+                  <svg viewBox="0 0 100 30" style="width:100%; height:18px;">
+                    <path d="M 10 22 Q 25 5 40 18 T 70 15 Q 85 5 90 20" fill="none" stroke="#ed8a4f" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                  <div class="mini-btn">✓ Firmar</div>
+                </div>
+              </div>
+              <div class="bm-nav">
+                <div class="bm-nav-item">⌂</div>
+                <div class="bm-nav-item active">📅</div>
+                <div class="bm-nav-item center"><div class="bm-logo-mini"></div></div>
+                <div class="bm-nav-item">💬</div>
+                <div class="bm-nav-item">🔔</div>
+              </div>
+            </div>
+            <div class="step-cap">Sesión y firma digital</div>
+          </div>
+
+          <!-- PASO 5 — Incidencias y devolución -->
+          <div class="pscreen">
+            <div class="step-num">5</div>
+            <div class="phone-mini">
+              <div class="bm-header"><div class="bm-avatar">JP</div><div class="bm-htitle">Préstamos</div></div>
+              <div class="bm-content">
+                <div class="mini-card">
+                  <div class="mini-ttl">caserola × 1</div>
+                  <div class="mini-ln l1"></div>
+                  <div style="font-size:5px; color:#c75e1f; font-weight:800;">⚠ ROTO</div>
+                </div>
+                <div class="mini-card">
+                  <div class="mini-btn">Devolver</div>
+                </div>
+              </div>
+              <div class="bm-nav">
+                <div class="bm-nav-item">⌂</div>
+                <div class="bm-nav-item">📅</div>
+                <div class="bm-nav-item center"><div class="bm-logo-mini"></div></div>
+                <div class="bm-nav-item active">💬</div>
+                <div class="bm-nav-item">🔔</div>
+              </div>
+            </div>
+            <div class="step-cap">Incidencias y devolución</div>
+          </div>
+
+          <!-- PASO 6 — Seguimiento (Admin dashboard) -->
+          <div class="pscreen">
+            <div class="step-num">6</div>
+            <div class="phone-mini">
+              <div class="bm-header"><div class="bm-avatar">A</div><div class="bm-htitle">Admin</div></div>
+              <div class="bm-content">
+                <div class="mini-card">
+                  <div class="mini-ttl">Resumen</div>
+                  <div style="display:flex;justify-content:space-between;font-size:5px;color:#2d4753;"><span>Adeudos</span><b style="color:#ed8a4f;">7</b></div>
+                  <div style="display:flex;justify-content:space-between;font-size:5px;color:#2d4753;"><span>Firmas</span><b style="color:#ed8a4f;">63</b></div>
+                  <div style="display:flex;justify-content:space-between;font-size:5px;color:#2d4753;"><span>Activas</span><b style="color:#ed8a4f;">3</b></div>
+                </div>
+              </div>
+              <div class="bm-nav">
+                <div class="bm-nav-item active">⌂</div>
+                <div class="bm-nav-item">👤</div>
+                <div class="bm-nav-item center"><div class="bm-logo-mini"></div></div>
+                <div class="bm-nav-item">⬡</div>
+                <div class="bm-nav-item">⋯</div>
+              </div>
+            </div>
+            <div class="step-cap">Seguimiento y dashboard</div>
+          </div>
+
+        </div>
+      </div>
+      <ul>
+        <li><strong>1. Alta de inventario:</strong> admin registra materiales con nombre, cantidad y estado</li>
+        <li><strong>2. Alta de grupos y alumnos:</strong> registro por matrícula y módulo (Química / Turismo)</li>
+        <li><strong>3. Maestro arma práctica:</strong> fecha + kit de materiales + equipos</li>
+        <li><strong>4. Sesión de laboratorio:</strong> firma digital desde celular con fecha/hora/usuario</li>
+        <li><strong>5. Incidencias y devolución:</strong> registro de roturas, cierre de préstamos, adeudos automáticos</li>
+        <li><strong>6. Seguimiento:</strong> dashboard para admin, panel para maestro, vista de adeudos para alumno</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- MODAL DC — Directorio / Autenticación -->
+  <div class="modal" data-modal-content="srv-dc">
+    <button class="modal-close" data-close>✕</button>
+    <div class="modal-header">
+      <div class="modal-icon" style="background:linear-gradient(135deg,#9b7cf2,#6d4fc7);">
+        <svg viewBox="0 0 24 24"><path d="M12 1l3.22 6.53L22 9l-5 4.87L18.18 21 12 17.77 5.82 21 7 13.87 2 9l6.78-1.47L12 1zm0 4.4L9.97 9.55l-4.59 1L8.74 14l-.8 4.86L12 16.5l4.06 2.37-.8-4.87 3.37-3.44-4.59-1L12 5.4z"/></svg>
+      </div>
+      <div>
+        <div class="modal-titulo">DC · Directorio</div>
+        <div class="modal-tag">Autenticación · Roles · Permisos</div>
+      </div>
+    </div>
+    <div class="modal-body">
+      <p>El servidor de Directorio (DC) controla quién puede entrar y con qué permisos. Tres roles definidos a nivel SQL:</p>
+      <div class="lottie lottie-dc">
+        <div class="code-block">
+<span class="com">-- Esquema de roles en BimestManager</span><br>
+<span class="kw">CREATE TABLE</span> <span class="fn">usuarios</span> (<br>
+&nbsp;&nbsp;<span class="var">id</span> <span class="kw">INT</span> <span class="kw">PRIMARY KEY</span> <span class="kw">AUTO_INCREMENT</span>,<br>
+&nbsp;&nbsp;<span class="var">nombre</span> <span class="kw">VARCHAR</span>(<span class="num">100</span>) <span class="kw">NOT NULL</span>,<br>
+&nbsp;&nbsp;<span class="var">email</span> <span class="kw">VARCHAR</span>(<span class="num">120</span>) <span class="kw">UNIQUE</span>,<br>
+&nbsp;&nbsp;<span class="var">password</span> <span class="kw">VARCHAR</span>(<span class="num">255</span>),  <span class="com">-- bcrypt $2b$10$...</span><br>
+&nbsp;&nbsp;<span class="var">rol</span> <span class="kw">ENUM</span>(<span class="role admin">'ADMIN'</span>,<span class="role maestro">'MAESTRO'</span>,<span class="role alumno">'ALUMNO'</span>) <span class="kw">NOT NULL</span>,<br>
+&nbsp;&nbsp;<span class="var">is_active</span> <span class="kw">TINYINT</span>(<span class="num">1</span>) <span class="kw">DEFAULT</span> <span class="num">1</span><br>
+);
+        </div>
+        <div class="flow">
+          <div class="actor admin">
+            <div class="actor-icon">👤</div>
+            <div class="actor-tag">ADMIN</div>
+          </div>
+          <div class="key-icon">🔑</div>
+          <div class="actor maestro">
+            <div class="actor-icon">👨‍🏫</div>
+            <div class="actor-tag">MAESTRO</div>
+          </div>
+          <div class="key-icon">🔑</div>
+          <div class="actor alumno">
+            <div class="actor-icon">🎓</div>
+            <div class="actor-tag">ALUMNO</div>
+          </div>
+        </div>
+      </div>
+      <ul>
+        <li>Contraseñas hasheadas con <strong>bcrypt</strong> (nunca en texto plano)</li>
+        <li>Tres roles fijos definidos en SQL ENUM: ADMIN, MAESTRO, ALUMNO</li>
+        <li>Cada ruta valida el rol en cada petición — no basta con esconder el botón</li>
+        <li>Sesión con cookie <em>httpOnly</em> firmada — JavaScript del navegador no la lee</li>
+        <li><strong>is_active=0</strong> = usuario deshabilitado sin borrarlo (auditoría)</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- MODAL DB — MySQL Workbench -->
+  <div class="modal" data-modal-content="srv-db">
+    <button class="modal-close" data-close>✕</button>
+    <div class="modal-header">
+      <div class="modal-icon" style="background:linear-gradient(135deg,#d97757,#c75e1f);">
+        <svg viewBox="0 0 24 24"><path d="M12 3C7.58 3 4 4.79 4 7s3.58 4 8 4 8-1.79 8-4-3.58-4-8-4zM4 9v3c0 2.21 3.58 4 8 4s8-1.79 8-4V9c0 2.21-3.58 4-8 4S4 11.21 4 9zm0 5v3c0 2.21 3.58 4 8 4s8-1.79 8-4v-3c0 2.21-3.58 4-8 4s-8-1.79-8-4z"/></svg>
+      </div>
+      <div>
+        <div class="modal-titulo">DB · MySQL</div>
+        <div class="modal-tag">Schema labs · TLS obligatorio</div>
+      </div>
+    </div>
+    <div class="modal-body">
+      <p>La base de datos guarda todo el sistema en el schema <em>labs</em>. Conexión TLS obligatoria — nadie escucha el tráfico interno.</p>
+      <div class="lottie lottie-db">
+        <div class="wb-titlebar">MySQL Workbench — labs@localhost:3306</div>
+        <div class="wb-body">
+          <div class="wb-sidebar">
+            <div class="wb-tree-node lvl1"><span class="wb-icon">▾</span>🗃 labs</div>
+            <div class="wb-tree-node lvl2"><span class="wb-icon">▾</span>📋 Tables</div>
+            <div class="wb-tree-node lvl3 table"><span class="wb-icon">▸</span>📄 adeudos</div>
+            <div class="wb-tree-node lvl3 table"><span class="wb-icon">▸</span>📄 equipo_integrantes</div>
+            <div class="wb-tree-node lvl3 table"><span class="wb-icon">▸</span>📄 equipos</div>
+            <div class="wb-tree-node lvl3 table"><span class="wb-icon">▸</span>📄 grupos</div>
+            <div class="wb-tree-node lvl3 table"><span class="wb-icon">▸</span>📄 incidencias</div>
+            <div class="wb-tree-node lvl3 table"><span class="wb-icon">▸</span>📄 incidencias_turismo</div>
+            <div class="wb-tree-node lvl3 table"><span class="wb-icon">▸</span>📄 kit_materiales</div>
+            <div class="wb-tree-node lvl3 table"><span class="wb-icon">▸</span>📄 kits</div>
+            <div class="wb-tree-node lvl3"><span class="wb-icon">▸</span>📄 materiales</div>
+            <div class="wb-tree-node lvl3"><span class="wb-icon">▸</span>📄 practicas</div>
+            <div class="wb-tree-node lvl3"><span class="wb-icon">▸</span>📄 prestamos</div>
+            <div class="wb-tree-node lvl3"><span class="wb-icon">▸</span>📄 responsivas</div>
+            <div class="wb-tree-node lvl3"><span class="wb-icon">▸</span>📄 sesiones</div>
+            <div class="wb-tree-node lvl3"><span class="wb-icon">▸</span>📄 usuarios</div>
+          </div>
+          <div class="wb-main">
+            <div class="tls-badge">🔒 TLS ON</div>
+            <div class="wb-tabs">
+              <div class="wb-tab active">usuarios</div>
+              <div class="wb-tab">grupos</div>
+              <div class="wb-tab">adeudos</div>
+            </div>
+            <div class="wb-grid">
+              <div class="wb-grid-head"><div>id</div><div>nombre</div><div>email</div><div>rol</div><div>activo</div></div>
+              <div class="wb-grid-row"><div>1</div><div>Pérez Esquivel</div><div>244650@uls...</div><div>ALUMNO</div><div>✓</div></div>
+              <div class="wb-grid-row"><div>2</div><div>AdministradorPrueba</div><div>dano.alexper@...</div><div>MAESTRO</div><div>✓</div></div>
+              <div class="wb-grid-row"><div>3</div><div>AdminPP</div><div>trenqot@gmail...</div><div>ADMIN</div><div>✓</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ul>
+        <li>Schema <strong>labs</strong> con 14+ tablas (usuarios, grupos, prácticas, kits, adeudos…)</li>
+        <li>Conexión cifrada con TLS: <em>require_secure_transport=ON</em></li>
+        <li>Usuario aplicación con permisos mínimos (NO root)</li>
+        <li>Foreign keys con <em>ON DELETE CASCADE</em> para integridad referencial</li>
+        <li>Pool de conexiones con <em>mysql2</em>, <em>decimalNumbers:true</em></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- MODAL WEB — VS Code -->
+  <div class="modal" data-modal-content="srv-web">
+    <button class="modal-close" data-close>✕</button>
+    <div class="modal-header">
+      <div class="modal-icon" style="background:linear-gradient(135deg,#e8a0c8,#c569a0);">
+        <svg viewBox="0 0 24 24"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>
+      </div>
+      <div>
+        <div class="modal-titulo">WEB · Node.js</div>
+        <div class="modal-tag">Express · HTTPS · winston</div>
+      </div>
+    </div>
+    <div class="modal-body">
+      <p>El servidor WEB corre la aplicación Node.js con Express. Habla HTTPS y registra todo con winston:</p>
+      <div class="lottie lottie-web">
+        <div class="vsc-title">
+          <div class="vsc-dots"><div class="vsc-dot r"></div><div class="vsc-dot y"></div><div class="vsc-dot g"></div></div>
+          BimestManager — server.js — Visual Studio Code
+        </div>
+        <div class="vsc-body">
+          <div class="vsc-explorer">
+            <div class="vsc-folder-h">▾ BIMESTMANAGER</div>
+            <div class="vsc-file" style="--icol:#519aba;">📁 controlador</div>
+            <div class="vsc-file" style="--icol:#e0bc4c;">📄 adminController.js</div>
+            <div class="vsc-file" style="--icol:#e0bc4c;">📄 authController.js</div>
+            <div class="vsc-file" style="--icol:#e0bc4c;">📄 maestroController.js</div>
+            <div class="vsc-file" style="--icol:#519aba;">📁 modelo</div>
+            <div class="vsc-file" style="--icol:#519aba;">📁 rutas</div>
+            <div class="vsc-file" style="--icol:#519aba;">📁 vista</div>
+            <div class="vsc-file" style="--icol:#519aba;">📁 logs</div>
+            <div class="vsc-file" style="--icol:#519aba;">📁 certs</div>
+            <div class="vsc-file active" style="--icol:#e0bc4c;">📄 server.js</div>
+            <div class="vsc-file" style="--icol:#cb3837;">📄 package.json</div>
+          </div>
+          <div class="vsc-main">
+            <div class="vsc-tabs">
+              <div class="vsc-tab active">server.js</div>
+              <div class="vsc-tab">adminController.js</div>
+            </div>
+            <div class="vsc-editor">
+<span class="code-line"><span class="kw">const</span> <span class="var">https</span> = <span class="fn">require</span>(<span class="str">'https'</span>);</span>
+<span class="code-line"><span class="kw">const</span> <span class="var">app</span>    = <span class="fn">require</span>(<span class="str">'./app'</span>);</span>
+<span class="code-line"><span class="kw">const</span> <span class="var">logger</span> = <span class="fn">require</span>(<span class="str">'./Middlewares/winston'</span>);</span>
+<span class="code-line"></span>
+<span class="code-line"><span class="kw">const</span> <span class="var">opts</span> = { key: <span class="fn">fs.readFileSync</span>(<span class="str">'./certs/key.pem'</span>), cert: <span class="fn">fs.readFileSync</span>(<span class="str">'./certs/cert.pem'</span>) };</span>
+<span class="code-line"></span>
+<span class="code-line"><span class="var">https</span>.<span class="fn">createServer</span>(<span class="var">opts</span>, <span class="var">app</span>).<span class="fn">listen</span>(<span class="num">443</span>, () => {</span>
+<span class="code-line">&nbsp;&nbsp;<span class="var">logger</span>.<span class="fn">info</span>(<span class="str">'🔒 BimestManager corriendo en https://localhost'</span>);</span>
+<span class="code-line">});</span>
+            </div>
+            <div class="vsc-terminal">
+              <div class="term-line"><span class="term-prompt">$</span> node server.js</div>
+              <div class="term-line"><span class="term-200">[info]</span> 🔒 BimestManager corriendo en https://localhost</div>
+              <div class="term-line"><span class="term-200">GET</span> /login <span class="term-200">200</span> 8ms</div>
+              <div class="term-line"><span class="term-200">POST</span> /auth/login <span class="term-200">200</span> 142ms</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ul>
+        <li>Express con HTTPS habilitado (certs en <em>./certs</em>)</li>
+        <li>Arquitectura MVC: <em>controlador</em>, <em>modelo</em>, <em>rutas</em>, <em>vista</em></li>
+        <li>Cookie de sesión <em>httpOnly + secure</em>: no se puede robar con XSS</li>
+        <li>Logs rotados con winston en tres archivos: aplicación, errores y accesos</li>
+        <li>Middleware <em>requireAuth({ fuente, roles })</em> protege cada ruta</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- MODAL MON — Monitoreo (se queda con la animación de servers) -->
+  <div class="modal" data-modal-content="srv-mon">
+    <button class="modal-close" data-close>✕</button>
+    <div class="modal-header">
+      <div class="modal-icon" style="background:linear-gradient(135deg,#6dd6a8,#4ab68a);">
+        <svg viewBox="0 0 24 24"><path d="M4 6h16v10H4zM2 20h20v2H2zM10 11l3 3 4-5"/></svg>
+      </div>
+      <div>
+        <div class="modal-titulo">MON · Monitoreo</div>
+        <div class="modal-tag">CPU · RAM · Disco · Red</div>
+      </div>
+    </div>
+    <div class="modal-body">
+      <p>El servidor de Monitoreo muestra métricas en tiempo real de todo el sistema en <em>/monitor</em>. Si algo se cae, se ve al instante:</p>
+      <div class="lottie lottie-servers">
+        <div class="rack">
+          <div class="unit"><div class="led g"></div><div class="unit-bar"></div></div>
+          <div class="unit"><div class="led o"></div><div class="unit-bar"></div></div>
+          <div class="unit"><div class="led p"></div><div class="unit-bar"></div></div>
+          <div class="unit"><div class="led g"></div><div class="unit-bar"></div></div>
+          <div class="unit"><div class="led o"></div><div class="unit-bar"></div></div>
+          <div class="unit"><div class="led p"></div><div class="unit-bar"></div></div>
+        </div>
+        <div class="dashboard">
+          <div class="metric"><span>CPU</span><span class="metric-val">42%</span></div>
+          <div class="metric"><span>RAM</span><span class="metric-val">3.1 GB</span></div>
+          <div class="metric"><span>Disco</span><span class="metric-val">68%</span></div>
+          <div class="metric"><span>Red</span><span class="metric-val">12 Mbps</span></div>
+          <div class="graph">
+            <div class="gbar"></div>
+            <div class="gbar"></div>
+            <div class="gbar"></div>
+            <div class="gbar"></div>
+            <div class="gbar"></div>
+            <div class="gbar"></div>
+            <div class="gbar"></div>
+            <div class="gbar"></div>
+          </div>
+        </div>
+      </div>
+      <ul>
+        <li>Dashboard <em>/monitor</em> en vivo (Node + Chart.js)</li>
+        <li>Métricas: CPU, RAM, disco, red, estado de la base</li>
+        <li>Refresco automático cada pocos segundos</li>
+        <li>Permite detectar caídas o cuellos de botella al instante</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+<!-- CONTROLES DE NAVEGACIÓN -->
+<div class="controls">
+  <button class="ctrl-btn" id="btnPrev" title="Anterior (←)">‹</button>
+  <div class="dots" id="dots"></div>
+  <button class="ctrl-btn" id="btnNext" title="Siguiente (→)">›</button>
+</div>
+
+<div class="kbd-hint">
+  <span class="kbd">←</span> <span class="kbd">→</span> navegar &nbsp;·&nbsp; <span class="kbd">F</span> pantalla completa &nbsp;·&nbsp; <span class="kbd">Home</span> inicio
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  const curEl = document.getElementById('curSlide');
+  const totalEl = document.getElementById('totalSlides');
+  const progress = document.getElementById('progress');
+  const btnPrev = document.getElementById('btnPrev');
+  const btnNext = document.getElementById('btnNext');
+  const dotsContainer = document.getElementById('dots');
+  let current = 0;
+
+  totalEl.textContent = total;
+
+  // Crear dots
+  for (let i = 0; i < total; i++) {
+    const dot = document.createElement('button');
+    dot.className = 'dot-nav';
+    if (i === 0) dot.classList.add('active');
+    dot.addEventListener('click', () => goTo(i));
+    dotsContainer.appendChild(dot);
+  }
+  const dots = document.querySelectorAll('.dot-nav');
+
+  function goTo(idx) {
+    if (idx < 0 || idx >= total || idx === current) return;
+    slides[current].classList.remove('active');
+    if (idx < current) {
+      slides[current].classList.add('prev');
+      setTimeout(() => slides[current].classList.remove('prev'), 600);
+    }
+    current = idx;
+    slides[current].classList.remove('prev');
+    slides[current].classList.add('active');
+    slides[current].scrollTop = 0;
+    curEl.textContent = current + 1;
+    progress.style.width = ((current + 1) / total * 100) + '%';
+    dots.forEach((d, i) => d.classList.toggle('active', i === current));
+    btnPrev.disabled = current === 0;
+    btnNext.disabled = current === total - 1;
+  }
+
+  btnPrev.addEventListener('click', () => goTo(current - 1));
+  btnNext.addEventListener('click', () => goTo(current + 1));
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ' || e.key === 'n') {
+      e.preventDefault(); goTo(current + 1);
+    } else if (e.key === 'ArrowLeft' || e.key === 'PageUp' || e.key === 'p') {
+      e.preventDefault(); goTo(current - 1);
+    } else if (e.key === 'Home') {
+      e.preventDefault(); goTo(0);
+    } else if (e.key === 'End') {
+      e.preventDefault(); goTo(total - 1);
+    } else if (e.key === 'f' || e.key === 'F') {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    } else if (/^[1-9]$/.test(e.key)) {
+      const idx = parseInt(e.key) - 1;
+      if (idx < total) goTo(idx);
+    }
+  });
+
+  // Swipe en móvil
+  let touchStart = 0;
+  document.addEventListener('touchstart', (e) => { touchStart = e.touches[0].clientX; });
+  document.addEventListener('touchend', (e) => {
+    const dx = e.changedTouches[0].clientX - touchStart;
+    if (Math.abs(dx) < 50) return;
+    if (dx < 0) goTo(current + 1);
+    else goTo(current - 1);
+  });
+
+  // Inicializar
+  btnPrev.disabled = true;
+  progress.style.width = (1 / total * 100) + '%';
+
+  // ===== MODALES DE MATERIAS =====
+  const overlay = document.getElementById('modalOverlay');
+  const allModals = overlay.querySelectorAll('[data-modal-content]');
+
+  function openModal(id) {
+    allModals.forEach(m => m.classList.remove('show'));
+    const target = overlay.querySelector(`[data-modal-content="${id}"]`);
+    if (target) target.classList.add('show');
+    overlay.classList.add('open');
+  }
+  function closeModal() {
+    overlay.classList.remove('open');
+    setTimeout(() => allModals.forEach(m => m.classList.remove('show')), 300);
+  }
+
+  document.querySelectorAll('[data-modal]').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openModal(el.dataset.modal);
+    });
+  });
+
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay || e.target.hasAttribute('data-close')) closeModal();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && overlay.classList.contains('open')) closeModal();
+  });
+</script>
+
+</body>
+</html>
