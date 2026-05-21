@@ -1,0 +1,1752 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="https://413xkur4y4m1.github.io/BimestManager/BimestLogo.png">
+<title>BimestDocs — Documentación oficial</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    /* Heredados del index.html */
+    --bg-0: #0a0612;
+    --bg-1: #120920;
+    --bg-2: #1a0d2e;
+    --surface: rgba(255,255,255,0.04);
+    --surface-2: rgba(255,255,255,0.07);
+    --border: rgba(255,255,255,0.10);
+    --border-strong: rgba(255,255,255,0.18);
+    --text: #f3eef9;
+    --muted: #a99cc4;
+    --dim: #6f6488;
+    --accent: #c96f3f;
+    --accent-2: #d97757;
+    --purple: #9b7cf2;
+    --purple-2: #6d4fc7;
+    --pink: #e8a0c8;
+    --green: #6dd6a8;
+    --shadow: 0 25px 60px -20px rgba(0,0,0,0.6);
+
+    /* Colores REALES del sistema BimestManager */
+    --bm-teal-900: #134a58;
+    --bm-teal-800: #1d5e6e;
+    --bm-teal-700: #2a7387;
+    --bm-teal-600: #3a8ea3;
+    --bm-orange-700: #c75e1f;
+    --bm-orange-600: #e07338;
+    --bm-orange-500: #ed8a4f;
+    --bm-cream: #f4e8d6;
+    --bm-ink: #122027;
+    --bm-ink-soft: #2d4753;
+    --bm-bg-app: linear-gradient(180deg, #1c5b6b 0%, #2a7287 18%, #b97648 50%, #4d97a8 78%, #3a7e91 100%);
+  }
+
+  html, body {
+    background: var(--bg-0);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(circle at 15% 20%, rgba(155,124,242,0.18), transparent 40%),
+      radial-gradient(circle at 85% 80%, rgba(201,111,63,0.15), transparent 45%),
+      radial-gradient(circle at 50% 50%, rgba(109,79,199,0.10), transparent 60%);
+    z-index: -2;
+    animation: bgFloat 18s ease-in-out infinite alternate;
+  }
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+    background-size: 50px 50px;
+    z-index: -1;
+    pointer-events: none;
+  }
+  @keyframes bgFloat {
+    0%   { transform: translate(0,0) scale(1); }
+    100% { transform: translate(-3%, 2%) scale(1.05); }
+  }
+
+  /* TOP BAR */
+  .topbar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    background: rgba(10, 6, 18, 0.78);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: -0.3px;
+  }
+  .logo-mark {
+    width: 38px; height: 38px;
+    display: grid;
+    place-items: center;
+    filter: drop-shadow(0 4px 14px rgba(217,119,87,0.45));
+  }
+  .logo-mark img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+  .topbar-meta {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .topbar-chip {
+    font-size: 11px;
+    color: var(--muted);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 6px 12px;
+    border-radius: 999px;
+  }
+  .topbar-chip.live {
+    color: var(--green);
+    border-color: rgba(109,214,168,0.4);
+    background: rgba(109,214,168,0.08);
+  }
+  .topbar-chip.live::before {
+    content: '';
+    display: inline-block;
+    width: 6px; height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    margin-right: 6px;
+    box-shadow: 0 0 8px var(--green);
+    animation: pulse 1.8s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* LAYOUT */
+  .layout {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    min-height: 100vh;
+    padding-top: 62px;
+  }
+
+  /* ===== SIDEBAR ===== */
+  .sidebar {
+    position: sticky;
+    top: 62px;
+    align-self: start;
+    height: calc(100vh - 62px);
+    overflow-y: auto;
+    padding: 26px 18px 40px;
+    border-right: 1px solid var(--border);
+    background: linear-gradient(180deg, rgba(18,9,32,0.6), rgba(10,6,18,0.4));
+    backdrop-filter: blur(14px);
+  }
+  .sidebar::-webkit-scrollbar { width: 6px; }
+  .sidebar::-webkit-scrollbar-thumb {
+    background: rgba(155,124,242,0.3);
+    border-radius: 3px;
+  }
+
+  .sidebar-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2.5px;
+    color: var(--accent-2);
+    margin: 0 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .sidebar-title::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--accent);
+  }
+
+  /* ÍNDICE ESTILO SELECT — acordeones con flecha ▼ */
+  .nav-group {
+    margin-bottom: 6px;
+    border: 1px solid var(--border);
+    background: rgba(0,0,0,0.25);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: 0.25s;
+  }
+  .nav-group.open {
+    border-color: rgba(155,124,242,0.4);
+    background: linear-gradient(180deg, rgba(155,124,242,0.08), rgba(217,119,87,0.05));
+    box-shadow: 0 6px 20px -8px rgba(155,124,242,0.3);
+  }
+
+  .nav-trigger {
+    width: 100%;
+    background: none;
+    border: none;
+    color: var(--text);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 14px;
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 600;
+    text-align: left;
+    transition: 0.2s;
+  }
+  .nav-trigger:hover { background: rgba(255,255,255,0.04); }
+
+  .nav-trigger .nav-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--bm-teal-700), var(--bm-teal-600));
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    color: #fff;
+    box-shadow: 0 3px 8px -2px rgba(0,0,0,0.4);
+    transition: 0.25s;
+  }
+  .nav-trigger .nav-icon svg {
+    width: 17px;
+    height: 17px;
+    stroke: #fff;
+    stroke-width: 2;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  /* GitHub usa fill, no stroke */
+  .nav-trigger .nav-icon svg.filled {
+    fill: #fff;
+    stroke: none;
+  }
+  .nav-group:nth-child(3n) .nav-trigger .nav-icon {
+    background: linear-gradient(135deg, var(--bm-orange-600), var(--bm-orange-500));
+  }
+  .nav-group:nth-child(3n+1) .nav-trigger .nav-icon {
+    background: linear-gradient(135deg, var(--purple-2), var(--purple));
+  }
+  .nav-group.open .nav-trigger .nav-icon {
+    transform: scale(1.08);
+    box-shadow: 0 5px 14px -3px rgba(155,124,242,0.55);
+  }
+
+  .nav-trigger .nav-label { flex: 1; }
+
+  /* Flecha tipo <select> */
+  .nav-arrow {
+    width: 22px;
+    height: 22px;
+    border-radius: 5px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    display: grid;
+    place-items: center;
+    font-size: 9px;
+    color: var(--muted);
+    transition: 0.3s ease;
+    flex-shrink: 0;
+  }
+  .nav-arrow::before {
+    content: '';
+    width: 0; height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 5px solid currentColor;
+    transition: transform 0.3s;
+  }
+  .nav-group.open .nav-arrow {
+    background: linear-gradient(135deg, var(--accent), var(--purple));
+    color: #fff;
+    border-color: transparent;
+  }
+  .nav-group.open .nav-arrow::before {
+    transform: rotate(-180deg);
+  }
+
+  .nav-sublist {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s ease;
+  }
+  .nav-group.open .nav-sublist {
+    max-height: 600px;
+  }
+  .nav-sublist a {
+    display: block;
+    padding: 9px 14px 9px 54px;
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 12.5px;
+    border-left: 2px solid transparent;
+    transition: 0.18s;
+    position: relative;
+  }
+  .nav-sublist a::before {
+    content: '›';
+    position: absolute;
+    left: 36px;
+    color: var(--dim);
+    font-size: 14px;
+    transition: 0.2s;
+  }
+  .nav-sublist a:hover {
+    color: var(--text);
+    background: rgba(155,124,242,0.06);
+    border-left-color: var(--purple);
+  }
+  .nav-sublist a:hover::before {
+    color: var(--accent-2);
+    transform: translateX(3px);
+  }
+  .nav-sublist a.active {
+    color: var(--accent-2);
+    background: rgba(217,119,87,0.08);
+    border-left-color: var(--accent);
+    font-weight: 600;
+  }
+
+  /* ===== MAIN ===== */
+  main {
+    padding: 36px 56px 80px;
+    max-width: 1100px;
+    width: 100%;
+  }
+
+  .doc-hero {
+    background:
+      linear-gradient(var(--bg-1), var(--bg-1)) padding-box,
+      linear-gradient(135deg, var(--bm-teal-700), var(--bm-orange-500)) border-box;
+    border: 1px solid transparent;
+    border-radius: 22px;
+    padding: 38px 40px;
+    margin-bottom: 36px;
+    position: relative;
+    overflow: hidden;
+  }
+  .doc-hero::before {
+    content: '';
+    position: absolute;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(155,124,242,0.18), transparent 70%);
+    top: -180px;
+    right: -120px;
+    border-radius: 50%;
+  }
+  .doc-tag {
+    display: inline-block;
+    padding: 5px 14px;
+    background: rgba(217,119,87,0.15);
+    border: 1px solid rgba(217,119,87,0.4);
+    border-radius: 999px;
+    color: var(--accent-2);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    margin-bottom: 14px;
+  }
+  .doc-hero h1 {
+    font-size: clamp(34px, 4.5vw, 54px);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    margin-bottom: 14px;
+    background: linear-gradient(120deg, #fff 0%, var(--purple) 50%, var(--accent-2) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .doc-hero p {
+    color: var(--muted);
+    max-width: 720px;
+    font-size: 15.5px;
+  }
+  .doc-hero-meta {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 22px;
+  }
+  .meta-pill {
+    padding: 6px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: 11.5px;
+    color: var(--muted);
+  }
+  .meta-pill strong { color: var(--accent-2); font-weight: 700; }
+
+  /* SECCIONES */
+  section.doc {
+    margin-bottom: 48px;
+    scroll-margin-top: 80px;
+  }
+  section.doc h2 {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    margin-bottom: 8px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  section.doc h2 .sec-num {
+    width: 38px; height: 38px;
+    background: linear-gradient(135deg, var(--accent), var(--purple));
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    color: #fff;
+    box-shadow: 0 6px 18px -4px rgba(217,119,87,0.5);
+  }
+  section.doc h2 .sec-num svg {
+    width: 20px; height: 20px;
+    stroke: #fff;
+    stroke-width: 2;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  section.doc h2 .sec-num svg.filled {
+    fill: #fff;
+    stroke: none;
+  }
+  section.doc > p.lead {
+    color: var(--muted);
+    font-size: 14.5px;
+    margin: 0 0 24px 48px;
+    max-width: 780px;
+  }
+  section.doc h3 {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 26px 0 12px;
+    color: var(--accent-2);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  section.doc h3::before {
+    content: '◆';
+    color: var(--purple);
+    font-size: 13px;
+  }
+  section.doc p { color: #d6cae8; margin-bottom: 12px; font-size: 14px; }
+  section.doc ul { margin: 8px 0 14px 22px; }
+  section.doc li { color: #d6cae8; margin-bottom: 6px; font-size: 13.5px; }
+  section.doc strong { color: var(--accent-2); font-weight: 700; }
+  section.doc code {
+    background: rgba(155,124,242,0.12);
+    color: var(--purple);
+    padding: 2px 7px;
+    border-radius: 5px;
+    font-family: 'Cascadia Code', Consolas, monospace;
+    font-size: 12.5px;
+    border: 1px solid rgba(155,124,242,0.2);
+  }
+
+  /* Bloque/card */
+  .card {
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px 24px;
+    margin: 14px 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 100%;
+    background: linear-gradient(180deg, var(--purple), var(--accent));
+  }
+
+  /* Grids */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  @media (max-width: 900px) {
+    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  }
+
+  /* TABLA */
+  table.docs-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    font-size: 13px;
+  }
+  table.docs-table th {
+    background: linear-gradient(180deg, rgba(155,124,242,0.18), rgba(155,124,242,0.05));
+    color: #fff;
+    padding: 12px 14px;
+    text-align: left;
+    font-weight: 700;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 1px solid var(--border);
+  }
+  table.docs-table td {
+    padding: 11px 14px;
+    color: #d6cae8;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    vertical-align: top;
+  }
+  table.docs-table tr:last-child td { border-bottom: none; }
+  table.docs-table tr:hover td { background: rgba(155,124,242,0.04); }
+  table.docs-table code { font-size: 11.5px; }
+
+  /* PILL */
+  .pill {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+  .pill.get    { background: rgba(109,214,168,0.15); color: var(--green);     border: 1px solid rgba(109,214,168,0.4); }
+  .pill.post   { background: rgba(155,124,242,0.15); color: var(--purple);    border: 1px solid rgba(155,124,242,0.4); }
+  .pill.patch  { background: rgba(254,188,46,0.15);  color: #febc2e;          border: 1px solid rgba(254,188,46,0.4); }
+  .pill.delete { background: rgba(255,90,90,0.15);   color: #ff7a7a;          border: 1px solid rgba(255,90,90,0.4); }
+
+  /* BADGES de capa OSI */
+  .osi-list {
+    display: grid;
+    gap: 10px;
+    margin: 16px 0;
+  }
+  .osi-row {
+    display: grid;
+    grid-template-columns: 50px 1fr 2fr;
+    gap: 16px;
+    padding: 14px 18px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    align-items: center;
+    transition: 0.25s;
+  }
+  .osi-row:hover {
+    border-color: var(--purple);
+    transform: translateX(4px);
+  }
+  .osi-num {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--bm-teal-700), var(--bm-orange-500));
+    display: grid;
+    place-items: center;
+    font-weight: 800;
+    font-size: 15px;
+    color: #fff;
+  }
+  .osi-name {
+    font-weight: 700;
+    color: #fff;
+    font-size: 14px;
+  }
+  .osi-name span {
+    display: block;
+    font-size: 11px;
+    color: var(--dim);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 2px;
+  }
+  .osi-bm { color: var(--muted); font-size: 13px; line-height: 1.5; }
+  .osi-bm code { font-size: 11.5px; }
+
+  /* PROCESO FLOW */
+  .flow {
+    display: grid;
+    gap: 10px;
+    margin: 14px 0;
+  }
+  .flow-step {
+    display: grid;
+    grid-template-columns: 36px 1fr;
+    gap: 14px;
+    padding: 14px 16px;
+    background: rgba(0,0,0,0.28);
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    transition: 0.2s;
+  }
+  .flow-step:hover {
+    border-color: var(--accent);
+    transform: translateX(4px);
+  }
+  .flow-num {
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--purple-2), var(--purple));
+    display: grid;
+    place-items: center;
+    font-weight: 800;
+    font-size: 13px;
+    color: #fff;
+  }
+  .flow-titulo {
+    font-weight: 700;
+    color: #fff;
+    font-size: 14px;
+    margin-bottom: 3px;
+  }
+  .flow-desc {
+    color: var(--muted);
+    font-size: 12.5px;
+    line-height: 1.5;
+  }
+
+  /* ARQUITECTURA ASCII */
+  .ascii {
+    background: rgba(0,0,0,0.45);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 22px;
+    margin: 16px 0;
+    font-family: 'Cascadia Code', Consolas, monospace;
+    font-size: 12.5px;
+    color: #cfb9f5;
+    overflow-x: auto;
+    white-space: pre;
+    line-height: 1.55;
+  }
+
+  /* SEGURIDAD CAPAS */
+  .capas {
+    display: grid;
+    gap: 10px;
+    margin: 14px 0;
+  }
+  .capa {
+    display: grid;
+    grid-template-columns: 130px 1fr;
+    padding: 13px 16px;
+    background: rgba(0,0,0,0.28);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    align-items: center;
+    gap: 16px;
+  }
+  .capa:nth-child(odd) { border-left-color: var(--purple); }
+  .capa-nombre {
+    font-weight: 700;
+    color: var(--accent-2);
+    font-size: 12.5px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .capa-detalle {
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  /* TECH STACK */
+  .stack-card {
+    padding: 18px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    transition: 0.3s;
+  }
+  .stack-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-4px);
+    box-shadow: 0 10px 24px -8px rgba(217,119,87,0.3);
+  }
+  .stack-card .st-icon {
+    width: 42px; height: 42px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--bm-teal-700), var(--purple));
+    display: grid;
+    place-items: center;
+    color: #fff;
+    margin-bottom: 12px;
+    box-shadow: 0 4px 10px -3px rgba(0,0,0,0.4);
+  }
+  .stack-card .st-icon svg {
+    width: 22px; height: 22px;
+    stroke: #fff;
+    stroke-width: 2;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .stack-card .st-icon svg.filled {
+    fill: #fff;
+    stroke: none;
+  }
+  .stack-card .st-name {
+    font-weight: 700;
+    color: #fff;
+    font-size: 14.5px;
+    margin-bottom: 4px;
+  }
+  .stack-card .st-ver {
+    color: var(--accent-2);
+    font-size: 11px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .stack-card .st-desc {
+    color: var(--muted);
+    font-size: 12.5px;
+    line-height: 1.5;
+  }
+
+  /* DB TABLAS */
+  .db-tabla {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    transition: 0.2s;
+  }
+  .db-tabla:hover {
+    border-color: var(--bm-teal-600);
+    background: rgba(58,142,163,0.06);
+  }
+  .db-tabla-nombre {
+    font-weight: 700;
+    color: var(--bm-teal-600);
+    font-size: 13.5px;
+    margin-bottom: 4px;
+    font-family: 'Cascadia Code', Consolas, monospace;
+  }
+  .db-tabla-desc {
+    color: var(--muted);
+    font-size: 12.5px;
+    line-height: 1.45;
+  }
+
+  /* BACK TO TOP */
+  .back-top {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    z-index: 50;
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--purple));
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    font-size: 18px;
+    display: grid;
+    place-items: center;
+    box-shadow: 0 10px 30px rgba(217,119,87,0.4);
+    opacity: 0;
+    pointer-events: none;
+    transition: 0.3s;
+  }
+  .back-top.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .back-top:hover {
+    transform: translateY(-4px) scale(1.05);
+    box-shadow: 0 14px 36px rgba(155,124,242,0.5);
+  }
+
+  /* ===== GITHUB ===== */
+  .gh-hero {
+    background:
+      linear-gradient(var(--bg-1), var(--bg-1)) padding-box,
+      linear-gradient(135deg, #6e5494, var(--bm-orange-500)) border-box;
+    border: 1px solid transparent;
+    border-radius: 16px;
+    padding: 26px 28px;
+    display: grid;
+    grid-template-columns: 70px 1fr auto;
+    gap: 22px;
+    align-items: center;
+    margin: 16px 0 22px;
+    position: relative;
+    overflow: hidden;
+  }
+  .gh-hero::before {
+    content: '';
+    position: absolute;
+    width: 320px; height: 320px;
+    background: radial-gradient(circle, rgba(110,84,148,0.25), transparent 70%);
+    top: -120px;
+    right: -80px;
+    border-radius: 50%;
+  }
+  .gh-mark {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    background: #0d1117;
+    border: 1px solid rgba(255,255,255,0.1);
+    display: grid;
+    place-items: center;
+    box-shadow: 0 8px 22px -6px rgba(0,0,0,0.6);
+    position: relative;
+    z-index: 1;
+  }
+  .gh-mark svg { width: 36px; height: 36px; fill: #fff; }
+  .gh-info { position: relative; z-index: 1; }
+  .gh-info .gh-owner {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 4px;
+    letter-spacing: 0.3px;
+  }
+  .gh-info .gh-name {
+    font-size: 22px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.02em;
+    margin-bottom: 4px;
+  }
+  .gh-info .gh-name span { color: var(--accent-2); }
+  .gh-info .gh-url {
+    font-family: 'Cascadia Code', Consolas, monospace;
+    font-size: 12px;
+    color: var(--purple);
+    word-break: break-all;
+  }
+  .gh-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 18px;
+    background: linear-gradient(135deg, var(--accent), var(--purple));
+    color: #fff;
+    text-decoration: none;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 13px;
+    box-shadow: 0 8px 20px -6px rgba(155,124,242,0.5);
+    transition: 0.25s;
+    position: relative;
+    z-index: 1;
+    white-space: nowrap;
+  }
+  .gh-cta:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 28px -6px rgba(217,119,87,0.5);
+  }
+
+  .gh-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin: 14px 0;
+  }
+  .gh-stat {
+    padding: 14px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    text-align: center;
+  }
+  .gh-stat .v {
+    font-size: 20px;
+    font-weight: 800;
+    background: linear-gradient(120deg, var(--accent-2), var(--purple));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .gh-stat .l {
+    font-size: 10px;
+    color: var(--dim);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-top: 4px;
+  }
+
+  pre.code {
+    background: #0d1117;
+    border: 1px solid #21262d;
+    border-radius: 10px;
+    padding: 14px 18px;
+    overflow-x: auto;
+    font-family: 'Cascadia Code', Consolas, monospace;
+    font-size: 12.5px;
+    color: #c9d1d9;
+    line-height: 1.6;
+    margin: 12px 0;
+  }
+  pre.code .cmt { color: #8b949e; }
+  pre.code .kw  { color: var(--accent-2); font-weight: 600; }
+  pre.code .str { color: var(--green); }
+
+  .branches {
+    display: grid;
+    gap: 8px;
+    margin: 12px 0;
+  }
+  .branch {
+    display: grid;
+    grid-template-columns: 28px 140px 1fr;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 14px;
+    background: rgba(0,0,0,0.28);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    font-size: 13px;
+  }
+  .branch-dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--purple);
+    box-shadow: 0 0 8px var(--purple);
+    justify-self: center;
+  }
+  .branch.main .branch-dot { background: var(--green); box-shadow: 0 0 8px var(--green); }
+  .branch.dev .branch-dot  { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+  .branch code {
+    font-family: 'Cascadia Code', Consolas, monospace;
+    color: var(--accent-2);
+    font-weight: 600;
+  }
+
+  /* Responsive */
+  @media (max-width: 980px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar {
+      position: relative;
+      top: 0;
+      height: auto;
+      border-right: none;
+      border-bottom: 1px solid var(--border);
+    }
+    main { padding: 28px 22px 60px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-mark"><img src="https://413xkur4y4m1.github.io/BimestManager/BimestLogo.png" alt="BimestManager"></div>
+    <div>
+      BimestDocs
+      <div style="font-size: 11px; color: var(--muted); font-weight: 500;">Documentación oficial</div>
+    </div>
+  </div>
+  <div class="topbar-meta">
+    <span class="topbar-chip">v14.0.4</span>
+    <span class="topbar-chip live"></span>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- ===== SIDEBAR / ÍNDICE INTERACTIVO ===== -->
+  <aside class="sidebar">
+    <div class="sidebar-title">Índice de contenidos</div>
+
+    <div class="nav-group open">
+      <button class="nav-trigger" onclick="toggleGroup(this)">
+        <span class="nav-icon">
+          <!-- Procesos: flujo / workflow -->
+          <svg viewBox="0 0 24 24"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.5 6h7M6 8.5v7M18 8.5v7M8.5 18h7"/></svg>
+        </span>
+        <span class="nav-label">Procesos</span>
+        <span class="nav-arrow"></span>
+      </button>
+      <div class="nav-sublist">
+        <a href="#p-flujo">Flujo general del usuario</a>
+        <a href="#p-quimica">Proceso laboratorio Química</a>
+        <a href="#p-turismo">Proceso laboratorio Turismo</a>
+        <a href="#p-monitoreo">Proceso de monitoreo</a>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <button class="nav-trigger" onclick="toggleGroup(this)">
+        <span class="nav-icon">
+          <!-- Arquitectura: capas / edificios -->
+          <svg viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/><path d="M3 17l9 5 9-5"/></svg>
+        </span>
+        <span class="nav-label">Arquitectura</span>
+        <span class="nav-arrow"></span>
+      </button>
+      <div class="nav-sublist">
+        <a href="#a-vision">Visión general</a>
+        <a href="#a-mvc">Patrón MVC</a>
+        <a href="#a-topologia">Topología 4 servidores</a>
+        <a href="#a-carpetas">Estructura de carpetas</a>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <button class="nav-trigger" onclick="toggleGroup(this)">
+        <span class="nav-icon">
+          <!-- Seguridad: escudo con candado -->
+          <svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8.5-8 9.5-4.5-1-8-4.5-8-9.5V6l8-3z"/><path d="M9.5 12.5h5v3.5h-5z"/><path d="M10.5 12.5v-1.5a1.5 1.5 0 013 0v1.5"/></svg>
+        </span>
+        <span class="nav-label">Seguridad</span>
+        <span class="nav-arrow"></span>
+      </button>
+      <div class="nav-sublist">
+        <a href="#s-capas">Defensa en profundidad</a>
+        <a href="#s-auth">Autenticación JWT</a>
+        <a href="#s-rbac">RBAC por rol y fuente</a>
+        <a href="#s-tls">TLS / HTTPS</a>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <button class="nav-trigger" onclick="toggleGroup(this)">
+        <span class="nav-icon">
+          <!-- Softwares: chip / CPU -->
+          <svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></svg>
+        </span>
+        <span class="nav-label">Softwares utilizados</span>
+        <span class="nav-arrow"></span>
+      </button>
+      <div class="nav-sublist">
+        <a href="#t-runtime">Runtime y framework</a>
+        <a href="#t-deps">Dependencias clave</a>
+        <a href="#t-tooling">Herramientas de dev</a>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <button class="nav-trigger" onclick="toggleGroup(this)">
+        <span class="nav-icon">
+          <!-- API: llaves de código { } -->
+          <svg viewBox="0 0 24 24"><path d="M9 4c-2.5 0-3 1.5-3 3v2c0 1.5-1 3-3 3 2 0 3 1.5 3 3v2c0 1.5.5 3 3 3"/><path d="M15 4c2.5 0 3 1.5 3 3v2c0 1.5 1 3 3 3-2 0-3 1.5-3 3v2c0 1.5-.5 3-3 3"/></svg>
+        </span>
+        <span class="nav-label">API REST</span>
+        <span class="nav-arrow"></span>
+      </button>
+      <div class="nav-sublist">
+        <a href="#api-auth">Auth</a>
+        <a href="#api-admin">Admin Química</a>
+        <a href="#api-maestro">Maestro</a>
+        <a href="#api-estudiante">Estudiante</a>
+        <a href="#api-turismo">Turismo</a>
+        <a href="#api-monitor">Monitoreo</a>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <button class="nav-trigger" onclick="toggleGroup(this)">
+        <span class="nav-icon">
+          <!-- Base de datos: cilindro -->
+          <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="2.5"/><path d="M4 5v6c0 1.4 3.6 2.5 8 2.5s8-1.1 8-2.5V5"/><path d="M4 11v6c0 1.4 3.6 2.5 8 2.5s8-1.1 8-2.5v-6"/></svg>
+        </span>
+        <span class="nav-label">Base de datos</span>
+        <span class="nav-arrow"></span>
+      </button>
+      <div class="nav-sublist">
+        <a href="#bd-motor">Motor y conexión</a>
+        <a href="#bd-quimica">Schema Química</a>
+        <a href="#bd-turismo">Schema Turismo</a>
+        <a href="#bd-roles">Roles MySQL</a>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <button class="nav-trigger" onclick="toggleGroup(this)">
+        <span class="nav-icon">
+          <!-- OSI: red / nodos conectados -->
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="4" r="2"/><circle cx="4" cy="14" r="2"/><circle cx="12" cy="20" r="2"/><circle cx="20" cy="14" r="2"/><path d="M12 6v12M5.5 13l5-7M18.5 13l-5-7M5.5 15l5 4M18.5 15l-5 4"/></svg>
+        </span>
+        <span class="nav-label">Modelo OSI</span>
+        <span class="nav-arrow"></span>
+      </button>
+      <div class="nav-sublist">
+        <a href="#osi-tabla">Mapeo por capa</a>
+        <a href="#osi-flujo">Flujo de un request</a>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <button class="nav-trigger" onclick="toggleGroup(this)">
+        <span class="nav-icon">
+          <!-- GitHub: gato oficial (filled) -->
+          <svg class="filled" viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        </span>
+        <span class="nav-label">GitHub</span>
+        <span class="nav-arrow"></span>
+      </button>
+      <div class="nav-sublist">
+        <a href="#gh-repo">Repositorio oficial</a>
+        <a href="#gh-clonar">Clonar e instalar</a>
+        <a href="#gh-ramas">Flujo de ramas</a>
+        <a href="#gh-archivos">Archivos del repo</a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <main>
+
+    <!-- HERO -->
+    <div class="doc-hero">
+      <span class="doc-tag">DOCUMENTACIÓN OFICIAL</span>
+      <h1>BimestManager</h1>
+      <p>Plataforma web para la gestión integral de laboratorios escolares — módulos de <strong>Química</strong> y <strong>Turismo</strong> — con control de inventario, préstamos, adeudos, incidencias, firmas digitales y monitoreo en tiempo real.</p>
+      <div class="doc-hero-meta">
+        <span class="meta-pill"><strong>Stack:</strong> Node 20 · Express 5 · MySQL 8</span>
+        <span class="meta-pill"><strong>Patrón:</strong> MVC</span>
+        <span class="meta-pill"><strong>Seguridad:</strong> JWT + HTTPS + TLS</span>
+        <span class="meta-pill"><strong>Licencia:</strong> ISC</span>
+      </div>
+    </div>
+
+    <!-- ============== 1. PROCESOS ============== -->
+    <section class="doc" id="procesos">
+      <h2><span class="sec-num"><svg viewBox="0 0 24 24"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.5 6h7M6 8.5v7M18 8.5v7M8.5 18h7"/></svg></span>Procesos</h2>
+      <p class="lead">Cómo se desarrollan los flujos de negocio dentro de la plataforma, desde que un usuario abre la app hasta que se registra una devolución de material.</p>
+
+      <h3 id="p-flujo">Flujo general del usuario</h3>
+      <div class="flow">
+        <div class="flow-step"><div class="flow-num">1</div><div><div class="flow-titulo">Acceso a /login</div><div class="flow-desc">El cliente se redirige a la vista EJS de login. El navegador establece conexión <code>https://</code> contra el puerto 4443.</div></div></div>
+        <div class="flow-step"><div class="flow-num">2</div><div><div class="flow-titulo">POST /auth/login</div><div class="flow-desc">El controlador valida credenciales contra MySQL, compara el hash bcrypt y firma un JWT (HS256, 2h).</div></div></div>
+        <div class="flow-step"><div class="flow-num">3</div><div><div class="flow-titulo">Cookie httpOnly</div><div class="flow-desc">Se guarda <code>bimest_token</code> con <code>sameSite=lax</code> y <code>secure</code> en producción. El JS del cliente no puede leerla.</div></div></div>
+        <div class="flow-step"><div class="flow-num">4</div><div><div class="flow-titulo">Redirección por rol y fuente</div><div class="flow-desc">El middleware <code>obtenerRedirectPorRol()</code> envía al usuario a su panel: <code>/admin</code>, <code>/maestro</code>, <code>/estudiante</code>, <code>/turismo/admin</code> o <code>/turismo/estudiante</code>.</div></div></div>
+        <div class="flow-step"><div class="flow-num">5</div><div><div class="flow-titulo">Llamadas a API protegida</div><div class="flow-desc">Cada request a <code>/admin/*</code>, <code>/maestro/*</code>, etc. pasa por <code>autenticar → cargarUsuarioActual → autorizarFuentes → autorizarRoles</code>.</div></div></div>
+        <div class="flow-step"><div class="flow-num">6</div><div><div class="flow-titulo">Logout</div><div class="flow-desc">POST <code>/auth/logout</code> ejecuta <code>limpiarCookieSesion()</code> y el JWT queda inutilizable en este navegador.</div></div></div>
+      </div>
+
+      <h3 id="p-quimica">Proceso laboratorio Química</h3>
+      <div class="card">
+        <p><strong>Roles involucrados:</strong> Administrador, Maestro, Alumno.</p>
+        <div class="flow">
+          <div class="flow-step"><div class="flow-num">1</div><div><div class="flow-titulo">Admin carga inventario</div><div class="flow-desc">Da de alta materiales, define prácticas y arma kits (materiales + cantidades) desde <code>/admin</code>.</div></div></div>
+          <div class="flow-step"><div class="flow-num">2</div><div><div class="flow-titulo">Maestro programa sesión</div><div class="flow-desc">Crea una sesión asociada a un grupo y a una práctica. Forma equipos y asigna alumnos.</div></div></div>
+          <div class="flow-step"><div class="flow-num">3</div><div><div class="flow-titulo">Alumno firma responsiva</div><div class="flow-desc">El alumno entra, lee el reglamento y firma con el dedo/mouse. La firma viaja como dataURL base64 y se guarda en <code>imageFirma/</code> + tabla <code>responsivas</code>.</div></div></div>
+          <div class="flow-step"><div class="flow-num">4</div><div><div class="flow-titulo">Préstamo de material</div><div class="flow-desc">El admin registra el préstamo del kit al equipo. Stock se descuenta en <code>materiales</code>.</div></div></div>
+          <div class="flow-step"><div class="flow-num">5</div><div><div class="flow-titulo">Cierre y devolución</div><div class="flow-desc">Al devolver, se marca <code>devuelto_en</code>. Si hay faltantes se crea un <strong>adeudo</strong> y/o una <strong>incidencia</strong>.</div></div></div>
+        </div>
+      </div>
+
+      <h3 id="p-turismo">Proceso laboratorio Turismo</h3>
+      <div class="card">
+        <p><strong>Diferencia clave:</strong> en Turismo el alumno puede <em>solicitar</em> el préstamo y el admin lo <em>aprueba o rechaza</em>, mientras que en Química el admin registra directamente.</p>
+        <div class="flow">
+          <div class="flow-step"><div class="flow-num">1</div><div><div class="flow-titulo">Solicitud del alumno</div><div class="flow-desc"><code>POST /turismo/estudiantes/prestamos</code> crea un préstamo en estado pendiente.</div></div></div>
+          <div class="flow-step"><div class="flow-num">2</div><div><div class="flow-titulo">Aprobación</div><div class="flow-desc">El admin de Turismo aprueba (<code>PATCH /turismo/admin/prestamos/:id/aprobar</code>) o rechaza. Se notifica al alumno.</div></div></div>
+          <div class="flow-step"><div class="flow-num">3</div><div><div class="flow-titulo">Sugerencias de práctica</div><div class="flow-desc">El admin agrega sugerencias de material recomendado por práctica para guiar al alumno.</div></div></div>
+          <div class="flow-step"><div class="flow-num">4</div><div><div class="flow-titulo">Devolución / adeudo</div><div class="flow-desc">El admin marca devuelto o adeudo. Las notificaciones <code>leida=false</code> se acumulan en la campanita del alumno.</div></div></div>
+        </div>
+      </div>
+
+      <h3 id="p-monitoreo">Proceso de monitoreo</h3>
+      <p>Cada vez que se solicita <code>GET /monitor/metricas</code>, el controlador <code>monitoreoControlador.js</code>:</p>
+      <ul>
+        <li>Calcula porcentaje de CPU promediando los tiempos de <code>os.cpus()</code> y refina con <code>systeminformation</code>.</li>
+        <li>Lee RAM con <code>os.totalmem() / freemem()</code>.</li>
+        <li>Pide disco y red con <code>si.fsSize()</code> y <code>si.networkStats()</code>.</li>
+        <li>Hace <code>ping</code> al pool de MySQL y mide latencia.</li>
+        <li>Devuelve un JSON estructurado consumible por Prometheus/Grafana o por el dashboard <code>/monitor</code>.</li>
+      </ul>
+    </section>
+
+    <!-- ============== 2. ARQUITECTURA ============== -->
+    <section class="doc" id="arquitectura">
+      <h2><span class="sec-num"><svg viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/><path d="M3 17l9 5 9-5"/></svg></span>Arquitectura</h2>
+      <p class="lead">BimestManager sigue un patrón <strong>MVC estricto</strong> sobre Node.js, con frontera limpia entre rutas, controladores y modelos. El despliegue se diseñó para correr en una topología de cuatro servidores aislados.</p>
+
+      <h3 id="a-vision">Visión general</h3>
+      <div class="card">
+        <p>El cliente (navegador o móvil) conversa con el servidor <strong>WEB</strong> vía HTTPS. WEB ejecuta Express, renderiza vistas EJS y expone una API REST. WEB se conecta a <strong>DB</strong> (MySQL 8) por TLS, autenticado contra <strong>DC</strong> (Active Directory), y publica métricas hacia <strong>MON</strong>.</p>
+      </div>
+
+      <h3 id="a-mvc">Patrón MVC</h3>
+      <div class="ascii">rutas/&lt;area&gt;Ruta.js  ──▶  controlador/&lt;area&gt;Controlador.js  ──▶  modelo/&lt;area&gt;Modelo.js  ──▶  MySQL
+
+   (Express)          (lógica HTTP, sin SQL)              (única capa con SQL)</div>
+      <p><strong>Regla de oro:</strong> los controladores nunca hablan directo con MySQL. Toda consulta vive en <code>modelo/</code>. Esto permite cambiar el motor o agregar caché sin tocar la lógica HTTP.</p>
+
+      <h3 id="a-topologia">Topología 4 servidores (DC / WEB / DB / MON)</h3>
+      <div class="ascii">                        ┌───────────────────────────┐
+                        │   DC  (Active Directory)  │
+                        │   DNS · Cuentas · GPO     │
+                        │   192.168.10.10           │
+                        └─────────────┬─────────────┘
+                                      │
+                ┌─────────────────────┼─────────────────────┐
+                │                     │                     │
+       ┌────────▼────────┐   ┌────────▼────────┐   ┌────────▼────────┐
+       │  WEB            │   │  DB             │   │  MON            │
+       │  Node 20 + IIS  │   │  MySQL 8 + TLS  │   │  Prometheus /   │
+       │  HTTPS 4443     │   │  schema labs    │   │  Grafana        │
+       │  192.168.10.20  │   │  192.168.10.30  │   │  192.168.10.40  │
+       └────────┬────────┘   └────────▲────────┘   └─────────────────┘
+                │                     │
+                └──── TLS :3306 ──────┘</div>
+      <div class="grid-4">
+        <div class="stack-card">
+          <div class="st-icon"><!-- DC: torre/servidor con dominio -->
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/></svg>
+          </div>
+          <div class="st-name">Domain Controller</div><div class="st-desc">Active Directory, DNS interno, políticas GPO. Centraliza cuentas del personal.</div>
+        </div>
+        <div class="stack-card">
+          <div class="st-icon"><!-- WEB: globo / world -->
+            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M3 9h18M8 18v3M16 18v3M6 21h12"/></svg>
+          </div>
+          <div class="st-name">Web Server</div><div class="st-desc">Node 20 + Express 5 detrás de IIS con ARR como reverse proxy. Sirve HTTPS 4443.</div>
+        </div>
+        <div class="stack-card">
+          <div class="st-icon"><!-- DB: cilindro -->
+            <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="2.5"/><path d="M4 5v6c0 1.4 3.6 2.5 8 2.5s8-1.1 8-2.5V5"/><path d="M4 11v6c0 1.4 3.6 2.5 8 2.5s8-1.1 8-2.5v-6"/></svg>
+          </div>
+          <div class="st-name">Database</div><div class="st-desc">MySQL 8 con <code>require_secure_transport=ON</code>. Sólo acepta TLS.</div>
+        </div>
+        <div class="stack-card">
+          <div class="st-icon"><!-- MON: gráfica de barras -->
+            <svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></svg>
+          </div>
+          <div class="st-name">Monitoring</div><div class="st-desc">Prometheus + Grafana scrapean <code>/monitor/metricas</code> cada 15s.</div>
+        </div>
+      </div>
+
+      <h3 id="a-carpetas">Estructura de carpetas</h3>
+      <div class="ascii">BimestManager/
+├── server.js                  ← Arranque HTTP + HTTPS
+├── BDconex.js                 ← Pool MySQL con TLS opt-in
+├── package.json
+├── Middlewares/
+│   ├── auth.js                ← JWT + RBAC
+│   ├── logger.js              ← Winston + rotación diaria
+│   └── certificados.js        ← Cert autofirmado (selfsigned)
+├── controlador/               ← Lógica HTTP (sin SQL)
+├── modelo/                    ← Acceso a base de datos (único con SQL)
+├── rutas/                     ← Routers Express
+├── vista/                     ← Plantillas EJS
+│   ├── auth/                  ← Login / Registro
+│   ├── partials/              ← Header, nav, head
+│   ├── turismo/               ← Vistas del módulo Turismo
+│   └── monitor.ejs            ← Dashboard de monitoreo
+├── public/                    ← Assets estáticos (CSS, JS, img)
+├── certs/                     ← Certificados HTTPS (autogenerados)
+├── logs/                      ← Logs rotados diariamente
+├── sql/                       ← Scripts de usuario MySQL
+├── docs/                      ← Documentación operativa (Markdown)
+├── creacionTabs.sql           ← Schema completo
+└── labs_*.sql + turismoDatos.sql   ← Seeds</div>
+    </section>
+
+    <!-- ============== 3. SEGURIDAD ============== -->
+    <section class="doc" id="seguridad">
+      <h2><span class="sec-num"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8.5-8 9.5-4.5-1-8-4.5-8-9.5V6l8-3z"/><path d="M9.5 12.5h5v3.5h-5z"/><path d="M10.5 12.5v-1.5a1.5 1.5 0 013 0v1.5"/></svg></span>Seguridad</h2>
+      <p class="lead">Modelo de <strong>defensa en profundidad</strong>: el atacante tiene que vencer varias capas independientes antes de tocar datos sensibles.</p>
+
+      <h3 id="s-capas">Capas implementadas</h3>
+      <div class="capas">
+        <div class="capa"><div class="capa-nombre">Transporte</div><div class="capa-detalle">HTTPS obligatorio en producción. Cert generado con <code>selfsigned</code> en dev o emitido por CA en prod. HSTS 1 año, <code>includeSubDomains</code>.</div></div>
+        <div class="capa"><div class="capa-nombre">Cabeceras HTTP</div><div class="capa-detalle"><code>helmet</code> activo: CSP, X-Frame-Options, X-Content-Type-Options. Se deshabilita el header <code>x-powered-by</code>.</div></div>
+        <div class="capa"><div class="capa-nombre">Autenticación</div><div class="capa-detalle">JWT firmado con <code>HS256</code>, <code>expiresIn=2h</code>. Secret obligatorio en <code>.env</code> (<code>JWT_SECRET</code>).</div></div>
+        <div class="capa"><div class="capa-nombre">Sesión</div><div class="capa-detalle">Cookie <code>bimest_token</code> <code>httpOnly</code>, <code>sameSite=lax</code>, <code>secure</code> en prod. JS del cliente no puede leerla → mitiga XSS.</div></div>
+        <div class="capa"><div class="capa-nombre">Contraseñas</div><div class="capa-detalle">Hash con <code>bcrypt</code>. Nunca se almacenan en claro ni viajan más allá del controlador.</div></div>
+        <div class="capa"><div class="capa-nombre">Autorización</div><div class="capa-detalle">RBAC granular por <strong>rol</strong> (ADMIN, MAESTRO, ALUMNO) y por <strong>fuente</strong> (QUIMICA, TURISMO). Un admin de Química no puede tocar Turismo.</div></div>
+        <div class="capa"><div class="capa-nombre">Base de datos</div><div class="capa-detalle">TLS forzado (<code>require_secure_transport=ON</code>). Usuario <code>bimest_app</code> con sólo SELECT/INSERT/UPDATE/DELETE.</div></div>
+        <div class="capa"><div class="capa-nombre">SQL Injection</div><div class="capa-detalle">Todo query usa <code>mysql2</code> con parámetros preparados (placeholders <code>?</code>). Nada de concatenación de strings.</div></div>
+        <div class="capa"><div class="capa-nombre">Auditoría</div><div class="capa-detalle">Winston con rotación diaria escribe <code>app-YYYY-MM-DD.log</code>, <code>error-YYYY-MM-DD.log</code>, <code>access-YYYY-MM-DD.log</code>.</div></div>
+      </div>
+
+      <h3 id="s-auth">Autenticación JWT — detalle</h3>
+      <div class="card">
+        <p>El middleware <code>autenticar()</code> extrae el token de la cookie <code>bimest_token</code> o del header <code>Authorization: Bearer ...</code>. Lo verifica con <code>jwt.verify()</code> y, si está expirado o inválido, limpia la cookie y responde 401.</p>
+        <p>Acto seguido, <code>cargarUsuarioActual()</code> consulta el resumen del usuario en la BD para confirmar que sigue existiendo y que <code>is_active=1</code>. Esto permite revocar accesos en caliente desactivando una cuenta.</p>
+      </div>
+
+      <h3 id="s-rbac">RBAC por rol y fuente</h3>
+      <table class="docs-table">
+        <thead><tr><th>Middleware</th><th>Fuente</th><th>Roles permitidos</th></tr></thead>
+        <tbody>
+          <tr><td><code>soloAdmin</code></td><td>QUIMICA</td><td>ADMIN</td></tr>
+          <tr><td><code>soloMaestro</code></td><td>QUIMICA</td><td>MAESTRO</td></tr>
+          <tr><td><code>soloAlumno</code></td><td>QUIMICA</td><td>ALUMNO</td></tr>
+          <tr><td><code>adminOMaestro</code></td><td>QUIMICA</td><td>ADMIN, MAESTRO</td></tr>
+          <tr><td><code>soloAdminTurismo</code></td><td>TURISMO</td><td>ADMIN</td></tr>
+          <tr><td><code>soloAlumnoTurismo</code></td><td>TURISMO</td><td>ALUMNO</td></tr>
+        </tbody>
+      </table>
+
+      <h3 id="s-tls">TLS / HTTPS</h3>
+      <div class="card">
+        <p>En el primer arranque, <code>Middlewares/certificados.js</code> verifica si existen <code>certs/server.key</code> y <code>certs/server.crt</code>. Si no, los genera con <code>selfsigned</code>: RSA 2048 bits, SHA-256, válido 365 días, con SAN para <code>localhost</code>, <code>127.0.0.1</code> y opcionalmente IPs adicionales vía <code>HTTPS_SAN_IPS</code>. La key se guarda con permisos <code>0600</code>.</p>
+      </div>
+    </section>
+
+    <!-- ============== 4. SOFTWARES ============== -->
+    <section class="doc" id="softwares">
+      <h2><span class="sec-num"><svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></svg></span>Softwares utilizados</h2>
+      <p class="lead">Todo el stack es JavaScript moderno, sin SDK propietarios. Cada dependencia cumple una función específica.</p>
+
+      <h3 id="t-runtime">Runtime y framework</h3>
+      <div class="grid-3">
+        <div class="stack-card">
+          <div class="st-icon"><!-- Node.js hexágono -->
+            <svg viewBox="0 0 24 24"><path d="M12 2.5l8.5 5v9L12 21.5 3.5 16.5v-9L12 2.5z"/><path d="M9 10v4a2 2 0 002 2h0a2 2 0 002-2V9M14 10h2.5a1.5 1.5 0 010 3H15a1.5 1.5 0 000 3h2"/></svg>
+          </div>
+          <div class="st-name">Node.js</div><div class="st-ver">v20+ · CommonJS</div><div class="st-desc">Runtime JavaScript no-bloqueante, base del servidor.</div>
+        </div>
+        <div class="stack-card">
+          <div class="st-icon"><!-- Express / servidor -->
+            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/><circle cx="7" cy="7" r="0.8" fill="#fff"/><circle cx="7" cy="17" r="0.8" fill="#fff"/><path d="M11 7h7M11 17h7"/></svg>
+          </div>
+          <div class="st-name">Express</div><div class="st-ver">v5.x</div><div class="st-desc">Framework HTTP minimalista. Routers, middlewares, error handling.</div>
+        </div>
+        <div class="stack-card">
+          <div class="st-icon"><!-- MySQL delfín simplificado -->
+            <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="2.5"/><path d="M4 5v6c0 1.4 3.6 2.5 8 2.5s8-1.1 8-2.5V5"/><path d="M4 11v6c0 1.4 3.6 2.5 8 2.5s8-1.1 8-2.5v-6"/></svg>
+          </div>
+          <div class="st-name">MySQL</div><div class="st-ver">v8.x</div><div class="st-desc">Motor relacional. Schema <code>labs</code> con tablas de Química y Turismo.</div>
+        </div>
+      </div>
+
+      <h3 id="t-deps">Dependencias clave</h3>
+      <table class="docs-table">
+        <thead><tr><th>Paquete</th><th>Versión</th><th>Función</th></tr></thead>
+        <tbody>
+          <tr><td><code>express</code></td><td>^5.2.1</td><td>Servidor HTTP, routing, middlewares.</td></tr>
+          <tr><td><code>mysql2</code></td><td>^3.22.3</td><td>Driver MySQL con soporte de promesas y TLS.</td></tr>
+          <tr><td><code>ejs</code> + <code>express-ejs-layouts</code></td><td>^5 / ^2.5</td><td>Plantillas servidor con layouts y partials.</td></tr>
+          <tr><td><code>jsonwebtoken</code></td><td>^9.0.3</td><td>Firma y verificación de JWT (HS256).</td></tr>
+          <tr><td><code>bcrypt</code></td><td>^6.0.0</td><td>Hash de contraseñas con sal aleatoria.</td></tr>
+          <tr><td><code>cookie-parser</code></td><td>^1.4.7</td><td>Parseo de cookies httpOnly de sesión.</td></tr>
+          <tr><td><code>helmet</code></td><td>^8.1.0</td><td>Cabeceras HTTP seguras (CSP, HSTS, X-Frame).</td></tr>
+          <tr><td><code>cors</code></td><td>^2.8.6</td><td>Política de orígenes cruzados con credenciales.</td></tr>
+          <tr><td><code>selfsigned</code></td><td>^5.5.0</td><td>Generación de certificados X.509 autofirmados.</td></tr>
+          <tr><td><code>winston</code> + <code>winston-daily-rotate-file</code></td><td>^3.19 / ^5</td><td>Logger estructurado con rotación diaria por tamaño/edad.</td></tr>
+          <tr><td><code>morgan</code></td><td>^1.10.1</td><td>Log HTTP por request (combined + dev).</td></tr>
+          <tr><td><code>systeminformation</code></td><td>^5.31.6</td><td>Métricas de CPU, RAM, disco y red.</td></tr>
+          <tr><td><code>dotenv</code></td><td>^17.4.2</td><td>Carga de variables desde <code>.env</code>.</td></tr>
+          <tr><td><code>ngrok</code></td><td>^5.0.0-beta.2</td><td>Túnel para exponer en demos / pruebas externas.</td></tr>
+        </tbody>
+      </table>
+
+      <h3 id="t-tooling">Herramientas de desarrollo</h3>
+      <div class="grid-2">
+        <div class="stack-card">
+          <div class="st-icon"><!-- nodemon: refresh / reload -->
+            <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 0115.5-6.3M21 12a9 9 0 01-15.5 6.3"/><path d="M18 3v4.5h-4.5M6 21v-4.5h4.5"/></svg>
+          </div>
+          <div class="st-name">nodemon</div><div class="st-ver">^3.1.14</div><div class="st-desc">Auto-reload del servidor en cambios. <code>npm run dev</code>.</div>
+        </div>
+        <div class="stack-card">
+          <div class="st-icon"><!-- npm: caja/paquete -->
+            <svg viewBox="0 0 24 24"><path d="M12 3l9 4.5v9L12 21l-9-4.5v-9L12 3z"/><path d="M3.5 7.5L12 12l8.5-4.5M12 12v9"/></svg>
+          </div>
+          <div class="st-name">npm</div><div class="st-ver">v10+</div><div class="st-desc">Gestor de paquetes. Scripts <code>start</code> y <code>dev</code>.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============== 5. API REST ============== -->
+    <section class="doc" id="api">
+      <h2><span class="sec-num"><svg viewBox="0 0 24 24"><path d="M9 4c-2.5 0-3 1.5-3 3v2c0 1.5-1 3-3 3 2 0 3 1.5 3 3v2c0 1.5.5 3 3 3"/><path d="M15 4c2.5 0 3 1.5 3 3v2c0 1.5 1 3 3 3-2 0-3 1.5-3 3v2c0 1.5-.5 3-3 3"/></svg></span>API REST</h2>
+      <p class="lead">Endpoints expuestos por <code>server.js</code>. Todas las rutas protegidas requieren cookie <code>bimest_token</code> válida o header <code>Authorization: Bearer &lt;jwt&gt;</code>.</p>
+
+      <h3 id="api-auth">Auth — <code>/auth</code></h3>
+      <table class="docs-table">
+        <thead><tr><th>Método</th><th>Ruta</th><th>Descripción</th><th>Auth</th></tr></thead>
+        <tbody>
+          <tr><td><span class="pill post">POST</span></td><td><code>/auth/login</code></td><td>Inicia sesión, devuelve JWT y setea cookie.</td><td>—</td></tr>
+          <tr><td><span class="pill post">POST</span></td><td><code>/auth/registro-alumno</code></td><td>Registra alumno de Química.</td><td>—</td></tr>
+          <tr><td><span class="pill post">POST</span></td><td><code>/auth/registro-alumno-turismo</code></td><td>Registra alumno de Turismo.</td><td>—</td></tr>
+          <tr><td><span class="pill post">POST</span></td><td><code>/auth/logout</code></td><td>Limpia cookie de sesión.</td><td>JWT</td></tr>
+          <tr><td><span class="pill get">GET</span></td><td><code>/auth/yo</code></td><td>Datos del usuario actual.</td><td>JWT</td></tr>
+        </tbody>
+      </table>
+
+      <h3 id="api-admin">Admin Química — <code>/admin</code></h3>
+      <table class="docs-table">
+        <thead><tr><th>Método</th><th>Ruta</th><th>Descripción</th></tr></thead>
+        <tbody>
+          <tr><td><span class="pill get">GET</span></td><td><code>/admin/resumen</code></td><td>Tarjetas de KPIs del panel.</td></tr>
+          <tr><td><span class="pill get">GET</span></td><td><code>/admin/usuarios</code></td><td>Lista todos los usuarios.</td></tr>
+          <tr><td><span class="pill post">POST</span></td><td><code>/admin/usuarios</code></td><td>Crea usuario.</td></tr>
+          <tr><td><span class="pill patch">PATCH</span></td><td><code>/admin/usuarios/:id/estado</code></td><td>Activa/desactiva cuenta.</td></tr>
+          <tr><td><span class="pill get">GET</span></td><td><code>/admin/materiales</code></td><td>Inventario.</td></tr>
+          <tr><td><span class="pill post">POST</span></td><td><code>/admin/materiales</code></td><td>Alta de material.</td></tr>
+          <tr><td><span class="pill patch">PATCH</span></td><td><code>/admin/materiales/:id/stock</code></td><td>Ajusta stock.</td></tr>
+          <tr><td><span class="pill delete">DELETE</span></td><td><code>/admin/materiales/:id</code></td><td>Desactiva material.</td></tr>
+          <tr><td><span class="pill get">GET</span></td><td><code>/admin/practicas</code></td><td>Lista prácticas.</td></tr>
+          <tr><td><span class="pill post">POST</span></td><td><code>/admin/practicas</code></td><td>Crea práctica.</td></tr>
+          <tr><td><span class="pill get">GET</span></td><td><code>/admin/practicas/:id/kits</code></td><td>Kits de una práctica.</td></tr>
+          <tr><td><span class="pill post">POST</span></td><td><code>/admin/practicas/:id/kits</code></td><td>Crea kit.</td></tr>
+          <tr><td><span class="pill post">POST</span></td><td><code>/admin/kits/:id/materiales</code></td><td>Agrega material a kit.</td></tr>
+          <tr><td><span class="pill get">GET</span></td><td><code>/admin/prestamos</code></td><td>Lista préstamos.</td></tr>
+          <tr><td><span class="pill post">POST</span></td><td><code>/admin/prestamos</code></td><td>Registra préstamo.</td></tr>
+          <tr><td><span class="pill patch">PATCH</span></td><td><code>/admin/prestamos/:id/devolucion</code></td><td>Marca devuelto.</td></tr>
+          <tr><td><span class="pill get">GET</span></td><td><code>/admin/adeudos</code></td><td>Lista adeudos.</td></tr>
+          <tr><td><span class="pill patch">PATCH</span></td><td><code>/admin/adeudos/:id/resolver</code></td><td>Resuelve adeudo.</td></tr>
+          <tr><td><span class="pill get">GET</span></td><td><code>/admin/incidencias</code></td><td>Lista incidencias.</td></tr>
+          <tr><td><span class="pill get">GET</span></td><td><code>/admin/responsivas</code></td><td>Lista responsivas firmadas.</td></tr>
+        </tbody>
+      </table>
+
+      <h3 id="api-maestro">Maestro — <code>/maestro</code></h3>
+      <table class="docs-table">
+        <thead><tr><th>Método</th><th>Ruta</th><th>Descripción</th></tr></thead>
+        <tbody>
+          <tr><td><span class="pill get">GET</span></td><td><code>/maestro/resumen</code></td><td>KPIs del maestro.</td></tr>
+          <tr><td><span class="pill get">GET</span></td><td><code>/maestro/grupos</code></td><td>Sus grupos.</td></tr>
+          <tr><td><span class="pill post">POST</span></td><td><code>/maestro/grupos</code></td><td>Crea grupo.</td></tr>
+          <tr><td><span class="pill get">GET</span></td><td><code>/maestro/grupos/:id/alumnos</code></td><td>Alumnos del grupo.</td></tr>
+          <tr><td><span class="pill get">GET</span></td><td><code>/maestro/alumnos</code></td><td>Alumnos activos.</td></tr>
+          <tr><td><span class="pill get">GET</span></td><td><code>/maestro/materiales</code></td><td>Materiales activos.</td></tr>
+          <tr><td><span class="pill get">GET</span></td><td><code>/maestro/equipos</code></td><td>Equipos.</td></tr>
+          <tr><td><span class="pill get">GET</span></td><td><code>/maestro/practicas</code></td><td>Catálogo de prácticas.</td></tr>
+          <tr><td><span class="pill get">GET</span></td><td><code>/maestro/sesiones</code></td><td>Sus sesiones.</td></tr>
+          <tr><td><span class="pill post">POST</span></td><td><code>/maestro/sesiones</code></td><td>Programa sesión.</td></tr>
+          <tr><td><span class="pill get">GET</span></td><td><code>/maestro/sesiones/:id</code></td><td>Detalle de sesión.</td></tr>
+          <tr><td><span class="pill patch">PATCH</span></td><td><code>/maestro/sesiones/:id/estado</code></td><td>Cambia estado de sesión.</td></tr>
+          <tr><td><span class="pill post">POST</span></td><td><code>/maestro/sesiones/:id/equipos</code></td><td>Crea equipo en sesión.</td></tr>
+          <tr><td><span class="pill delete">DELETE</span></td><td><code>/maestro/equipos/:id</code></td><td>Elimina equipo.</td></tr>
+          <tr><td><span class="pill post">POST</span></td><td><code>/maestro/sesiones/:id/incidencias</code></td><td>Registra incidencia.</td></tr>
+        </tbody>
+      </table>
+
+      <h3 id="api-estudiante">Estudiante — <code>/estudiantes</code></h3>
+      <table class="docs-table">
+        <thead><tr><th>Método</th><th>Ruta</th><th>Descripción</th></tr></thead>
+        <tbody>
+          <tr><td><span class="pill get">GET</span></td><td><code>/estudiantes/mi-panel</code></td><td>Panel del alumno.</td></tr>
+          <tr><td><span class="pill post">POST</span></td><td><code>/estudiantes/firmar</code></td><td>Firma responsiva (dataURL base64).</td></tr>
+          <tr><td><span class="pill get">GET</span></td><td><code>/estudiantes/pendientes</code></td><td>Alumnos pendientes (admin/maestro).</td></tr>
+          <tr><td><span class="pill patch">PATCH</span></td><td><code>/estudiantes/:id/grupo</code></td><td>Asigna grupo.</td></tr>
+          <tr><td><span class="pill patch">PATCH</span></td><td><code>/estudiantes/:id/activar</code></td><td>Activa estudiante.</td></tr>
+        </tbody>
+      </table>
+
+      <h3 id="api-turismo">Turismo — <code>/turismo/...</code></h3>
+      <table class="docs-table">
+        <thead><tr><th>Método</th><th>Ruta</th><th>Descripción</th></tr></thead>
+        <tbody>
+          <tr><td><span class="pill get">GET</span></td><td><code>/turismo/estudiantes/mi-panel</code></td><td>Panel del alumno Turismo.</td></tr>
+          <tr><td><span class="pill get">GET</span></td><td><code>/turismo/estudiantes/mis-prestamos</code></td><td>Sus préstamos.</td></tr>
+          <tr><td><span class="pill get">GET</span></td><td><code>/turismo/estudiantes/mis-adeudos</code></td><td>Sus adeudos.</td></tr>
+          <tr><td><span class="pill get">GET</span></td><td><code>/turismo/estudiantes/mis-notificaciones</code></td><td>Notificaciones.</td></tr>
+          <tr><td><span class="pill post">POST</span></td><td><code>/turismo/estudiantes/prestamos</code></td><td>Solicita préstamo.</td></tr>
+          <tr><td><span class="pill get">GET</span></td><td><code>/turismo/admin/resumen</code></td><td>KPIs admin Turismo.</td></tr>
+          <tr><td><span class="pill post">POST</span></td><td><code>/turismo/admin/practicas</code></td><td>Crea práctica de campo.</td></tr>
+          <tr><td><span class="pill patch">PATCH</span></td><td><code>/turismo/admin/prestamos/:id/aprobar</code></td><td>Aprueba solicitud.</td></tr>
+          <tr><td><span class="pill patch">PATCH</span></td><td><code>/turismo/admin/prestamos/:id/rechazar</code></td><td>Rechaza solicitud.</td></tr>
+          <tr><td><span class="pill patch">PATCH</span></td><td><code>/turismo/admin/prestamos/:id/adeudo</code></td><td>Marca como adeudo.</td></tr>
+          <tr><td><span class="pill patch">PATCH</span></td><td><code>/turismo/admin/incidencias/:id/resolver</code></td><td>Resuelve incidencia.</td></tr>
+        </tbody>
+      </table>
+
+      <h3 id="api-monitor">Monitoreo — <code>/monitor</code></h3>
+      <table class="docs-table">
+        <thead><tr><th>Método</th><th>Ruta</th><th>Descripción</th></tr></thead>
+        <tbody>
+          <tr><td><span class="pill get">GET</span></td><td><code>/salud</code></td><td>Healthcheck público: <code>{"ok":true,"ts":"..."}</code></td></tr>
+          <tr><td><span class="pill get">GET</span></td><td><code>/monitor</code></td><td>Dashboard web de monitoreo.</td></tr>
+          <tr><td><span class="pill get">GET</span></td><td><code>/monitor/metricas</code></td><td>JSON con CPU, RAM, disco, red y DB.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ============== 6. BASE DE DATOS ============== -->
+    <section class="doc" id="bd">
+      <h2><span class="sec-num"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="2.5"/><path d="M4 5v6c0 1.4 3.6 2.5 8 2.5s8-1.1 8-2.5V5"/><path d="M4 11v6c0 1.4 3.6 2.5 8 2.5s8-1.1 8-2.5v-6"/></svg></span>Base de datos</h2>
+      <p class="lead">El schema <code>labs</code> agrupa tanto las tablas de Química como de Turismo (con sufijo <code>_turismo</code>). Toda conexión usa pool con TLS opcional.</p>
+
+      <h3 id="bd-motor">Motor y conexión</h3>
+      <div class="card">
+        <p><strong>Motor:</strong> MySQL 8. <strong>Driver:</strong> <code>mysql2/promise</code>. <strong>Pool:</strong> 10 conexiones, sin límite de cola. Si <code>DB_SSL=true</code>, se construye el bloque SSL leyendo <code>certs/mysql-ca.pem</code> o el path indicado en <code>DB_SSL_CA</code>. <code>DB_SSL_REJECT_UNAUTHORIZED</code> permite aceptar certs autofirmados en desarrollo.</p>
+        <p>Variables: <code>DB_HOST</code>, <code>DB_PORT=3306</code>, <code>DB_USER</code>, <code>DB_PASSWORD</code>, <code>DB_NAME=labs</code>.</p>
+      </div>
+
+      <h3 id="bd-quimica">Schema Química (14 tablas)</h3>
+      <div class="grid-2">
+        <div class="db-tabla"><div class="db-tabla-nombre">usuarios</div><div class="db-tabla-desc">Cuentas (admin, maestro, alumno) con hash bcrypt e <code>is_active</code>.</div></div>
+        <div class="db-tabla"><div class="db-tabla-nombre">grupos</div><div class="db-tabla-desc">Agrupaciones escolares asignadas por el maestro.</div></div>
+        <div class="db-tabla"><div class="db-tabla-nombre">materiales</div><div class="db-tabla-desc">Inventario con stock, unidad y categoría.</div></div>
+        <div class="db-tabla"><div class="db-tabla-nombre">practicas</div><div class="db-tabla-desc">Catálogo de prácticas de laboratorio.</div></div>
+        <div class="db-tabla"><div class="db-tabla-nombre">kits</div><div class="db-tabla-desc">Conjunto de materiales recomendados por práctica.</div></div>
+        <div class="db-tabla"><div class="db-tabla-nombre">kit_materiales</div><div class="db-tabla-desc">N:M kit ↔ material con cantidad.</div></div>
+        <div class="db-tabla"><div class="db-tabla-nombre">sesiones</div><div class="db-tabla-desc">Sesión real de práctica (fecha, grupo, maestro).</div></div>
+        <div class="db-tabla"><div class="db-tabla-nombre">equipos</div><div class="db-tabla-desc">Equipos de trabajo dentro de una sesión.</div></div>
+        <div class="db-tabla"><div class="db-tabla-nombre">equipo_integrantes</div><div class="db-tabla-desc">N:M equipo ↔ alumno.</div></div>
+        <div class="db-tabla"><div class="db-tabla-nombre">responsivas</div><div class="db-tabla-desc">Firmas digitales del reglamento (referencia a <code>imageFirma/</code>).</div></div>
+        <div class="db-tabla"><div class="db-tabla-nombre">prestamos</div><div class="db-tabla-desc">Material entregado, con devolución y observaciones.</div></div>
+        <div class="db-tabla"><div class="db-tabla-nombre">adeudos</div><div class="db-tabla-desc">Faltantes generados al cierre del préstamo.</div></div>
+        <div class="db-tabla"><div class="db-tabla-nombre">incidencias</div><div class="db-tabla-desc">Eventos relevantes durante la sesión (roturas, accidentes).</div></div>
+        <div class="db-tabla"><div class="db-tabla-nombre">notificaciones</div><div class="db-tabla-desc">Mensajes al usuario con flag <code>leida</code>.</div></div>
+      </div>
+
+      <h3 id="bd-turismo">Schema Turismo (8 tablas)</h3>
+      <div class="grid-2">
+        <div class="db-tabla"><div class="db-tabla-nombre">usuarios_turismo</div><div class="db-tabla-desc">Admin y alumnos del módulo Turismo.</div></div>
+        <div class="db-tabla"><div class="db-tabla-nombre">practicas_turismo</div><div class="db-tabla-desc">Prácticas de campo / viajes.</div></div>
+        <div class="db-tabla"><div class="db-tabla-nombre">materiales_turismo</div><div class="db-tabla-desc">Inventario específico de Turismo.</div></div>
+        <div class="db-tabla"><div class="db-tabla-nombre">sugerencias_material_turismo</div><div class="db-tabla-desc">Material sugerido por práctica.</div></div>
+        <div class="db-tabla"><div class="db-tabla-nombre">sesiones_turismo</div><div class="db-tabla-desc">Sesión real con grupo y fecha.</div></div>
+        <div class="db-tabla"><div class="db-tabla-nombre">prestamos_material_turismo</div><div class="db-tabla-desc">Solicita → aprueba/rechaza → devuelve/adeudo.</div></div>
+        <div class="db-tabla"><div class="db-tabla-nombre">incidencias_turismo</div><div class="db-tabla-desc">Reportes durante la práctica.</div></div>
+        <div class="db-tabla"><div class="db-tabla-nombre">notificaciones_turismo</div><div class="db-tabla-desc">Avisos al alumno (campanita).</div></div>
+      </div>
+
+      <h3 id="bd-roles">Roles MySQL</h3>
+      <div class="card">
+        <p>El script <code>sql/usuario_app.sql</code> crea un usuario dedicado <code>bimest_app</code> con permisos mínimos <strong>DML</strong> (<code>SELECT, INSERT, UPDATE, DELETE</code>) sobre el schema <code>labs</code>. Nunca se usa <code>root</code> en producción. El usuario <code>root</code> queda reservado para migraciones y mantenimiento administrativo.</p>
+      </div>
+    </section>
+
+    <!-- ============== 7. MODELO OSI ============== -->
+    <section class="doc" id="osi">
+      <h2><span class="sec-num"><svg viewBox="0 0 24 24"><circle cx="12" cy="4" r="2"/><circle cx="4" cy="14" r="2"/><circle cx="12" cy="20" r="2"/><circle cx="20" cy="14" r="2"/><path d="M12 6v12M5.5 13l5-7M18.5 13l-5-7M5.5 15l5 4M18.5 15l-5 4"/></svg></span>Modelo OSI</h2>
+      <p class="lead">Cada componente de BimestManager se ubica en una capa específica del modelo de referencia OSI. Esto ayuda a razonar fallas y planear seguridad por capas.</p>
+
+      <h3 id="osi-tabla">Mapeo por capa</h3>
+      <div class="osi-list">
+        <div class="osi-row">
+          <div class="osi-num">7</div>
+          <div class="osi-name">Aplicación<span>Application</span></div>
+          <div class="osi-bm">Vistas EJS, panel admin/maestro/alumno, dashboard <code>/monitor</code>. Endpoints REST <code>/auth</code>, <code>/admin</code>, <code>/maestro</code>, <code>/turismo/*</code>.</div>
+        </div>
+        <div class="osi-row">
+          <div class="osi-num">6</div>
+          <div class="osi-name">Presentación<span>Presentation</span></div>
+          <div class="osi-bm">JSON (<code>express.json</code>), HTML, CSS. Codificación UTF-8. Cifrado <strong>TLS 1.2/1.3</strong> negociado por <code>https</code> de Node. Firmas guardadas como <code>dataURL</code> base64.</div>
+        </div>
+        <div class="osi-row">
+          <div class="osi-num">5</div>
+          <div class="osi-name">Sesión<span>Session</span></div>
+          <div class="osi-bm">JWT firmado con HS256 (<code>jsonwebtoken</code>) + cookie <code>bimest_token</code> <code>httpOnly</code>. Pool MySQL mantiene 10 sesiones persistentes.</div>
+        </div>
+        <div class="osi-row">
+          <div class="osi-num">4</div>
+          <div class="osi-name">Transporte<span>Transport</span></div>
+          <div class="osi-bm"><strong>TCP</strong> en puertos <code>4000</code> (HTTP), <code>4443</code> (HTTPS) y <code>3306</code> (MySQL). Sin UDP en el flujo principal.</div>
+        </div>
+        <div class="osi-row">
+          <div class="osi-num">3</div>
+          <div class="osi-name">Red<span>Network</span></div>
+          <div class="osi-bm"><strong>IPv4</strong> en LAN <code>192.168.10.0/24</code> (DC .10, WEB .20, DB .30, MON .40). Ruteo interno + DNS resuelto por DC.</div>
+        </div>
+        <div class="osi-row">
+          <div class="osi-num">2</div>
+          <div class="osi-name">Enlace de datos<span>Data Link</span></div>
+          <div class="osi-bm">Ethernet entre servidores, VLAN aislada para tráfico de DB. ARP estándar.</div>
+        </div>
+        <div class="osi-row">
+          <div class="osi-num">1</div>
+          <div class="osi-name">Física<span>Physical</span></div>
+          <div class="osi-bm">Cableado RJ-45 Cat 6 / fibra entre rack y switches del laboratorio. UPS recomendado para WEB y DB.</div>
+        </div>
+      </div>
+
+      <h3 id="osi-flujo">Flujo de un request — recorrido por capas</h3>
+      <div class="ascii">Navegador del alumno
+   │ (L7) GET /estudiantes/mi-panel
+   │ (L6) TLS handshake, JSON encoding
+   │ (L5) Cookie bimest_token (JWT)
+   │ (L4) TCP :4443
+   │ (L3) IP 192.168.10.x → 192.168.10.20
+   │ (L2) Ethernet / VLAN_USERS
+   │ (L1) Cable Cat6
+   ▼
+WEB (Node + Express)
+   │ helmet → cors → morgan → express.json → cookieParser
+   │ autenticar → cargarUsuarioActual → autorizarFuentes → autorizarRoles
+   │ controlador → modelo
+   ▼ (L4 TCP :3306, TLS)
+DB (MySQL 8)
+   └── SELECT ... FROM usuarios WHERE id=? AND is_active=1</div>
+    </section>
+
+    <!-- ============== 8. GITHUB ============== -->
+    <section class="doc" id="github">
+      <h2><span class="sec-num"><svg class="filled" viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></span>GitHub</h2>
+      <p class="lead">Todo el código fuente, scripts SQL y documentación viven en el repositorio oficial. El flujo de trabajo es <em>fork → branch → PR</em> y los releases se etiquetan con SemVer.</p>
+
+      <h3 id="gh-repo">Repositorio oficial</h3>
+      <div class="gh-hero">
+        <div class="gh-mark">
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+          </svg>
+        </div>
+        <div class="gh-info">
+          <div class="gh-owner">413xkur4y4m1</div>
+          <div class="gh-name">BimestManager<span> / main</span></div>
+          <div class="gh-url">https://github.com/413xkur4y4m1/BimestManager.git</div>
+        </div>
+        <a href="https://github.com/413xkur4y4m1/BimestManager" target="_blank" rel="noopener" class="gh-cta">
+          <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+          Abrir en GitHub
+        </a>
+      </div>
+
+      <div class="gh-stats">
+        <div class="gh-stat"><div class="v">v14.0.4</div><div class="l">Release</div></div>
+        <div class="gh-stat"><div class="v">ISC</div><div class="l">Licencia</div></div>
+        <div class="gh-stat"><div class="v">main</div><div class="l">Rama default</div></div>
+        <div class="gh-stat"><div class="v">6</div><div class="l">Contribuidores</div></div>
+      </div>
+
+      <h3 id="gh-clonar">Clonar e instalar</h3>
+      <p>Pasos completos desde cero para tener el proyecto corriendo en local:</p>
+      <pre class="code"><span class="cmt"># 1. Clonar el repositorio</span>
+<span class="kw">git</span> clone https://github.com/413xkur4y4m1/BimestManager.git
+<span class="kw">cd</span> BimestManager
+
+<span class="cmt"># 2. Instalar dependencias (Node 20+ y npm 10+)</span>
+<span class="kw">npm</span> install
+
+<span class="cmt"># 3. Configurar variables de entorno</span>
+<span class="kw">cp</span> .env.example .env
+<span class="cmt"># Windows PowerShell:  Copy-Item .env.example .env</span>
+
+<span class="cmt"># 4. Cargar el schema y los seeds en MySQL</span>
+<span class="kw">mysql</span> -u root -p &lt; creacionTabs.sql
+<span class="kw">mysql</span> -u root -p labs &lt; labs_usuarios.sql
+
+<span class="cmt"># 5. Levantar el servidor</span>
+<span class="kw">npm</span> run dev     <span class="cmt"># desarrollo con nodemon</span>
+<span class="kw">npm</span> start       <span class="cmt"># produccion</span>
+
+<span class="cmt"># 6. Abrir en el navegador</span>
+<span class="cmt"># HTTP:  http://localhost:4000</span>
+<span class="cmt"># HTTPS: https://localhost:4443</span></pre>
+
+      <h3 id="gh-ramas">Flujo de ramas</h3>
+      <div class="branches">
+        <div class="branch main"><div class="branch-dot"></div><code>main</code><div>Rama estable. Solo recibe merges desde <code>develop</code> tras revisión. Cada merge genera un release etiquetado.</div></div>
+        <div class="branch dev"><div class="branch-dot"></div><code>develop</code><div>Integración continua. Aquí confluyen las <code>feature/*</code> antes de pasar a <code>main</code>.</div></div>
+        <div class="branch"><div class="branch-dot"></div><code>feature/*</code><div>Una rama por funcionalidad nueva. Ej: <code>feature/turismo-sugerencias</code>, <code>feature/dashboard-monitor</code>.</div></div>
+        <div class="branch"><div class="branch-dot"></div><code>fix/*</code><div>Correcciones puntuales de bugs detectados en pruebas o producción.</div></div>
+        <div class="branch"><div class="branch-dot"></div><code>hotfix/*</code><div>Parches urgentes que se aplican directo sobre <code>main</code> y luego se sincronizan a <code>develop</code>.</div></div>
+      </div>
+
+      <p style="margin-top: 14px;">Convención de commits inspirada en <strong>Conventional Commits</strong>:</p>
+      <pre class="code"><span class="kw">feat</span>(turismo): agregar aprobacion de prestamos
+<span class="kw">fix</span>(auth): corregir expiracion de cookie en HTTPS
+<span class="kw">docs</span>(readme): actualizar guia de despliegue
+<span class="kw">chore</span>(deps): bump express a 5.2.1
+<span class="kw">refactor</span>(modelo): extraer queries de prestamos a helper</pre>
+
+      <h3 id="gh-archivos">Archivos importantes del repo</h3>
+      <table class="docs-table">
+        <thead><tr><th>Archivo</th><th>Propósito</th></tr></thead>
+        <tbody>
+          <tr><td><code>README.md</code></td><td>Portada del repo con descripción, stack, instalación y endpoints.</td></tr>
+          <tr><td><code>package.json</code></td><td>Dependencias, scripts (<code>start</code>, <code>dev</code>) y metadata.</td></tr>
+          <tr><td><code>.env.example</code></td><td>Plantilla con todas las variables (sin secretos reales).</td></tr>
+          <tr><td><code>.gitignore</code></td><td>Excluye <code>node_modules/</code>, <code>certs/</code>, <code>logs/</code>, <code>.env</code>.</td></tr>
+          <tr><td><code>creacionTabs.sql</code></td><td>Schema completo (Química + Turismo).</td></tr>
+          <tr><td><code>labs_*.sql</code> · <code>turismoDatos.sql</code></td><td>Seeds para poblar la base.</td></tr>
+          <tr><td><code>docs/DESPLIEGUE.md</code></td><td>Guía paso a paso de despliegue DC/WEB/DB/MON.</td></tr>
+          <tr><td><code>docs/OPERACION.md</code></td><td>Runbook y checklist operativo.</td></tr>
+          <tr><td><code>docs/BITACORA_INCIDENTE.md</code></td><td>Plantilla y casos reales de incidentes.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Cómo contribuir</h3>
+      <div class="card">
+        <p><strong>1.</strong> Haz fork del repo y crea una rama <code>feature/&lt;nombre&gt;</code> a partir de <code>develop</code>.<br>
+        <strong>2.</strong> Asegúrate de que el servidor arranca limpio (<code>npm run dev</code>) y que no hay logs de error.<br>
+        <strong>3.</strong> Sigue el patrón <strong>MVC</strong>: nada de SQL en <code>controlador/</code>, ningún <code>req/res</code> en <code>modelo/</code>.<br>
+        <strong>4.</strong> Abre un <strong>Pull Request</strong> hacia <code>develop</code> describiendo el cambio y referenciando el issue.<br>
+        <strong>5.</strong> Espera revisión de al menos un mantenedor antes del merge.</p>
+      </div>
+    </section>
+
+    <div style="text-align: center; padding: 30px 0 10px; color: var(--dim); font-size: 12px; border-top: 1px solid var(--border); margin-top: 40px;">
+      <strong style="color: var(--accent-2);">BimestDocs</strong> · Documentación oficial de BimestManager · Generado el 2026-05-21<br>
+      <a href="https://github.com/413xkur4y4m1/BimestManager" target="_blank" rel="noopener" style="color: var(--purple); text-decoration: none; font-weight: 600;">github.com/413xkur4y4m1/BimestManager</a>
+    </div>
+  </main>
+</div>
+
+<button class="back-top" id="backTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<script>
+  function toggleGroup(btn) {
+    const group = btn.parentElement;
+    document.querySelectorAll('.nav-group.open').forEach(g => {
+      if (g !== group) g.classList.remove('open');
+    });
+    group.classList.toggle('open');
+  }
+
+  // Resalta el link activo según scroll
+  const links = document.querySelectorAll('.nav-sublist a');
+  const sections = Array.from(links).map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+
+  function onScroll() {
+    const y = window.scrollY + 120;
+    let activeIdx = 0;
+    sections.forEach((s, i) => {
+      if (s && s.offsetTop <= y) activeIdx = i;
+    });
+    links.forEach(l => l.classList.remove('active'));
+    if (links[activeIdx]) {
+      links[activeIdx].classList.add('active');
+      const parentGroup = links[activeIdx].closest('.nav-group');
+      if (parentGroup && !parentGroup.classList.contains('open')) {
+        document.querySelectorAll('.nav-group.open').forEach(g => g.classList.remove('open'));
+        parentGroup.classList.add('open');
+      }
+    }
+
+    // Botón "subir"
+    document.getElementById('backTop').classList.toggle('show', window.scrollY > 400);
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+
+  // Scroll suave en clic
+  document.querySelectorAll('.nav-sublist a').forEach(a => {
+    a.addEventListener('click', (e) => {
+      const id = a.getAttribute('href').slice(1);
+      const target = document.getElementById(id);
+      if (target) {
+        e.preventDefault();
+        window.scrollTo({ top: target.offsetTop - 80, behavior: 'smooth' });
+      }
+    });
+  });
+</script>
+
+</body>
+</html>
