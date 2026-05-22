@@ -16,6 +16,10 @@ logs/
 *.log
 npm-debug.log*
 
+# Firmas digitales de alumnos (datos personales, NO se versionan)
+imageFirma/*
+!imageFirma/.gitkeep
+
 # Sistema operativo
 .DS_Store
 Thumbs.db
