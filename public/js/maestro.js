@@ -1,7 +1,7 @@
 // Dashboard Maestro
 (function () {
   'use strict';
-  const { api, flash, clearFlash, setLoading, requireAuth, wireHeader, wireTabs, formatFecha, escapeHtml: esc } = window.BM;
+  const { api, flash, clearFlash, setLoading, requireAuth, wireHeader, wireTabs, formatFecha, escapeHtml: esc, makePagedList } = window.BM;
 
   let usuario = null;
   let grupos = [];
@@ -10,6 +10,12 @@
   let sesionEquiposActiva = null;
   let alumnosSesion = [];
   let materialesCache = [];
+
+  let sesionesCtl = null;
+  let pendientesCtl = null;
+  let alumnosActivosCtl = null;
+  let gruposCtl = null;
+  let equiposCtl = null;
 
   const cargar = async () => {
     clearFlash('flash');
@@ -41,93 +47,84 @@
 
   // ===== Tab Equipos (lista plana) =====
   const cargarEquiposGlobal = async () => {
-    const cont = document.getElementById('equiposGlobalLista');
-    if (!cont) return;
     const incluirFin = !!document.getElementById('chkIncluirFinalizadas')?.checked;
     const url = incluirFin ? '/maestro/equipos?incluir_finalizadas=1' : '/maestro/equipos';
     const r = await api('GET', url);
     if (!r.ok) {
-      cont.innerHTML = '<div class="empty-state">No se pudieron cargar los equipos.</div>';
+      if (equiposCtl) equiposCtl.setData([]);
       return;
     }
-    renderEquiposGlobal(r.data || []);
+    if (equiposCtl) equiposCtl.setData(r.data || []);
   };
 
-  const renderEquiposGlobal = (equipos) => {
-    const cont = document.getElementById('equiposGlobalLista');
-    if (!equipos.length) {
-      cont.innerHTML = '<article class="card"><div class="empty-state">Aún no hay equipos creados. Arma equipos desde Sesiones → Armar equipos.</div></article>';
-      return;
-    }
-
+  const renderEquipoItem = (eq) => {
     const opcionesMaterial = materialesCache
       .map((m) => `<option value="${m.id}">${esc(m.nombre)} (stock ${m.stock})</option>`)
       .join('');
+    const opcionesResp = (eq.integrantes || [])
+      .map((i) => `<option value="${i.id}">${esc(i.nombre)}</option>`)
+      .join('');
+    const fechaCorta = eq.fecha ? formatFecha(eq.fecha) : '';
+    const estadoClass = eq.sesion_estado === 'EN_CURSO' ? 'ok' : eq.sesion_estado === 'FINALIZADA' ? 'neutral' : 'info';
+    return `
+      <article class="card">
+        <h3 style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start">
+          <span>${esc(eq.nombre)}</span>
+          <span class="badge badge--${estadoClass}">${esc(eq.sesion_estado)}</span>
+        </h3>
+        <div class="card-row__sub" style="margin-bottom:6px">
+          ${esc(eq.practica)} · ${esc(eq.grupo)} · ${esc(fechaCorta)}${eq.hora_inicio ? ' ' + esc(eq.hora_inicio) : ''}
+        </div>
+        ${eq.incidencias_total ? `<div class="card-row__sub" style="margin-bottom:6px"><span class="badge badge--danger">${eq.incidencias_total} incidencia${eq.incidencias_total === 1 ? '' : 's'}</span></div>` : ''}
 
-    cont.innerHTML = equipos.map((eq) => {
-      const opcionesResp = (eq.integrantes || [])
-        .map((i) => `<option value="${i.id}">${esc(i.nombre)}</option>`)
-        .join('');
-      const fechaCorta = eq.fecha ? formatFecha(eq.fecha) : '';
-      const estadoClass = eq.sesion_estado === 'EN_CURSO' ? 'ok' : eq.sesion_estado === 'FINALIZADA' ? 'neutral' : 'info';
-      return `
-        <article class="card">
-          <h3 style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start">
-            <span>${esc(eq.nombre)}</span>
-            <span class="badge badge--${estadoClass}">${esc(eq.sesion_estado)}</span>
-          </h3>
-          <div class="card-row__sub" style="margin-bottom:6px">
-            ${esc(eq.practica)} · ${esc(eq.grupo)} · ${esc(fechaCorta)}${eq.hora_inicio ? ' ' + esc(eq.hora_inicio) : ''}
-          </div>
-          ${eq.incidencias_total ? `<div class="card-row__sub" style="margin-bottom:6px"><span class="badge badge--danger">${eq.incidencias_total} incidencia${eq.incidencias_total === 1 ? '' : 's'}</span></div>` : ''}
+        <ul class="list" style="margin-bottom:6px">
+          ${(eq.integrantes || []).map((i) => `
+            <li><div class="card-row__title" style="font-size:13px">${esc(i.nombre)}</div><div class="card-row__sub">${esc(i.email)}</div></li>
+          `).join('') || '<li class="empty-state">Sin integrantes.</li>'}
+        </ul>
 
-          <ul class="list" style="margin-bottom:6px">
-            ${(eq.integrantes || []).map((i) => `
-              <li><div class="card-row__title" style="font-size:13px">${esc(i.nombre)}</div><div class="card-row__sub">${esc(i.email)}</div></li>
-            `).join('') || '<li class="empty-state">Sin integrantes.</li>'}
-          </ul>
+        ${eq.sesion_estado === 'FINALIZADA' ? `
+          <div class="muted" style="font-size:12px">Sesión finalizada — no puedes registrar nuevas incidencias.</div>
+        ` : `
+          <details>
+            <summary style="color:var(--c-teal-700);font-weight:600;cursor:pointer;font-size:13px;padding:6px 0">+ Reportar incidencia</summary>
+            <form class="form-card" data-incidencia-global="${eq.id}" data-sesion="${eq.sesion_id}" style="margin-top:8px">
+              <div class="field-tight">
+                <select name="material_id" required>
+                  <option value="">Material...</option>
+                  ${opcionesMaterial}
+                </select>
+              </div>
+              <div class="field-tight">
+                <select name="tipo" required>
+                  <option value="">Tipo...</option>
+                  <option value="ROTO">ROTO</option>
+                  <option value="PERDIDO">PERDIDO</option>
+                </select>
+              </div>
+              <div class="field-tight">
+                <select name="responsable_usuario_id">
+                  <option value="">Sin responsable individual</option>
+                  ${opcionesResp}
+                </select>
+              </div>
+              <div class="field-tight">
+                <input name="descripcion" placeholder="Descripción (opcional)" maxlength="255">
+              </div>
+              <label style="display:flex;gap:8px;align-items:center;font-size:13px;color:var(--c-ink-soft);margin:6px 0">
+                <input type="checkbox" name="generar_adeudo" style="width:18px;height:18px;accent-color:var(--c-orange-600)">
+                Generar adeudo al responsable
+              </label>
+              <button class="btn btn-primary" type="submit">Registrar incidencia</button>
+            </form>
+          </details>
+        `}
+      </article>
+    `;
+  };
 
-          ${eq.sesion_estado === 'FINALIZADA' ? `
-            <div class="muted" style="font-size:12px">Sesión finalizada — no puedes registrar nuevas incidencias.</div>
-          ` : `
-            <details>
-              <summary style="color:var(--c-teal-700);font-weight:600;cursor:pointer;font-size:13px;padding:6px 0">+ Reportar incidencia</summary>
-              <form class="form-card" data-incidencia-global="${eq.id}" data-sesion="${eq.sesion_id}" style="margin-top:8px">
-                <div class="field-tight">
-                  <select name="material_id" required>
-                    <option value="">Material...</option>
-                    ${opcionesMaterial}
-                  </select>
-                </div>
-                <div class="field-tight">
-                  <select name="tipo" required>
-                    <option value="">Tipo...</option>
-                    <option value="ROTO">ROTO</option>
-                    <option value="PERDIDO">PERDIDO</option>
-                  </select>
-                </div>
-                <div class="field-tight">
-                  <select name="responsable_usuario_id">
-                    <option value="">Sin responsable individual</option>
-                    ${opcionesResp}
-                  </select>
-                </div>
-                <div class="field-tight">
-                  <input name="descripcion" placeholder="Descripción (opcional)" maxlength="255">
-                </div>
-                <label style="display:flex;gap:8px;align-items:center;font-size:13px;color:var(--c-ink-soft);margin:6px 0">
-                  <input type="checkbox" name="generar_adeudo" style="width:18px;height:18px;accent-color:var(--c-orange-600)">
-                  Generar adeudo al responsable
-                </label>
-                <button class="btn btn-primary" type="submit">Registrar incidencia</button>
-              </form>
-            </details>
-          `}
-        </article>
-      `;
-    }).join('');
-
-    cont.querySelectorAll('form[data-incidencia-global]').forEach((f) => {
+  const wireEquiposBotones = (slice, listEl) => {
+    listEl.querySelectorAll('form[data-incidencia-global]').forEach((f) => {
       f.addEventListener('submit', (ev) => {
         const sesionId = Number(f.dataset.sesion);
         const equipoId = Number(f.dataset.incidenciaGlobal);
@@ -196,19 +193,16 @@
       filtroSel.value = valorActual;
     }
 
-    const list = document.getElementById('gruposList');
-    if (!gs.length) {
-      list.innerHTML = '<li class="empty-state">Sin grupos.</li>';
-    } else {
-      list.innerHTML = gs.map((g) => `
-        <li class="card-row">
-          <div class="card-row__main">
-            <div class="card-row__title">${esc(g.nombre)}</div>
-            <div class="card-row__sub">${g.alumnos_activos} activos · ${g.alumnos_pendientes} pendientes</div>
-          </div>
-        </li>`).join('');
-    }
+    if (gruposCtl) gruposCtl.setData(gs);
   };
+
+  const renderGrupoItem = (g) => `
+    <li class="card-row">
+      <div class="card-row__main">
+        <div class="card-row__title">${esc(g.nombre)}</div>
+        <div class="card-row__sub">${g.alumnos_activos} activos · ${g.alumnos_pendientes} pendientes</div>
+      </div>
+    </li>`;
 
   const renderPracticas = (ps) => {
     const sel = document.getElementById('practicaSel');
@@ -217,7 +211,6 @@
   };
 
   const renderSesiones = (ss) => {
-    const list = document.getElementById('sesionesList');
     const sel = document.getElementById('sesionEquiposSel');
 
     // dropdown del armado de equipos
@@ -231,38 +224,37 @@
       sel.value = valorActual;
     }
 
-    if (!ss.length) {
-      list.innerHTML = '<li class="empty-state">Aún no tienes sesiones.</li>';
-      return;
-    }
-    list.innerHTML = ss.map((s) => `
-      <li class="card-row">
-        <div class="card-row__main">
-          <div class="card-row__title">${esc(s.practica)} · ${esc(s.grupo)}</div>
-          <div class="card-row__sub">${esc(formatFecha(s.fecha))} ${s.hora_inicio ? esc(s.hora_inicio) : ''} · ${s.equipos_creados ?? 0}/${s.num_equipos ?? '—'} eq.</div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
-          <span class="badge badge--${s.estado === 'EN_CURSO' ? 'ok' : s.estado === 'FINALIZADA' ? 'neutral' : 'info'}">${esc(s.estado)}</span>
-          ${s.estado !== 'FINALIZADA' ? `
-            <select class="field-sel" data-cambiar="${s.id}" style="font-size:12px;padding:4px 8px;border-radius:8px">
-              <option value="">Cambiar a...</option>
-              ${s.estado !== 'EN_CURSO' ? '<option value="EN_CURSO">EN_CURSO</option>' : ''}
-              <option value="FINALIZADA">FINALIZADA</option>
-            </select>
-          ` : ''}
-          ${s.estado !== 'FINALIZADA' ? `<button class="btn btn-mini btn-ghost" data-armar="${s.id}">Armar equipos</button>` : ''}
-        </div>
-      </li>`).join('');
+    if (sesionesCtl) sesionesCtl.setData(ss);
+  };
 
-    list.querySelectorAll('select[data-cambiar]').forEach((sel) => {
+  const renderSesionItem = (s) => `
+    <li class="card-row">
+      <div class="card-row__main">
+        <div class="card-row__title">${esc(s.practica)} · ${esc(s.grupo)}</div>
+        <div class="card-row__sub">${esc(formatFecha(s.fecha))} ${s.hora_inicio ? esc(s.hora_inicio) : ''} · ${s.equipos_creados ?? 0}/${s.num_equipos ?? '—'} eq.</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+        <span class="badge badge--${s.estado === 'EN_CURSO' ? 'ok' : s.estado === 'FINALIZADA' ? 'neutral' : 'info'}">${esc(s.estado)}</span>
+        ${s.estado !== 'FINALIZADA' ? `
+          <select class="field-sel" data-cambiar="${s.id}" style="font-size:12px;padding:4px 8px;border-radius:8px">
+            <option value="">Cambiar a...</option>
+            ${s.estado !== 'EN_CURSO' ? '<option value="EN_CURSO">EN_CURSO</option>' : ''}
+            <option value="FINALIZADA">FINALIZADA</option>
+          </select>
+        ` : ''}
+        ${s.estado !== 'FINALIZADA' ? `<button class="btn btn-mini btn-ghost" data-armar="${s.id}">Armar equipos</button>` : ''}
+      </div>
+    </li>`;
+
+  const wireSesionesBotones = (slice, listEl) => {
+    listEl.querySelectorAll('select[data-cambiar]').forEach((sel) => {
       sel.addEventListener('change', () => cambiarEstado(Number(sel.dataset.cambiar), sel.value));
     });
-    list.querySelectorAll('button[data-armar]').forEach((b) => {
+    listEl.querySelectorAll('button[data-armar]').forEach((b) => {
       b.addEventListener('click', () => {
         sesionEquiposActiva = Number(b.dataset.armar);
         const dropdown = document.getElementById('sesionEquiposSel');
         if (dropdown) dropdown.value = String(sesionEquiposActiva);
-        // Cambia subtab a "Equipos"
         document.querySelectorAll('[data-tab="sesiones"] .subtabs button').forEach((x) => x.classList.toggle('is-active', x.dataset.subtab === 'ses-teams'));
         document.querySelectorAll('[data-tab="sesiones"] [data-subtab-panel]').forEach((p) => {
           p.hidden = p.getAttribute('data-subtab-panel') !== 'ses-teams';
@@ -273,14 +265,13 @@
   };
 
   const renderPendientes = (ps) => {
-    const list = document.getElementById('pendientesList');
-    if (!ps.length) {
-      list.innerHTML = '<li class="empty-state">Sin alumnos pendientes.</li>';
-      return;
-    }
+    if (pendientesCtl) pendientesCtl.setData(ps);
+  };
+
+  const renderPendienteItem = (p) => {
     const opcionesGrupo = '<option value="">Sin grupo</option>' +
       grupos.map((g) => `<option value="${g.id}">${esc(g.nombre)}</option>`).join('');
-    list.innerHTML = ps.map((p) => `
+    return `
       <li class="card-row">
         <div class="card-row__main">
           <div class="card-row__title">${esc(p.nombre)}</div>
@@ -288,11 +279,13 @@
           <select class="field-sel" data-grupo-pend="${p.id}" style="margin-top:6px;font-size:12px;padding:6px 10px;border-radius:10px;width:100%">${opcionesGrupo}</select>
         </div>
         <button class="btn btn-mini btn-secondary" data-activar="${p.id}">Autorizar</button>
-      </li>`).join('');
+      </li>`;
+  };
 
-    list.querySelectorAll('button[data-activar]').forEach((b) => {
+  const wirePendientesBotones = (slice, listEl) => {
+    listEl.querySelectorAll('button[data-activar]').forEach((b) => {
       b.addEventListener('click', () => {
-        const sel = list.querySelector(`select[data-grupo-pend="${b.dataset.activar}"]`);
+        const sel = listEl.querySelector(`select[data-grupo-pend="${b.dataset.activar}"]`);
         const grupoId = sel && sel.value ? Number(sel.value) : null;
         activar(Number(b.dataset.activar), grupoId);
       });
@@ -300,26 +293,21 @@
   };
 
   const cargarAlumnosActivos = async () => {
-    const list = document.getElementById('alumnosActivosList');
-    if (!list) return;
+    if (!alumnosActivosCtl) return;
     const filtro = (document.getElementById('grupoFiltroSel') || {}).value || '';
     const url = filtro ? `/maestro/alumnos?grupo_id=${filtro}` : '/maestro/alumnos';
     const r = await api('GET', url);
     if (!r.ok) {
-      list.innerHTML = '<li class="empty-state">Sin permisos para listar alumnos.</li>';
+      alumnosActivosCtl.setData([]);
       return;
     }
-    const filtrados = r.data || [];
+    alumnosActivosCtl.setData(r.data || []);
+  };
 
-    if (!filtrados.length) {
-      list.innerHTML = '<li class="empty-state">Sin alumnos.</li>';
-      return;
-    }
-
+  const renderAlumnoActivoItem = (u) => {
     const opcionesGrupo = '<option value="">Sin grupo</option>' +
-      grupos.map((g) => `<option value="${g.id}">${esc(g.nombre)}</option>`).join('');
-
-    list.innerHTML = filtrados.map((u) => `
+      grupos.map((g) => `<option value="${g.id}"${u.grupo_id === g.id ? ' selected' : ''}>${esc(g.nombre)}</option>`).join('');
+    return `
       <li class="card-row">
         <div class="card-row__main">
           <div class="card-row__title">${esc(u.nombre)}</div>
@@ -329,17 +317,14 @@
           <select class="field-sel" data-grupo-asig="${u.id}" style="font-size:12px;padding:6px 10px;border-radius:10px">${opcionesGrupo}</select>
           <button class="btn btn-mini btn-primary" data-asignar="${u.id}">Asignar</button>
         </div>
-      </li>`).join('');
+      </li>`;
+  };
 
-    list.querySelectorAll(`select[data-grupo-asig]`).forEach((sel) => {
-      const u = filtrados.find((x) => String(x.id) === sel.dataset.grupoAsig);
-      if (u && u.grupo_id) sel.value = String(u.grupo_id);
-    });
-
-    list.querySelectorAll('button[data-asignar]').forEach((b) => {
+  const wireAlumnosActivosBotones = (slice, listEl) => {
+    listEl.querySelectorAll('button[data-asignar]').forEach((b) => {
       b.addEventListener('click', () => {
         const id = Number(b.dataset.asignar);
-        const sel = list.querySelector(`select[data-grupo-asig="${id}"]`);
+        const sel = listEl.querySelector(`select[data-grupo-asig="${id}"]`);
         const grupoId = sel && sel.value ? Number(sel.value) : null;
         asignarGrupo(id, grupoId);
       });
@@ -615,12 +600,62 @@
     });
   };
 
+  const initListas = () => {
+    sesionesCtl = makePagedList(document.getElementById('sesionesBox'), {
+      render: renderSesionItem,
+      search: (s, q) =>
+        (s.practica || '').toLowerCase().includes(q) ||
+        (s.grupo || '').toLowerCase().includes(q),
+      filters: { estado: (s, v) => s.estado === v },
+      emptyHtml: '<li class="empty-state">Aún no tienes sesiones.</li>',
+      afterRender: wireSesionesBotones
+    });
+
+    pendientesCtl = makePagedList(document.getElementById('pendientesBox'), {
+      render: renderPendienteItem,
+      search: (p, q) =>
+        (p.nombre || '').toLowerCase().includes(q) ||
+        (p.email || '').toLowerCase().includes(q) ||
+        (p.grupo || '').toLowerCase().includes(q),
+      emptyHtml: '<li class="empty-state">Sin alumnos pendientes.</li>',
+      afterRender: wirePendientesBotones
+    });
+
+    alumnosActivosCtl = makePagedList(document.getElementById('alumnosActivosBox'), {
+      render: renderAlumnoActivoItem,
+      search: (u, q) =>
+        (u.nombre || '').toLowerCase().includes(q) ||
+        (u.email || '').toLowerCase().includes(q),
+      emptyHtml: '<li class="empty-state">Sin alumnos.</li>',
+      afterRender: wireAlumnosActivosBotones
+    });
+
+    gruposCtl = makePagedList(document.getElementById('gruposBox'), {
+      render: renderGrupoItem,
+      search: (g, q) => (g.nombre || '').toLowerCase().includes(q),
+      emptyHtml: '<li class="empty-state">Sin grupos.</li>'
+    });
+
+    equiposCtl = makePagedList(document.getElementById('equiposBox'), {
+      pageSize: 10,
+      render: renderEquipoItem,
+      search: (eq, q) =>
+        (eq.nombre || '').toLowerCase().includes(q) ||
+        (eq.practica || '').toLowerCase().includes(q) ||
+        (eq.grupo || '').toLowerCase().includes(q),
+      filters: { estado: (eq, v) => eq.sesion_estado === v },
+      emptyHtml: '<article class="card"><div class="empty-state">Aún no hay equipos creados. Arma equipos desde Sesiones → Armar equipos.</div></article>',
+      afterRender: wireEquiposBotones
+    });
+  };
+
   document.addEventListener('DOMContentLoaded', async () => {
     usuario = await requireAuth({ fuente: 'QUIMICA', roles: ['MAESTRO', 'ADMIN'] });
     if (!usuario) return;
     wireHeader(usuario, { onRefresh: cargar });
     wireTabs('home');
     wireSubtabs();
+    initListas();
     document.getElementById('formSesion').addEventListener('submit', submitSesion);
     document.getElementById('formGrupo').addEventListener('submit', submitGrupo);
     document.getElementById('formEquipo').addEventListener('submit', submitEquipo);

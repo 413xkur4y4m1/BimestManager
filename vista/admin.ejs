@@ -23,7 +23,37 @@
       <h3>Atajos</h3>
       <div class="btn-row">
         <a class="btn btn-secondary" href="#users">Ver usuarios</a>
+        <a class="btn btn-secondary" href="#resps">Responsivas</a>
         <a class="btn btn-primary" href="#practs">Prácticas</a>
+      </div>
+    </article>
+  </section>
+
+  <!-- ============== TAB: Responsivas ============== -->
+  <section data-tab="resps">
+    <h1 class="section-title">Responsivas</h1>
+    <p class="section-subtitle">Firmas digitales por sesión y equipo.</p>
+
+    <article class="card">
+      <h3>Filtros</h3>
+      <div class="btn-row" id="respsFiltros">
+        <button type="button" class="btn btn-mini btn-primary" data-resp-filtro="">Todas</button>
+        <button type="button" class="btn btn-mini btn-ghost" data-resp-filtro="ACTIVA">Activas</button>
+        <button type="button" class="btn btn-mini btn-ghost" data-resp-filtro="FINALIZADA">Finalizadas</button>
+      </div>
+    </article>
+
+    <article class="card" id="respsBox">
+      <h3>Listado</h3>
+      <p class="muted" style="font-size:12px;margin:0 0 8px">Total: <span data-total>0</span> · Mostrando <span data-shown>0</span></p>
+      <div class="field" style="margin-bottom:10px">
+        <input data-search type="search" placeholder="Buscar por práctica, grupo o equipo..." autocomplete="off">
+      </div>
+      <ul class="list" data-list><li class="empty-state">Cargando...</li></ul>
+      <div class="btn-row" data-pagination style="justify-content:center;margin-top:10px" hidden>
+        <button type="button" class="btn btn-mini btn-ghost" data-prev>« Anterior</button>
+        <span class="muted" data-info style="font-size:12px;align-self:center">Página 1 / 1</span>
+        <button type="button" class="btn btn-mini btn-ghost" data-next>Siguiente »</button>
       </div>
     </article>
   </section>
@@ -33,8 +63,29 @@
     <h1 class="section-title">Usuarios</h1>
     <p class="section-subtitle">Maestros y administradores del laboratorio.</p>
 
-    <article class="card">
-      <ul class="list" id="usuariosList"><li class="empty-state">Cargando...</li></ul>
+    <article class="card" id="usuariosBox">
+      <p class="muted" style="font-size:12px;margin:0 0 8px">Total: <span data-total>0</span> · Mostrando <span data-shown>0</span></p>
+      <div class="field" style="margin-bottom:8px">
+        <input data-search type="search" placeholder="Buscar por nombre o email..." autocomplete="off">
+      </div>
+      <div data-filters style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+        <select data-filter="rol" style="padding:6px 10px;border-radius:10px;border:1px solid var(--c-line);font-size:13px">
+          <option value="">Todos los roles</option>
+          <option value="ADMIN">ADMIN</option>
+          <option value="MAESTRO">MAESTRO</option>
+        </select>
+        <select data-filter="estado" style="padding:6px 10px;border-radius:10px;border:1px solid var(--c-line);font-size:13px">
+          <option value="">Activos e inactivos</option>
+          <option value="activo">Solo activos</option>
+          <option value="inactivo">Solo inactivos</option>
+        </select>
+      </div>
+      <ul class="list" data-list><li class="empty-state">Cargando...</li></ul>
+      <div class="btn-row" data-pagination style="justify-content:center;margin-top:10px" hidden>
+        <button type="button" class="btn btn-mini btn-ghost" data-prev>« Anterior</button>
+        <span class="muted" data-info style="font-size:12px;align-self:center">Página 1 / 1</span>
+        <button type="button" class="btn btn-mini btn-ghost" data-next>Siguiente »</button>
+      </div>
     </article>
 
     <article class="card">
@@ -56,6 +107,7 @@
 
     <div class="subtabs" role="tablist" aria-label="Secciones de materiales">
       <button type="button" class="is-active" data-subtab="mats-inv">Inventario</button>
+      <button type="button" data-subtab="mats-new">Alta</button>
       <button type="button" data-subtab="mats-loans">Préstamos</button>
       <button type="button" data-subtab="mats-debts">Adeudos</button>
       <button type="button" data-subtab="mats-inci">Incidencias</button>
@@ -64,8 +116,20 @@
     <div data-subtab-panel="mats-inv">
       <article class="card">
         <h3>Inventario</h3>
+        <p class="muted" style="font-size:12px;margin:0 0 8px">Total: <span id="materialesTotal">0</span> · Mostrando <span id="materialesShown">0</span></p>
+        <div class="field" style="margin-bottom:10px">
+          <input id="materialesBuscar" type="search" placeholder="Buscar material por nombre..." autocomplete="off">
+        </div>
         <ul class="list" id="materialesList"><li class="empty-state">Cargando...</li></ul>
+        <div class="btn-row" id="materialesPag" style="justify-content:center;margin-top:10px" hidden>
+          <button type="button" class="btn btn-mini btn-ghost" id="materialesPrev">« Anterior</button>
+          <span class="muted" id="materialesPagInfo" style="font-size:12px;align-self:center">Página 1 / 1</span>
+          <button type="button" class="btn btn-mini btn-ghost" id="materialesNext">Siguiente »</button>
+        </div>
       </article>
+    </div>
+
+    <div data-subtab-panel="mats-new" hidden>
       <article class="card">
         <h3>+ Crear material</h3>
         <form id="formMaterial" class="form-card">
@@ -77,23 +141,71 @@
     </div>
 
     <div data-subtab-panel="mats-loans" hidden>
-      <article class="card">
+      <article class="card" id="prestamosBox">
         <h3>Préstamos</h3>
-        <ul class="list" id="prestamosList"><li class="empty-state">Cargando...</li></ul>
+        <p class="muted" style="font-size:12px;margin:0 0 8px">Total: <span data-total>0</span> · Mostrando <span data-shown>0</span></p>
+        <div class="field" style="margin-bottom:8px">
+          <input data-search type="search" placeholder="Buscar por alumno o material..." autocomplete="off">
+        </div>
+        <div data-filters style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+          <select data-filter="estado" style="padding:6px 10px;border-radius:10px;border:1px solid var(--c-line);font-size:13px">
+            <option value="">Todos los estados</option>
+            <option value="ACTIVO">ACTIVO</option>
+            <option value="DEVUELTO">DEVUELTO</option>
+          </select>
+        </div>
+        <ul class="list" data-list><li class="empty-state">Cargando...</li></ul>
+        <div class="btn-row" data-pagination style="justify-content:center;margin-top:10px" hidden>
+          <button type="button" class="btn btn-mini btn-ghost" data-prev>« Anterior</button>
+          <span class="muted" data-info style="font-size:12px;align-self:center">Página 1 / 1</span>
+          <button type="button" class="btn btn-mini btn-ghost" data-next>Siguiente »</button>
+        </div>
       </article>
     </div>
 
     <div data-subtab-panel="mats-debts" hidden>
-      <article class="card">
+      <article class="card" id="adeudosBox">
         <h3>Adeudos</h3>
-        <ul class="list" id="adeudosList"><li class="empty-state">Cargando...</li></ul>
+        <p class="muted" style="font-size:12px;margin:0 0 8px">Total: <span data-total>0</span> · Mostrando <span data-shown>0</span></p>
+        <div class="field" style="margin-bottom:8px">
+          <input data-search type="search" placeholder="Buscar por alumno o material..." autocomplete="off">
+        </div>
+        <div data-filters style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+          <select data-filter="estado" style="padding:6px 10px;border-radius:10px;border:1px solid var(--c-line);font-size:13px">
+            <option value="">Todos</option>
+            <option value="PENDIENTE">Pendientes</option>
+            <option value="RESUELTO">Resueltos</option>
+          </select>
+        </div>
+        <ul class="list" data-list><li class="empty-state">Cargando...</li></ul>
+        <div class="btn-row" data-pagination style="justify-content:center;margin-top:10px" hidden>
+          <button type="button" class="btn btn-mini btn-ghost" data-prev>« Anterior</button>
+          <span class="muted" data-info style="font-size:12px;align-self:center">Página 1 / 1</span>
+          <button type="button" class="btn btn-mini btn-ghost" data-next>Siguiente »</button>
+        </div>
       </article>
     </div>
 
     <div data-subtab-panel="mats-inci" hidden>
-      <article class="card">
+      <article class="card" id="incidenciasBox">
         <h3>Incidencias</h3>
-        <ul class="list" id="incidenciasList"><li class="empty-state">Cargando...</li></ul>
+        <p class="muted" style="font-size:12px;margin:0 0 8px">Total: <span data-total>0</span> · Mostrando <span data-shown>0</span></p>
+        <div class="field" style="margin-bottom:8px">
+          <input data-search type="search" placeholder="Buscar por material o equipo..." autocomplete="off">
+        </div>
+        <div data-filters style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+          <select data-filter="tipo" style="padding:6px 10px;border-radius:10px;border:1px solid var(--c-line);font-size:13px">
+            <option value="">Todos los tipos</option>
+            <option value="ROTO">ROTO</option>
+            <option value="PERDIDO">PERDIDO</option>
+          </select>
+        </div>
+        <ul class="list" data-list><li class="empty-state">Cargando...</li></ul>
+        <div class="btn-row" data-pagination style="justify-content:center;margin-top:10px" hidden>
+          <button type="button" class="btn btn-mini btn-ghost" data-prev>« Anterior</button>
+          <span class="muted" data-info style="font-size:12px;align-self:center">Página 1 / 1</span>
+          <button type="button" class="btn btn-mini btn-ghost" data-next>Siguiente »</button>
+        </div>
       </article>
     </div>
   </section>

@@ -172,10 +172,136 @@
     return { activar };
   };
 
+  // ===== Listas con búsqueda, filtros y paginación =====
+  // Devuelve un controlador con setData/refresh/setPredicate.
+  // El contenedor `root` debe incluir, con data-attributes:
+  //   - data-list (UL/OL donde van los items)
+  //   - opcional: data-search (input de texto)
+  //   - opcional: data-filters (contenedor con <select data-filter="key"> )
+  //   - opcional: data-pagination (contenedor de paginación con data-prev / data-next / data-info)
+  //   - opcional: data-total / data-shown (spans para contador)
+  //
+  // Config:
+  //   - render(item, idx, listEl) -> string HTML por item
+  //   - search(item, q) -> boolean  (q ya viene .toLowerCase().trim())
+  //   - filters: { key: (item, value) => boolean }
+  //   - pageSize: default 20
+  //   - emptyHtml / emptyFilteredHtml: HTML del estado vacío
+  //   - afterRender(slice, listEl): hook para wirear botones, etc.
+  const makePagedList = (root, cfg) => {
+    if (!root) return null;
+    const listEl = root.querySelector('[data-list]');
+    if (!listEl) return null;
+
+    const searchEl = root.querySelector('[data-search]');
+    const filtersEl = root.querySelector('[data-filters]');
+    const pagEl = root.querySelector('[data-pagination]');
+    const totalEl = root.querySelector('[data-total]');
+    const shownEl = root.querySelector('[data-shown]');
+    const prevEl = pagEl && pagEl.querySelector('[data-prev]');
+    const nextEl = pagEl && pagEl.querySelector('[data-next]');
+    const infoEl = pagEl && pagEl.querySelector('[data-info]');
+
+    const pageSize = cfg.pageSize || 20;
+    const filtersDef = cfg.filters || {};
+    const renderItem = cfg.render || ((x) => '<li>' + escapeHtml(JSON.stringify(x)) + '</li>');
+    const searchFn = cfg.search || (() => true);
+    const emptyHtml = cfg.emptyHtml || '<li class="empty-state">Sin datos.</li>';
+    const emptyFilteredHtml = cfg.emptyFilteredHtml || '<li class="empty-state">Sin coincidencias.</li>';
+
+    let data = [];
+    let externalPredicate = () => true;
+    let page = 1;
+    let query = '';
+    const filterValues = {};
+
+    const compute = () => {
+      const q = (query || '').toLowerCase().trim();
+      return data.filter((item) => {
+        if (!externalPredicate(item)) return false;
+        if (q && !searchFn(item, q)) return false;
+        for (const key of Object.keys(filtersDef)) {
+          const val = filterValues[key];
+          if (val === undefined || val === '' || val === null) continue;
+          if (!filtersDef[key](item, val)) return false;
+        }
+        return true;
+      });
+    };
+
+    const render = () => {
+      if (totalEl) totalEl.textContent = String(data.length);
+      const filtered = compute();
+
+      if (!filtered.length) {
+        const tieneFiltro = Boolean(
+          (query && query.trim()) ||
+          Object.values(filterValues).some((v) => v !== undefined && v !== '' && v !== null)
+        );
+        listEl.innerHTML = (tieneFiltro && data.length) ? emptyFilteredHtml : emptyHtml;
+        if (shownEl) shownEl.textContent = '0';
+        if (pagEl) pagEl.hidden = true;
+        if (typeof cfg.afterRender === 'function') cfg.afterRender([], listEl);
+        return;
+      }
+
+      const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+      if (page > totalPages) page = totalPages;
+      if (page < 1) page = 1;
+      const start = (page - 1) * pageSize;
+      const slice = filtered.slice(start, start + pageSize);
+
+      if (shownEl) shownEl.textContent = String(slice.length);
+      listEl.innerHTML = slice.map((item, i) => renderItem(item, i + start, listEl)).join('');
+
+      if (pagEl) {
+        const many = totalPages > 1;
+        pagEl.hidden = !many;
+        if (many) {
+          if (infoEl) infoEl.textContent = 'Página ' + page + ' / ' + totalPages;
+          if (prevEl) prevEl.disabled = page <= 1;
+          if (nextEl) nextEl.disabled = page >= totalPages;
+        }
+      }
+
+      if (typeof cfg.afterRender === 'function') cfg.afterRender(slice, listEl);
+    };
+
+    if (searchEl) {
+      searchEl.addEventListener('input', () => {
+        query = searchEl.value || '';
+        page = 1;
+        render();
+      });
+    }
+    if (filtersEl) {
+      filtersEl.querySelectorAll('[data-filter]').forEach((sel) => {
+        const key = sel.getAttribute('data-filter');
+        filterValues[key] = sel.value || '';
+        sel.addEventListener('change', () => {
+          filterValues[key] = sel.value || '';
+          page = 1;
+          render();
+        });
+      });
+    }
+    if (prevEl) prevEl.addEventListener('click', () => { page--; render(); });
+    if (nextEl) nextEl.addEventListener('click', () => { page++; render(); });
+
+    return {
+      setData(arr) { data = Array.isArray(arr) ? arr : []; page = 1; render(); },
+      setPredicate(fn) { externalPredicate = typeof fn === 'function' ? fn : () => true; page = 1; render(); },
+      refresh: render,
+      resetPage() { page = 1; render(); },
+      getFilterValue(key) { return filterValues[key]; }
+    };
+  };
+
   window.BM = {
     api, flash, clearFlash, setLoading,
     initials, formatFecha, formatFechaCorta,
     requireAuth, redirectFor, wireHeader,
-    escapeHtml, wireCollapsibles, wireTabs
+    escapeHtml, wireCollapsibles, wireTabs,
+    makePagedList
   };
 })();
