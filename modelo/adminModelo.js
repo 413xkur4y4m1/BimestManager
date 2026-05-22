@@ -852,6 +852,87 @@ const AdminModelo = {
     }
   },
 
+  listarResponsivas: async ({ estado = null } = {}) => {
+    const params = [];
+    let filtroEstado = '';
+    if (estado === 'ACTIVA' || estado === 'FINALIZADA') {
+      filtroEstado = 'WHERE r.estado = ?';
+      params.push(estado);
+    }
+
+    const [responsivas] = await pool.query(
+      `
+        SELECT
+          r.id,
+          r.sesion_id,
+          r.equipo_id,
+          r.estado,
+          e.nombre AS equipo,
+          s.fecha,
+          s.hora_inicio,
+          s.estado AS sesion_estado,
+          p.nombre AS practica,
+          g.id     AS grupo_id,
+          g.nombre AS grupo,
+          (
+            SELECT COUNT(*) FROM equipo_integrantes ei
+            WHERE ei.equipo_id = e.id
+          ) AS total_integrantes,
+          (
+            SELECT COUNT(*) FROM equipo_integrantes ei
+            WHERE ei.equipo_id = e.id AND ei.firmado_at IS NOT NULL
+          ) AS total_firmados
+        FROM responsivas r
+        INNER JOIN sesiones s ON s.id = r.sesion_id
+        INNER JOIN equipos e  ON e.id = r.equipo_id
+        INNER JOIN practicas p ON p.id = s.practica_id
+        INNER JOIN grupos g    ON g.id = s.grupo_id
+        ${filtroEstado}
+        ORDER BY s.fecha DESC, s.id DESC, r.id DESC
+      `,
+      params
+    );
+
+    if (!responsivas.length) return [];
+
+    const equipoIds = responsivas.map((r) => r.equipo_id);
+    const [integrantes] = await pool.query(
+      `
+        SELECT
+          ei.equipo_id,
+          u.id          AS usuario_id,
+          u.nombre,
+          u.email,
+          ei.firma_imagen,
+          ei.firmado_at
+        FROM equipo_integrantes ei
+        INNER JOIN usuarios u ON u.id = ei.usuario_id
+        WHERE ei.equipo_id IN (?)
+        ORDER BY u.nombre ASC
+      `,
+      [equipoIds]
+    );
+
+    const porEquipo = new Map();
+    for (const row of integrantes) {
+      if (!porEquipo.has(row.equipo_id)) porEquipo.set(row.equipo_id, []);
+      porEquipo.get(row.equipo_id).push({
+        usuario_id: row.usuario_id,
+        nombre: row.nombre,
+        email: row.email,
+        firma_imagen: row.firma_imagen,
+        firmado_at: row.firmado_at
+      });
+    }
+
+    return responsivas.map((r) => ({
+      ...r,
+      total_integrantes: Number(r.total_integrantes) || 0,
+      total_firmados:    Number(r.total_firmados)    || 0,
+      integrantes: porEquipo.get(r.equipo_id) || []
+    }));
+  },
+
   listarIncidencias: async () => {
     const [rows] = await pool.query(
       `

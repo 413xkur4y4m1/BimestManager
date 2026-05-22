@@ -387,6 +387,16 @@ const adminControlador = {
     } catch (error) {
       return responderError(res, error, 'No se pudieron cargar las incidencias.');
     }
+  },
+
+  listarResponsivas: async (req, res) => {
+    try {
+      const estado = req.query.estado ? String(req.query.estado).toUpperCase() : null;
+      const responsivas = await AdminModelo.listarResponsivas({ estado });
+      return res.json(responsivas);
+    } catch (error) {
+      return responderError(res, error, 'No se pudieron cargar las responsivas.');
+    }
   }
 };
 

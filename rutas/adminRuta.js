@@ -33,4 +33,6 @@ router.patch('/adeudos/:id/resolver', adminControlador.resolverAdeudo);
 
 router.get('/incidencias', adminControlador.listarIncidencias);
 
+router.get('/responsivas', adminControlador.listarResponsivas);
+
 module.exports = router;

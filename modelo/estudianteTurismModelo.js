@@ -413,31 +413,44 @@ const EstudianteTurismModelo = {
       if (duplicados.length) {
         throw crearErrorDominio(
           409,
-          'Ya tienes un prestamo activo de ese material en la sesion.',
+          'Ya tienes una solicitud o prestamo activo de ese material en la sesion.',
           'LOAN_ALREADY_ACTIVE'
         );
       }
 
-      await connection.query(
-        `UPDATE materiales_turismo SET stock = stock - ? WHERE id = ?`,
-        [cantidadNum, materialId]
-      );
-
+      // La solicitud queda PENDIENTE; el stock NO se descuenta hasta que el admin la apruebe.
       const [result] = await connection.query(
         `
           INSERT INTO prestamos_material_turismo
             (sesion_id, alumno_id, material_id, cantidad, estado)
-          VALUES (?, ?, ?, ?, 'PRESTADO')
+          VALUES (?, ?, ?, ?, 'PENDIENTE')
         `,
         [sesionId, usuarioId, materialId, cantidadNum]
       );
+
+      const [alumnoInfo] = await connection.query(
+        `SELECT nombre FROM usuarios_turismo WHERE id = ? LIMIT 1`,
+        [usuarioId]
+      );
+      const nombreAlumno = (alumnoInfo[0] && alumnoInfo[0].nombre) || 'Un alumno';
 
       await connection.query(
         `INSERT INTO notificaciones_turismo (usuario_id, mensaje) VALUES (?, ?)`,
         [
           usuarioId,
-          `Se registro tu prestamo de ${cantidadNum} unidad(es) de ${material.nombre}.`
+          `Tu solicitud de ${cantidadNum} unidad(es) de ${material.nombre} fue enviada y queda en espera de aprobacion del administrador.`
         ]
+      );
+
+      // Notificar a todos los admins activos para que vean la solicitud
+      await connection.query(
+        `
+          INSERT INTO notificaciones_turismo (usuario_id, mensaje)
+          SELECT id, ?
+          FROM usuarios_turismo
+          WHERE rol = 'ADMIN' AND is_active = TRUE
+        `,
+        [`${nombreAlumno} solicito ${cantidadNum} unidad(es) de ${material.nombre}. Requiere aprobacion.`]
       );
 
       await connection.commit();
@@ -449,7 +462,7 @@ const EstudianteTurismModelo = {
         material_id: Number(materialId),
         material: material.nombre,
         cantidad: cantidadNum,
-        estado: 'PRESTADO'
+        estado: 'PENDIENTE'
       };
     } catch (error) {
       await connection.rollback();

@@ -211,11 +211,11 @@ const estudianteTurismControlador = {
       });
 
       return res.status(201).json({
-        message: 'Prestamo registrado correctamente.',
+        message: 'Solicitud enviada. Queda en espera de aprobacion del administrador.',
         prestamo
       });
     } catch (error) {
-      return responderError(res, error, 'No se pudo registrar el prestamo.');
+      return responderError(res, error, 'No se pudo enviar la solicitud de prestamo.');
     }
   },
 
@@ -238,42 +238,6 @@ const estudianteTurismControlador = {
       });
     } catch (error) {
       return responderError(res, error, 'No se pudo registrar la devolucion.');
-    }
-  },
-
-  reportarIncidencia: async (req, res) => {
-    try {
-      const prestamoId = aEnteroPositivo(req.params.id);
-      const tipo = limpiarTexto(req.body.tipo).toUpperCase();
-      const descripcion = req.body.descripcion === undefined || req.body.descripcion === null
-        ? null
-        : limpiarTexto(req.body.descripcion) || null;
-
-      if (prestamoId === null) {
-        return res.status(400).json({ error: 'El id del prestamo debe ser un entero positivo.' });
-      }
-
-      if (!tipo) {
-        return res.status(400).json({ error: 'El tipo de incidencia es obligatorio.' });
-      }
-
-      if (descripcion !== null && descripcion.length > 1000) {
-        return res.status(400).json({ error: 'La descripcion no puede exceder 1000 caracteres.' });
-      }
-
-      const incidencia = await EstudianteTurismModelo.reportarIncidencia({
-        usuarioId: req.usuario.id,
-        prestamoId,
-        tipo,
-        descripcion
-      });
-
-      return res.status(201).json({
-        message: 'Incidencia reportada correctamente.',
-        incidencia
-      });
-    } catch (error) {
-      return responderError(res, error, 'No se pudo reportar la incidencia.');
     }
   },
 

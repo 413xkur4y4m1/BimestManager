@@ -586,6 +586,49 @@ const adminTurismoControlador = {
     }
   },
 
+  aprobarSolicitudPrestamo: async (req, res) => {
+    try {
+      const prestamoId = parsearIdPositivo(req.params.id);
+
+      if (!prestamoId) {
+        return res.status(400).json({ error: 'El id de la solicitud debe ser un numero positivo.' });
+      }
+
+      const resultado = await AdminTurismoModelo.aprobarSolicitudPrestamo(prestamoId);
+
+      return res.json({
+        message: 'Solicitud aprobada. El material queda prestado al alumno.',
+        prestamo: resultado
+      });
+    } catch (error) {
+      return responderError(res, error, 'No se pudo aprobar la solicitud.');
+    }
+  },
+
+  rechazarSolicitudPrestamo: async (req, res) => {
+    try {
+      const prestamoId = parsearIdPositivo(req.params.id);
+
+      if (!prestamoId) {
+        return res.status(400).json({ error: 'El id de la solicitud debe ser un numero positivo.' });
+      }
+
+      const motivo = limpiarTextoOpcional(req.body.motivo);
+
+      const resultado = await AdminTurismoModelo.rechazarSolicitudPrestamo({
+        prestamoId,
+        motivo
+      });
+
+      return res.json({
+        message: 'Solicitud rechazada.',
+        prestamo: resultado
+      });
+    } catch (error) {
+      return responderError(res, error, 'No se pudo rechazar la solicitud.');
+    }
+  },
+
   marcarPrestamoAdeudo: async (req, res) => {
     try {
       const prestamoId = parsearIdPositivo(req.params.id);

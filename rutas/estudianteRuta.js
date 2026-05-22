@@ -6,6 +6,7 @@ const { soloAlumno, adminOMaestro } = require('../Middlewares/auth');
 const router = express.Router();
 
 router.get('/mi-panel', soloAlumno, estudianteControlador.obtenerMiPanel);
+router.post('/firmar', soloAlumno, estudianteControlador.firmarResponsiva);
 
 router.get('/pendientes', adminOMaestro, estudianteControlador.listarPendientes);
 router.patch('/:id/grupo', adminOMaestro, estudianteControlador.asignarGrupo);
