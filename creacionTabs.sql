@@ -376,10 +376,16 @@ SHOW VARIABLES LIKE '%ssl%';
 SHOW VARIABLES LIKE 'ssl_%';
 
 
+ALTER TABLE equipo_integrantes
+  ADD COLUMN firma_imagen VARCHAR(255) NULL AFTER usuario_id,
+  ADD COLUMN firmado_at   TIMESTAMP    NULL AFTER firma_imagen;
+
+-- (opcional) indice para auditar firmas por fecha
+CREATE INDEX idx_equipo_integrantes_firmado_at
+  ON equipo_integrantes (firmado_at);
 
 
-
-
+select * from equipo_integrantes
 
 
 
