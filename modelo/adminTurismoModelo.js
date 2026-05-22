@@ -1387,6 +1387,183 @@ const AdminTurismoModelo = {
     }
   },
 
+  aprobarSolicitudPrestamo: async (prestamoId) => {
+    const connection = await pool.getConnection();
+
+    try {
+      await connection.beginTransaction();
+
+      const [prestamos] = await connection.query(
+        `
+          SELECT id, sesion_id, alumno_id, material_id, cantidad, estado
+          FROM prestamos_material_turismo
+          WHERE id = ?
+          LIMIT 1
+          FOR UPDATE
+        `,
+        [prestamoId]
+      );
+
+      if (!prestamos.length) {
+        throw crearErrorDominio(404, 'La solicitud no existe.', 'LOAN_NOT_FOUND');
+      }
+
+      const prestamo = prestamos[0];
+
+      if (prestamo.estado !== 'PENDIENTE') {
+        throw crearErrorDominio(
+          409,
+          `Solo se pueden aprobar solicitudes en estado PENDIENTE (actual: ${prestamo.estado}).`,
+          'LOAN_NOT_PENDING'
+        );
+      }
+
+      const [sesiones] = await connection.query(
+        `SELECT id, estado FROM sesiones_turismo WHERE id = ? LIMIT 1`,
+        [prestamo.sesion_id]
+      );
+
+      if (sesiones.length && sesiones[0].estado === 'FINALIZADA') {
+        throw crearErrorDominio(409, 'La sesion ya fue finalizada.', 'SESSION_FINALIZED');
+      }
+
+      const [materiales] = await connection.query(
+        `
+          SELECT id, nombre, stock, estado, is_active
+          FROM materiales_turismo
+          WHERE id = ?
+          LIMIT 1
+          FOR UPDATE
+        `,
+        [prestamo.material_id]
+      );
+
+      if (!materiales.length) {
+        throw crearErrorDominio(404, 'El material ya no existe.', 'MATERIAL_NOT_FOUND');
+      }
+
+      const material = materiales[0];
+
+      if (!material.is_active) {
+        throw crearErrorDominio(409, 'El material esta inactivo.', 'MATERIAL_INACTIVE');
+      }
+
+      if (material.estado !== 'DISPONIBLE') {
+        throw crearErrorDominio(
+          409,
+          'El material ya no esta disponible.',
+          'MATERIAL_NOT_AVAILABLE'
+        );
+      }
+
+      if (material.stock < prestamo.cantidad) {
+        throw crearErrorDominio(
+          409,
+          `Stock insuficiente para aprobar. Disponible: ${material.stock}.`,
+          'MATERIAL_STOCK_INSUFFICIENT'
+        );
+      }
+
+      await connection.query(
+        `UPDATE materiales_turismo SET stock = stock - ? WHERE id = ?`,
+        [prestamo.cantidad, prestamo.material_id]
+      );
+
+      await connection.query(
+        `UPDATE prestamos_material_turismo SET estado = 'PRESTADO' WHERE id = ?`,
+        [prestamoId]
+      );
+
+      await connection.query(
+        `INSERT INTO notificaciones_turismo (usuario_id, mensaje) VALUES (?, ?)`,
+        [
+          prestamo.alumno_id,
+          `Tu solicitud de ${prestamo.cantidad} unidad(es) de ${material.nombre} fue aprobada. Pasa a recoger el material.`
+        ]
+      );
+
+      await connection.commit();
+
+      return { id: Number(prestamoId), estado: 'PRESTADO' };
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
+  },
+
+  rechazarSolicitudPrestamo: async ({ prestamoId, motivo = null }) => {
+    const motivoLimpio = motivo === undefined || motivo === null
+      ? null
+      : String(motivo).trim() || null;
+
+    const connection = await pool.getConnection();
+
+    try {
+      await connection.beginTransaction();
+
+      const [prestamos] = await connection.query(
+        `
+          SELECT id, alumno_id, material_id, cantidad, estado
+          FROM prestamos_material_turismo
+          WHERE id = ?
+          LIMIT 1
+          FOR UPDATE
+        `,
+        [prestamoId]
+      );
+
+      if (!prestamos.length) {
+        throw crearErrorDominio(404, 'La solicitud no existe.', 'LOAN_NOT_FOUND');
+      }
+
+      const prestamo = prestamos[0];
+
+      if (prestamo.estado !== 'PENDIENTE') {
+        throw crearErrorDominio(
+          409,
+          `Solo se pueden rechazar solicitudes en estado PENDIENTE (actual: ${prestamo.estado}).`,
+          'LOAN_NOT_PENDING'
+        );
+      }
+
+      const [materiales] = await connection.query(
+        `SELECT nombre FROM materiales_turismo WHERE id = ? LIMIT 1`,
+        [prestamo.material_id]
+      );
+      const nombreMaterial = (materiales[0] && materiales[0].nombre) || 'material';
+
+      // Cerramos la solicitud sin tocar stock (no hubo entrega).
+      await connection.query(
+        `
+          UPDATE prestamos_material_turismo
+          SET estado = 'DEVUELTO', fecha_devolucion = CURRENT_TIMESTAMP
+          WHERE id = ?
+        `,
+        [prestamoId]
+      );
+
+      const mensaje = motivoLimpio
+        ? `Tu solicitud de ${prestamo.cantidad} unidad(es) de ${nombreMaterial} fue rechazada por el administrador. Motivo: ${motivoLimpio}.`
+        : `Tu solicitud de ${prestamo.cantidad} unidad(es) de ${nombreMaterial} fue rechazada por el administrador.`;
+
+      await connection.query(
+        `INSERT INTO notificaciones_turismo (usuario_id, mensaje) VALUES (?, ?)`,
+        [prestamo.alumno_id, mensaje]
+      );
+
+      await connection.commit();
+
+      return { id: Number(prestamoId), estado: 'RECHAZADA' };
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
+  },
+
   marcarPrestamoAdeudo: async (prestamoId) => {
     const connection = await pool.getConnection();
 

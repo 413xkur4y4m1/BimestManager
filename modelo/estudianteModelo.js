@@ -1,7 +1,14 @@
 const bcrypt = require('bcrypt');
+const fs = require('fs');
+const path = require('path');
 const { pool } = require('../BDconex');
 
 const PASSWORD_SALT_ROUNDS = 10;
+
+// Firmas digitales
+const FIRMAS_DIR = path.join(__dirname, '..', 'imageFirma');
+const FIRMA_DATAURL_REGEX = /^data:image\/(png|jpeg|jpg);base64,([A-Za-z0-9+/=]+)$/;
+const FIRMA_MAX_BYTES = 1_500_000; // 1.5 MB de imagen decodificada
 
 const crearErrorDominio = (status, message, code) => {
   const error = new Error(message);
@@ -125,13 +132,15 @@ const EstudianteModelo = {
           e.id,
           e.nombre,
           e.sesion_id,
+          ei.firma_imagen AS mi_firma_imagen,
+          ei.firmado_at   AS mi_firmado_at,
           COUNT(ei2.id) AS integrantes_actuales
         FROM equipo_integrantes ei
         INNER JOIN equipos e ON e.id = ei.equipo_id
         LEFT JOIN equipo_integrantes ei2 ON ei2.equipo_id = e.id
         WHERE ei.usuario_id = ?
           AND e.sesion_id = ?
-        GROUP BY e.id, e.nombre, e.sesion_id
+        GROUP BY e.id, e.nombre, e.sesion_id, ei.firma_imagen, ei.firmado_at
         LIMIT 1
       `,
       [usuarioId, sesionId]
@@ -144,7 +153,7 @@ const EstudianteModelo = {
     const equipo = equipos[0];
     const [integrantes] = await pool.query(
       `
-        SELECT u.id, u.nombre, u.email
+        SELECT u.id, u.nombre, u.email, ei.firmado_at IS NOT NULL AS firmado
         FROM equipo_integrantes ei
         INNER JOIN usuarios u ON u.id = ei.usuario_id
         WHERE ei.equipo_id = ?
@@ -157,6 +166,150 @@ const EstudianteModelo = {
       ...equipo,
       integrantes
     };
+  },
+
+  guardarFirmaDeAlumno: async ({ usuarioId, dataUrl }) => {
+    if (typeof dataUrl !== 'string' || dataUrl.length < 100) {
+      throw crearErrorDominio(400, 'La firma esta vacia o tiene un formato invalido.', 'SIGNATURE_INVALID');
+    }
+
+    const match = FIRMA_DATAURL_REGEX.exec(dataUrl);
+    if (!match) {
+      throw crearErrorDominio(400, 'La firma debe ser una imagen PNG/JPEG en base64.', 'SIGNATURE_BAD_FORMAT');
+    }
+
+    const ext = match[1] === 'jpg' ? 'jpeg' : match[1];
+    const buffer = Buffer.from(match[2], 'base64');
+
+    if (buffer.length > FIRMA_MAX_BYTES) {
+      throw crearErrorDominio(413, 'La firma es demasiado grande.', 'SIGNATURE_TOO_LARGE');
+    }
+
+    const connection = await pool.getConnection();
+
+    try {
+      await connection.beginTransaction();
+
+      const [usuarios] = await connection.query(
+        `
+          SELECT id, grupo_id, is_active
+          FROM usuarios
+          WHERE id = ? AND rol = 'ALUMNO'
+          LIMIT 1
+          FOR UPDATE
+        `,
+        [usuarioId]
+      );
+
+      if (!usuarios.length) {
+        throw crearErrorDominio(404, 'El alumno no existe.', 'STUDENT_NOT_FOUND');
+      }
+
+      const alumno = usuarios[0];
+
+      if (!alumno.is_active) {
+        throw crearErrorDominio(403, 'Tu cuenta aun no esta autorizada.', 'STUDENT_INACTIVE');
+      }
+
+      if (!alumno.grupo_id) {
+        throw crearErrorDominio(403, 'No tienes grupo asignado.', 'GROUP_NOT_ASSIGNED');
+      }
+
+      // La sesion debe estar EN_CURSO (no solo "programada hoy")
+      const [sesiones] = await connection.query(
+        `
+          SELECT id
+          FROM sesiones
+          WHERE grupo_id = ?
+            AND estado = 'EN_CURSO'
+          ORDER BY id DESC
+          LIMIT 1
+        `,
+        [alumno.grupo_id]
+      );
+
+      if (!sesiones.length) {
+        throw crearErrorDominio(
+          403,
+          'No hay una sesion en curso para tu grupo. Espera a que el maestro la inicie.',
+          'SESSION_NOT_IN_PROGRESS'
+        );
+      }
+
+      const sesionId = sesiones[0].id;
+
+      const [equipoRows] = await connection.query(
+        `
+          SELECT ei.id AS ei_id, ei.equipo_id, ei.firma_imagen
+          FROM equipo_integrantes ei
+          INNER JOIN equipos e ON e.id = ei.equipo_id
+          WHERE ei.usuario_id = ?
+            AND e.sesion_id = ?
+          LIMIT 1
+          FOR UPDATE
+        `,
+        [usuarioId, sesionId]
+      );
+
+      if (!equipoRows.length) {
+        throw crearErrorDominio(
+          403,
+          'No perteneces a ningun equipo de la sesion en curso.',
+          'NOT_IN_TEAM'
+        );
+      }
+
+      const inscripcion = equipoRows[0];
+
+      if (inscripcion.firma_imagen) {
+        throw crearErrorDominio(
+          409,
+          'Ya firmaste la responsiva de esta sesion.',
+          'ALREADY_SIGNED'
+        );
+      }
+
+      // Escribir archivo en disco
+      if (!fs.existsSync(FIRMAS_DIR)) {
+        fs.mkdirSync(FIRMAS_DIR, { recursive: true });
+      }
+
+      const nombreArchivo = `firma_u${usuarioId}_s${sesionId}_${Date.now()}.${ext}`;
+      const rutaAbsoluta = path.join(FIRMAS_DIR, nombreArchivo);
+      const rutaPublica = `/imageFirma/${nombreArchivo}`;
+
+      fs.writeFileSync(rutaAbsoluta, buffer);
+
+      try {
+        await connection.query(
+          `
+            UPDATE equipo_integrantes
+            SET firma_imagen = ?,
+                firmado_at   = NOW()
+            WHERE id = ?
+          `,
+          [rutaPublica, inscripcion.ei_id]
+        );
+
+        await connection.commit();
+      } catch (dbError) {
+        // si el UPDATE falla, eliminamos el archivo huerfano
+        try { fs.unlinkSync(rutaAbsoluta); } catch (_) { /* ignore */ }
+        throw dbError;
+      }
+
+      return {
+        firma_imagen: rutaPublica,
+        firmado_at: new Date().toISOString(),
+        sesion_id: sesionId,
+        equipo_id: inscripcion.equipo_id
+      };
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
   },
 
   listarEquiposDisponiblesEnSesion: async (sesionId, integrantesPorEquipo = null) => {

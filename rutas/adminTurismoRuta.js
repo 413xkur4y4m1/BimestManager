@@ -37,6 +37,8 @@ router.patch('/sesiones/:id/estado', adminTurismoControlador.cambiarEstadoSesion
 
 router.get('/prestamos', adminTurismoControlador.listarPrestamos);
 router.post('/prestamos', adminTurismoControlador.registrarPrestamo);
+router.patch('/prestamos/:id/aprobar', adminTurismoControlador.aprobarSolicitudPrestamo);
+router.patch('/prestamos/:id/rechazar', adminTurismoControlador.rechazarSolicitudPrestamo);
 router.patch('/prestamos/:id/devolucion', adminTurismoControlador.marcarPrestamoDevuelto);
 router.patch('/prestamos/:id/adeudo', adminTurismoControlador.marcarPrestamoAdeudo);
 

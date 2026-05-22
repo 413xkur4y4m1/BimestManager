@@ -32,11 +32,6 @@ router.get(
 );
 
 router.post('/prestamos', soloAlumnoTurismo, estudianteTurismControlador.solicitarPrestamo);
-router.post(
-  '/prestamos/:id/incidencia',
-  soloAlumnoTurismo,
-  estudianteTurismControlador.reportarIncidencia
-);
 
 router.get('/pendientes', soloAdminTurismo, estudianteTurismControlador.listarPendientes);
 router.patch('/:id/grupo', soloAdminTurismo, estudianteTurismControlador.asignarGrupo);

@@ -87,6 +87,24 @@ const estudianteControlador = {
     }
   },
 
+  firmarResponsiva: async (req, res) => {
+    try {
+      const dataUrl = String(req.body && req.body.firma || '').trim();
+
+      const resultado = await EstudianteModelo.guardarFirmaDeAlumno({
+        usuarioId: req.usuario.id,
+        dataUrl
+      });
+
+      return res.status(201).json({
+        message: 'Firma registrada correctamente.',
+        firma: resultado
+      });
+    } catch (error) {
+      return responderError(res, error, 'No se pudo registrar la firma.');
+    }
+  },
+
   listarPendientes: async (req, res) => {
     try {
       const estudiantes = await EstudianteModelo.listarPendientesActivacion();
