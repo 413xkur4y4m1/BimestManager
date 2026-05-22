@@ -26,11 +26,16 @@ const app = express();
 
 app.disable('x-powered-by');
 
+// CSP relajada para que el WebView del cliente movil cargue assets via HTTP.
+// El `upgrade-insecure-requests` por defecto de helmet rompe los stylesheets
+// cuando la app corre en http://localhost o IP de LAN.
+const enProduccion = process.env.NODE_ENV === 'production';
 app.use(helmet({
-  hsts: {
+  contentSecurityPolicy: enProduccion ? undefined : false,
+  hsts: enProduccion ? {
     maxAge: 31536000,
     includeSubDomains: true
-  }
+  } : false
 }));
 app.use(cors({
   origin: true,
@@ -38,14 +43,19 @@ app.use(cors({
 }));
 app.use(morgan('combined', { stream: logger.morganStream }));
 app.use(morgan('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Limite mayor en JSON porque las firmas viajan como dataURL base64 (~50-200 KB)
+app.use(express.json({ limit: '2mb' }));
+app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 app.use(cookieParser());
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'vista'));
 
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Firmas digitales: se sirven como recursos estaticos para mostrarse en el UI.
+// La carpeta vive fuera de /public para que sea facil rotar/auditar sin tocar el resto.
+app.use('/imageFirma', express.static(path.join(__dirname, 'imageFirma')));
 
 app.get('/', (req, res) => {
   res.redirect('/login');
