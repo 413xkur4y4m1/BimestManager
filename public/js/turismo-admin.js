@@ -1,7 +1,7 @@
 // Dashboard Admin Turismo
 (function () {
   'use strict';
-  const { api, flash, clearFlash, requireAuth, wireHeader, wireTabs, formatFecha, escapeHtml: esc } = window.BM;
+  const { api, flash, clearFlash, requireAuth, wireHeader, wireTabs, formatFecha, escapeHtml: esc, makePagedList } = window.BM;
 
   let usuario = null;
   let materialesCache = [];
@@ -9,6 +9,17 @@
   let sesionesCache = [];
   let practicaSeleccionada = null;
   let alumnosPorSesionCache = {};
+
+  const MATS_PAGE_SIZE = 20;
+  let matsBusqueda = '';
+  let matsPagina = 1;
+
+  let pendientesCtl = null;
+  let usuariosCtl = null;
+  let prestamosCtl = null;
+  let incidenciasCtl = null;
+  let practicasCtl = null;
+  let sesionesCtl = null;
 
   const cargar = async () => {
     clearFlash('flash');
@@ -24,13 +35,13 @@
     ]);
 
     if (resumen.ok) renderResumen(resumen.data);
-    if (pendientes.ok) renderPendientes(pendientes.data || []);
-    if (usuarios.ok) renderUsuarios(usuarios.data || []);
-    if (materiales.ok) { materialesCache = materiales.data || []; renderMateriales(materialesCache); }
+    if (pendientes.ok && pendientesCtl) pendientesCtl.setData(pendientes.data || []);
+    if (usuarios.ok && usuariosCtl) usuariosCtl.setData(usuarios.data || []);
+    if (materiales.ok) { materialesCache = materiales.data || []; renderMateriales(); }
     if (practicas.ok) { practicasCache = practicas.data || []; renderPracticas(practicasCache); }
     if (sesiones.ok) { sesionesCache = sesiones.data || []; renderSesiones(sesionesCache); }
-    if (prestamos.ok) renderPrestamos(prestamos.data || []);
-    if (incidencias.ok) renderIncidencias(incidencias.data || []);
+    if (prestamos.ok && prestamosCtl) prestamosCtl.setData(prestamos.data || []);
+    if (incidencias.ok && incidenciasCtl) incidenciasCtl.setData(incidencias.data || []);
 
     if (practicaSeleccionada) cargarSugerencias(practicaSeleccionada);
   };
@@ -47,29 +58,28 @@
       <div><dt>Stock total</dt><dd>${m.stock_total ?? 0}</dd></div>
       <div><dt>Sesiones programadas</dt><dd>${s.programadas ?? 0}</dd></div>
       <div><dt>Sesiones en curso</dt><dd>${s.en_curso ?? 0}</dd></div>
+      <div><dt>Solicitudes por aprobar</dt><dd>${p.pendientes ?? 0}</dd></div>
       <div><dt>Préstamos activos</dt><dd>${p.prestados ?? 0}</dd></div>
       <div><dt>Adeudos</dt><dd>${p.adeudos ?? 0}</dd></div>
       <div><dt>Incidencias pendientes</dt><dd>${i.pendientes ?? 0}</dd></div>
     `;
   };
 
-  // ===== Pendientes con select de grupo en lugar de prompt =====
-  const renderPendientes = (ps) => {
-    const list = document.getElementById('pendientesList');
-    if (!ps.length) { list.innerHTML = '<li class="empty-state">Sin alumnos pendientes.</li>'; return; }
-    list.innerHTML = ps.map((p) => `
-      <li class="card-row">
-        <div class="card-row__main">
-          <div class="card-row__title">${esc(p.nombre)}</div>
-          <div class="card-row__sub">${esc(p.email)}${p.grupo ? ' · ' + esc(p.grupo) : ' · sin grupo'}</div>
-          <input type="text" class="field-sel" data-grupo-pend="${p.id}" placeholder="Grupo (opcional, ej. GTU-1)" value="${esc(p.grupo || '')}" maxlength="50" style="margin-top:6px;font-size:12px;padding:6px 10px;border-radius:10px;width:100%">
-        </div>
-        <button class="btn btn-mini btn-secondary" data-activar="${p.id}">Autorizar</button>
-      </li>`).join('');
+  // ===== Pendientes =====
+  const renderPendienteItem = (p) => `
+    <li class="card-row">
+      <div class="card-row__main">
+        <div class="card-row__title">${esc(p.nombre)}</div>
+        <div class="card-row__sub">${esc(p.email)}${p.grupo ? ' · ' + esc(p.grupo) : ' · sin grupo'}</div>
+        <input type="text" class="field-sel" data-grupo-pend="${p.id}" placeholder="Grupo (opcional, ej. GTU-1)" value="${esc(p.grupo || '')}" maxlength="50" style="margin-top:6px;font-size:12px;padding:6px 10px;border-radius:10px;width:100%">
+      </div>
+      <button class="btn btn-mini btn-secondary" data-activar="${p.id}">Autorizar</button>
+    </li>`;
 
-    list.querySelectorAll('button[data-activar]').forEach((b) => {
+  const wirePendientesBotones = (slice, listEl) => {
+    listEl.querySelectorAll('button[data-activar]').forEach((b) => {
       b.addEventListener('click', () => {
-        const inp = list.querySelector(`input[data-grupo-pend="${b.dataset.activar}"]`);
+        const inp = listEl.querySelector(`input[data-grupo-pend="${b.dataset.activar}"]`);
         const grupo = (inp && inp.value || '').trim();
         activar(Number(b.dataset.activar), grupo);
       });
@@ -85,30 +95,28 @@
   };
 
   // ===== Usuarios activos: cambiar grupo + activar/desactivar =====
-  const renderUsuarios = (us) => {
-    const list = document.getElementById('usuariosList');
-    if (!us.length) { list.innerHTML = '<li class="empty-state">Sin usuarios.</li>'; return; }
-    list.innerHTML = us.map((u) => `
-      <li class="card-row">
-        <div class="card-row__main">
-          <div class="card-row__title">${esc(u.nombre)} <span class="badge badge--neutral">${esc(u.rol)}</span></div>
-          <div class="card-row__sub">${esc(u.email)}${u.grupo ? ' · ' + esc(u.grupo) : ''}</div>
-          ${u.rol === 'ALUMNO' ? `
-            <div style="display:flex;gap:6px;margin-top:6px">
-              <input type="text" class="field-sel" data-grupo-asig="${u.id}" placeholder="Grupo" value="${esc(u.grupo || '')}" maxlength="50" style="font-size:12px;padding:6px 10px;border-radius:10px;flex:1">
-              <button class="btn btn-mini btn-primary" data-asignar="${u.id}">Guardar</button>
-            </div>` : ''}
-        </div>
-        <button class="btn btn-mini ${u.is_active ? 'btn-ghost' : 'btn-secondary'}" data-toggle="${u.id}" data-active="${u.is_active ? 1 : 0}">${u.is_active ? 'Desactivar' : 'Activar'}</button>
-      </li>`).join('');
+  const renderUsuarioItem = (u) => `
+    <li class="card-row">
+      <div class="card-row__main">
+        <div class="card-row__title">${esc(u.nombre)} <span class="badge badge--neutral">${esc(u.rol)}</span>${u.is_active ? '' : ' <span class="badge badge--warn">INACTIVO</span>'}</div>
+        <div class="card-row__sub">${esc(u.email)}${u.grupo ? ' · ' + esc(u.grupo) : ''}</div>
+        ${u.rol === 'ALUMNO' ? `
+          <div style="display:flex;gap:6px;margin-top:6px">
+            <input type="text" class="field-sel" data-grupo-asig="${u.id}" placeholder="Grupo" value="${esc(u.grupo || '')}" maxlength="50" style="font-size:12px;padding:6px 10px;border-radius:10px;flex:1">
+            <button class="btn btn-mini btn-primary" data-asignar="${u.id}">Guardar</button>
+          </div>` : ''}
+      </div>
+      <button class="btn btn-mini ${u.is_active ? 'btn-ghost' : 'btn-secondary'}" data-toggle="${u.id}" data-active="${u.is_active ? 1 : 0}">${u.is_active ? 'Desactivar' : 'Activar'}</button>
+    </li>`;
 
-    list.querySelectorAll('button[data-toggle]').forEach((b) => {
+  const wireUsuariosBotones = (slice, listEl) => {
+    listEl.querySelectorAll('button[data-toggle]').forEach((b) => {
       b.addEventListener('click', () => toggleUsuario(Number(b.dataset.toggle), b.dataset.active === '0'));
     });
-    list.querySelectorAll('button[data-asignar]').forEach((b) => {
+    listEl.querySelectorAll('button[data-asignar]').forEach((b) => {
       b.addEventListener('click', () => {
         const id = Number(b.dataset.asignar);
-        const inp = list.querySelector(`input[data-grupo-asig="${id}"]`);
+        const inp = listEl.querySelector(`input[data-grupo-asig="${id}"]`);
         const grupo = (inp && inp.value || '').trim();
         asignarGrupo(id, grupo);
       });
@@ -133,24 +141,52 @@
   };
 
   // ===== Materiales =====
-  const renderMateriales = (ms) => {
+  const renderMateriales = () => {
     const list = document.getElementById('materialesList');
+    const totalEl = document.getElementById('materialesTotal');
+    const shownEl = document.getElementById('materialesShown');
+    const pag = document.getElementById('materialesPag');
+    const pagInfo = document.getElementById('materialesPagInfo');
 
-    // Llenar select de materiales en sugerencias y préstamo manual
-    const opcionesActivas = ms
+    // Llenar selects de sugerencias y préstamo manual con TODOS los activos
+    const opcionesActivas = materialesCache
       .filter((m) => m.is_active)
       .map((m) => `<option value="${m.id}">${esc(m.nombre)} (${esc(m.estado)} · stock ${m.stock})</option>`)
       .join('');
     const sugMatSel = document.getElementById('sugMatSel');
     if (sugMatSel) sugMatSel.innerHTML = '<option value="">Material...</option>' + opcionesActivas;
     const matPrestSel = document.getElementById('matPrestSel');
-    if (matPrestSel) matPrestSel.innerHTML = '<option value="">Material...</option>' + ms
+    if (matPrestSel) matPrestSel.innerHTML = '<option value="">Material...</option>' + materialesCache
       .filter((m) => m.is_active && m.estado === 'DISPONIBLE' && m.stock > 0)
       .map((m) => `<option value="${m.id}">${esc(m.nombre)} (stock ${m.stock})</option>`)
       .join('');
 
-    if (!ms.length) { list.innerHTML = '<li class="empty-state">Sin materiales.</li>'; return; }
-    list.innerHTML = ms.map((m) => `
+    if (totalEl) totalEl.textContent = String(materialesCache.length);
+
+    const query = matsBusqueda.trim().toLowerCase();
+    const filtrados = query
+      ? materialesCache.filter((m) => (m.nombre || '').toLowerCase().includes(query))
+      : materialesCache.slice();
+
+    if (!filtrados.length) {
+      list.innerHTML = query
+        ? `<li class="empty-state">Sin coincidencias para "${esc(query)}".</li>`
+        : '<li class="empty-state">Sin materiales.</li>';
+      if (shownEl) shownEl.textContent = '0';
+      if (pag) pag.hidden = true;
+      return;
+    }
+
+    const totalPaginas = Math.max(1, Math.ceil(filtrados.length / MATS_PAGE_SIZE));
+    if (matsPagina > totalPaginas) matsPagina = totalPaginas;
+    if (matsPagina < 1) matsPagina = 1;
+
+    const inicio = (matsPagina - 1) * MATS_PAGE_SIZE;
+    const pagina = filtrados.slice(inicio, inicio + MATS_PAGE_SIZE);
+
+    if (shownEl) shownEl.textContent = String(pagina.length);
+
+    list.innerHTML = pagina.map((m) => `
       <li class="card-row">
         <div class="card-row__main">
           <div class="card-row__title">${esc(m.nombre)} <span class="badge badge--${m.estado === 'DAÑADO' ? 'danger' : 'ok'}">${esc(m.estado)}</span> ${m.is_active ? '' : '<span class="badge badge--neutral">INACTIVO</span>'}</div>
@@ -175,6 +211,31 @@
     list.querySelectorAll('button[data-baja]').forEach((b) => {
       b.addEventListener('click', () => darBajaMaterial(Number(b.dataset.baja)));
     });
+
+    if (pag) {
+      const muchas = totalPaginas > 1;
+      pag.hidden = !muchas;
+      if (muchas) {
+        if (pagInfo) pagInfo.textContent = `Página ${matsPagina} / ${totalPaginas}`;
+        document.getElementById('materialesPrev').disabled = matsPagina <= 1;
+        document.getElementById('materialesNext').disabled = matsPagina >= totalPaginas;
+      }
+    }
+  };
+
+  const wireMaterialesBuscador = () => {
+    const input = document.getElementById('materialesBuscar');
+    if (input) {
+      input.addEventListener('input', () => {
+        matsBusqueda = input.value || '';
+        matsPagina = 1;
+        renderMateriales();
+      });
+    }
+    const prev = document.getElementById('materialesPrev');
+    const next = document.getElementById('materialesNext');
+    if (prev) prev.addEventListener('click', () => { matsPagina--; renderMateriales(); });
+    if (next) next.addEventListener('click', () => { matsPagina++; renderMateriales(); });
   };
 
   const ajustarStock = async (id, delta) => {
@@ -200,28 +261,32 @@
 
   // ===== Prácticas + sugerencias =====
   const renderPracticas = (ps) => {
-    const list = document.getElementById('practicasList');
+    // Llenar select del form de sesión con prácticas activas (no afectado por filtros del listado)
     const sel = document.getElementById('practicaSel');
     if (sel) sel.innerHTML = '<option value="">Práctica...</option>' +
       ps.filter((p) => p.is_active).map((p) => `<option value="${p.id}">${esc(p.nombre)}</option>`).join('');
 
-    if (!ps.length) { list.innerHTML = '<li class="empty-state">Sin prácticas.</li>'; return; }
-    list.innerHTML = ps.map((p) => `
-      <li class="card-row">
-        <div class="card-row__main">
-          <div class="card-row__title">${esc(p.nombre)} ${p.is_active ? '' : '<span class="badge badge--neutral">INACTIVA</span>'}</div>
-          <div class="card-row__sub">${esc(p.descripcion || '')}${p.duracion_minutos ? ' · ' + p.duracion_minutos + ' min' : ''}</div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
-          <button class="btn btn-mini btn-primary" data-sug="${p.id}">Sugerencias</button>
-          ${p.is_active ? `<button class="btn btn-mini btn-ghost" data-baja-pr="${p.id}">Baja</button>` : ''}
-        </div>
-      </li>`).join('');
+    // Datos para la lista paginada
+    if (practicasCtl) practicasCtl.setData(ps);
+  };
 
-    list.querySelectorAll('button[data-sug]').forEach((b) => {
+  const renderPracticaItem = (p) => `
+    <li class="card-row">
+      <div class="card-row__main">
+        <div class="card-row__title">${esc(p.nombre)} ${p.is_active ? '' : '<span class="badge badge--neutral">INACTIVA</span>'}</div>
+        <div class="card-row__sub">${esc(p.descripcion || '')}${p.duracion_minutos ? ' · ' + p.duracion_minutos + ' min' : ''}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+        <button class="btn btn-mini btn-primary" data-sug="${p.id}">Sugerencias</button>
+        ${p.is_active ? `<button class="btn btn-mini btn-ghost" data-baja-pr="${p.id}">Baja</button>` : ''}
+      </div>
+    </li>`;
+
+  const wirePracticasBotones = (slice, listEl) => {
+    listEl.querySelectorAll('button[data-sug]').forEach((b) => {
       b.addEventListener('click', () => abrirSugerencias(Number(b.dataset.sug)));
     });
-    list.querySelectorAll('button[data-baja-pr]').forEach((b) => {
+    listEl.querySelectorAll('button[data-baja-pr]').forEach((b) => {
       b.addEventListener('click', () => darBajaPractica(Number(b.dataset.bajaPr)));
     });
   };
@@ -321,7 +386,6 @@
 
   // ===== Sesiones =====
   const renderSesiones = (ss) => {
-    const list = document.getElementById('sesionesList');
     const sel = document.getElementById('sesionPrestSel');
     if (sel) {
       sel.innerHTML = '<option value="">Sesión...</option>' +
@@ -330,26 +394,29 @@
         ).join('');
     }
 
-    if (!ss.length) { list.innerHTML = '<li class="empty-state">Sin sesiones.</li>'; return; }
-    list.innerHTML = ss.map((s) => `
-      <li class="card-row">
-        <div class="card-row__main">
-          <div class="card-row__title">${esc(s.practica)} · ${esc(s.grupo)}</div>
-          <div class="card-row__sub">${esc(formatFecha(s.fecha_inicio))} → ${esc(formatFecha(s.fecha_fin))}</div>
-          <div class="card-row__sub">Préstamos: ${s.total_prestamos ?? 0}</div>
-        </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
-          <span class="badge badge--${s.estado === 'EN_CURSO' ? 'ok' : s.estado === 'FINALIZADA' ? 'neutral' : 'info'}">${esc(s.estado)}</span>
-          ${s.estado !== 'FINALIZADA' ? `
-            <select data-cambiar="${s.id}" style="font-size:12px;padding:4px 8px;border-radius:8px">
-              <option value="">Cambiar a...</option>
-              ${s.estado !== 'EN_CURSO' ? '<option value="EN_CURSO">EN_CURSO</option>' : ''}
-              <option value="FINALIZADA">FINALIZADA</option>
-            </select>` : ''}
-        </div>
-      </li>`).join('');
+    if (sesionesCtl) sesionesCtl.setData(ss);
+  };
 
-    list.querySelectorAll('select[data-cambiar]').forEach((sel) => {
+  const renderSesionItem = (s) => `
+    <li class="card-row">
+      <div class="card-row__main">
+        <div class="card-row__title">${esc(s.practica)} · ${esc(s.grupo)}</div>
+        <div class="card-row__sub">${esc(formatFecha(s.fecha_inicio))} → ${esc(formatFecha(s.fecha_fin))}</div>
+        <div class="card-row__sub">Préstamos: ${s.total_prestamos ?? 0}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+        <span class="badge badge--${s.estado === 'EN_CURSO' ? 'ok' : s.estado === 'FINALIZADA' ? 'neutral' : 'info'}">${esc(s.estado)}</span>
+        ${s.estado !== 'FINALIZADA' ? `
+          <select data-cambiar="${s.id}" style="font-size:12px;padding:4px 8px;border-radius:8px">
+            <option value="">Cambiar a...</option>
+            ${s.estado !== 'EN_CURSO' ? '<option value="EN_CURSO">EN_CURSO</option>' : ''}
+            <option value="FINALIZADA">FINALIZADA</option>
+          </select>` : ''}
+      </div>
+    </li>`;
+
+  const wireSesionesBotones = (slice, listEl) => {
+    listEl.querySelectorAll('select[data-cambiar]').forEach((sel) => {
       sel.addEventListener('change', () => cambiarEstadoSesion(Number(sel.dataset.cambiar), sel.value));
     });
   };
@@ -392,31 +459,56 @@
   };
 
   // ===== Préstamos =====
-  const renderPrestamos = (ps) => {
-    const list = document.getElementById('prestamosList');
-    if (!ps.length) { list.innerHTML = '<li class="empty-state">Sin préstamos.</li>'; return; }
-    list.innerHTML = ps.slice(0, 50).map((p) => `
-      <li class="card-row">
-        <div class="card-row__main">
-          <div class="card-row__title">${esc(p.alumno)} → ${esc(p.material)} × ${p.cantidad}</div>
-          <div class="card-row__sub">${esc(p.grupo)} · ${esc(formatFecha(p.fecha_prestamo))}</div>
-        </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
-          <span class="badge badge--${p.estado === 'PRESTADO' ? 'info' : p.estado === 'DEVUELTO' ? 'ok' : p.estado === 'ADEUDO' ? 'danger' : 'warn'}">${esc(p.estado)}</span>
-          ${p.estado === 'PRESTADO' || p.estado === 'PENDIENTE' ? `
-            <div style="display:flex;gap:6px">
-              <button class="btn btn-mini btn-secondary" data-devolver="${p.id}">Devolver</button>
-              <button class="btn btn-mini btn-ghost" data-adeudo="${p.id}">Adeudo</button>
-            </div>` : ''}
-        </div>
-      </li>`).join('');
+  const renderPrestamoItem = (p) => `
+    <li class="card-row">
+      <div class="card-row__main">
+        <div class="card-row__title">${esc(p.alumno)} → ${esc(p.material)} × ${p.cantidad}</div>
+        <div class="card-row__sub">${esc(p.grupo)} · ${esc(formatFecha(p.fecha_prestamo))}</div>
+        ${p.estado === 'PENDIENTE' ? '<div class="card-row__sub" style="color:var(--c-orange-700);font-weight:600">Solicitud por aprobar</div>' : ''}
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+        <span class="badge badge--${p.estado === 'PRESTADO' ? 'info' : p.estado === 'DEVUELTO' ? 'ok' : p.estado === 'ADEUDO' ? 'danger' : 'warn'}">${esc(p.estado)}</span>
+        ${p.estado === 'PENDIENTE' ? `
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-mini btn-primary" data-aprobar="${p.id}">Aprobar</button>
+            <button class="btn btn-mini btn-danger" data-rechazar="${p.id}">Rechazar</button>
+          </div>` : ''}
+        ${p.estado === 'PRESTADO' ? `
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-mini btn-secondary" data-devolver="${p.id}">Devolver</button>
+            <button class="btn btn-mini btn-ghost" data-adeudo="${p.id}">Adeudo</button>
+          </div>` : ''}
+      </div>
+    </li>`;
 
-    list.querySelectorAll('button[data-devolver]').forEach((b) => {
+  const wirePrestamosBotones = (slice, listEl) => {
+    listEl.querySelectorAll('button[data-aprobar]').forEach((b) => {
+      b.addEventListener('click', () => aprobarSolicitud(Number(b.dataset.aprobar)));
+    });
+    listEl.querySelectorAll('button[data-rechazar]').forEach((b) => {
+      b.addEventListener('click', () => rechazarSolicitud(Number(b.dataset.rechazar)));
+    });
+    listEl.querySelectorAll('button[data-devolver]').forEach((b) => {
       b.addEventListener('click', () => devolverPrestamo(Number(b.dataset.devolver)));
     });
-    list.querySelectorAll('button[data-adeudo]').forEach((b) => {
+    listEl.querySelectorAll('button[data-adeudo]').forEach((b) => {
       b.addEventListener('click', () => marcarAdeudo(Number(b.dataset.adeudo)));
     });
+  };
+
+  const aprobarSolicitud = async (id) => {
+    const r = await api('PATCH', '/turismo/admin/prestamos/' + id + '/aprobar');
+    if (!r.ok) { flash('flash', (r.data && r.data.error) || 'No se pudo aprobar la solicitud.', 'error'); return; }
+    flash('flash', (r.data && r.data.message) || 'Solicitud aprobada.', 'ok');
+    cargar();
+  };
+
+  const rechazarSolicitud = async (id) => {
+    const motivo = (window.prompt('Motivo del rechazo (opcional):') || '').trim();
+    const r = await api('PATCH', '/turismo/admin/prestamos/' + id + '/rechazar', motivo ? { motivo } : {});
+    if (!r.ok) { flash('flash', (r.data && r.data.error) || 'No se pudo rechazar la solicitud.', 'error'); return; }
+    flash('flash', (r.data && r.data.message) || 'Solicitud rechazada.', 'ok');
+    cargar();
   };
 
   const devolverPrestamo = async (id) => {
@@ -433,31 +525,29 @@
   };
 
   // ===== Incidencias =====
-  const renderIncidencias = (xs) => {
-    const list = document.getElementById('incidenciasList');
-    if (!xs.length) { list.innerHTML = '<li class="empty-state">Sin incidencias.</li>'; return; }
-    list.innerHTML = xs.slice(0, 50).map((x) => `
-      <li class="card-row">
-        <div class="card-row__main">
-          <div class="card-row__title">${esc(x.material)} <span class="badge badge--danger">${esc(x.tipo)}</span></div>
-          <div class="card-row__sub">${esc(x.alumno)} · ${esc(x.grupo)} · ${esc(formatFecha(x.created_at))}</div>
-          ${x.descripcion ? `<div class="card-row__sub">"${esc(x.descripcion)}"</div>` : ''}
-        </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
-          ${x.estado === 'PENDIENTE'
-            ? `<button class="btn btn-mini btn-secondary" data-resolver="${x.id}">Resolver</button>
-               <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--c-ink-soft)">
-                 <input type="checkbox" data-marcar-dev="${x.id}" style="width:14px;height:14px"> dev. material
-               </label>`
-            : `<span class="badge badge--ok">${esc(x.estado)}</span>`
-          }
-        </div>
-      </li>`).join('');
+  const renderIncidenciaItem = (x) => `
+    <li class="card-row">
+      <div class="card-row__main">
+        <div class="card-row__title">${esc(x.material)} <span class="badge badge--danger">${esc(x.tipo)}</span></div>
+        <div class="card-row__sub">${esc(x.alumno)} · ${esc(x.grupo)} · ${esc(formatFecha(x.created_at))}</div>
+        ${x.descripcion ? `<div class="card-row__sub">"${esc(x.descripcion)}"</div>` : ''}
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+        ${x.estado === 'PENDIENTE'
+          ? `<button class="btn btn-mini btn-secondary" data-resolver="${x.id}">Resolver</button>
+             <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--c-ink-soft)">
+               <input type="checkbox" data-marcar-dev="${x.id}" style="width:14px;height:14px"> dev. material
+             </label>`
+          : `<span class="badge badge--ok">${esc(x.estado)}</span>`
+        }
+      </div>
+    </li>`;
 
-    list.querySelectorAll('button[data-resolver]').forEach((b) => {
+  const wireIncidenciasBotones = (slice, listEl) => {
+    listEl.querySelectorAll('button[data-resolver]').forEach((b) => {
       b.addEventListener('click', () => {
         const id = Number(b.dataset.resolver);
-        const chk = list.querySelector(`input[data-marcar-dev="${id}"]`);
+        const chk = listEl.querySelector(`input[data-marcar-dev="${id}"]`);
         const dev = chk && chk.checked;
         resolverIncidencia(id, dev);
       });
@@ -568,12 +658,86 @@
     });
   };
 
+  const initListas = () => {
+    pendientesCtl = makePagedList(document.getElementById('pendientesBox'), {
+      render: renderPendienteItem,
+      search: (p, q) =>
+        (p.nombre || '').toLowerCase().includes(q) ||
+        (p.email || '').toLowerCase().includes(q) ||
+        (p.grupo || '').toLowerCase().includes(q),
+      emptyHtml: '<li class="empty-state">Sin alumnos pendientes.</li>',
+      afterRender: wirePendientesBotones
+    });
+
+    usuariosCtl = makePagedList(document.getElementById('usuariosBox'), {
+      render: renderUsuarioItem,
+      search: (u, q) =>
+        (u.nombre || '').toLowerCase().includes(q) ||
+        (u.email || '').toLowerCase().includes(q) ||
+        (u.grupo || '').toLowerCase().includes(q),
+      filters: {
+        rol: (u, v) => u.rol === v,
+        estado: (u, v) => (v === 'activo' ? !!u.is_active : !u.is_active)
+      },
+      emptyHtml: '<li class="empty-state">Sin usuarios.</li>',
+      afterRender: wireUsuariosBotones
+    });
+
+    prestamosCtl = makePagedList(document.getElementById('prestamosBox'), {
+      render: renderPrestamoItem,
+      search: (p, q) =>
+        (p.alumno || '').toLowerCase().includes(q) ||
+        (p.material || '').toLowerCase().includes(q) ||
+        (p.grupo || '').toLowerCase().includes(q),
+      filters: { estado: (p, v) => p.estado === v },
+      emptyHtml: '<li class="empty-state">Sin préstamos.</li>',
+      afterRender: wirePrestamosBotones
+    });
+
+    incidenciasCtl = makePagedList(document.getElementById('incidenciasBox'), {
+      render: renderIncidenciaItem,
+      search: (x, q) =>
+        (x.alumno || '').toLowerCase().includes(q) ||
+        (x.material || '').toLowerCase().includes(q) ||
+        (x.grupo || '').toLowerCase().includes(q) ||
+        (x.descripcion || '').toLowerCase().includes(q),
+      filters: {
+        estado: (x, v) => x.estado === v,
+        tipo: (x, v) => x.tipo === v
+      },
+      emptyHtml: '<li class="empty-state">Sin incidencias.</li>',
+      afterRender: wireIncidenciasBotones
+    });
+
+    practicasCtl = makePagedList(document.getElementById('practicasBox'), {
+      render: renderPracticaItem,
+      search: (p, q) =>
+        (p.nombre || '').toLowerCase().includes(q) ||
+        (p.descripcion || '').toLowerCase().includes(q),
+      filters: { estado: (p, v) => (v === 'activa' ? !!p.is_active : !p.is_active) },
+      emptyHtml: '<li class="empty-state">Sin prácticas.</li>',
+      afterRender: wirePracticasBotones
+    });
+
+    sesionesCtl = makePagedList(document.getElementById('sesionesBox'), {
+      render: renderSesionItem,
+      search: (s, q) =>
+        (s.practica || '').toLowerCase().includes(q) ||
+        (s.grupo || '').toLowerCase().includes(q),
+      filters: { estado: (s, v) => s.estado === v },
+      emptyHtml: '<li class="empty-state">Sin sesiones.</li>',
+      afterRender: wireSesionesBotones
+    });
+  };
+
   document.addEventListener('DOMContentLoaded', async () => {
     usuario = await requireAuth({ fuente: 'TURISMO', roles: ['ADMIN'] });
     if (!usuario) return;
     wireHeader(usuario, { onRefresh: cargar });
     wireTabs('home');
     wireSubtabs();
+    wireMaterialesBuscador();
+    initListas();
     document.getElementById('formUsuario').addEventListener('submit', submitUsuario);
     document.getElementById('formMaterial').addEventListener('submit', submitMaterial);
     document.getElementById('formPractica').addEventListener('submit', submitPractica);

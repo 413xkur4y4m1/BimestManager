@@ -46,9 +46,26 @@
     </div>
 
     <div data-subtab-panel="ses-list">
-      <article class="card">
+      <article class="card" id="sesionesBox">
         <h3>Mis sesiones</h3>
-        <ul class="list" id="sesionesList"><li class="empty-state">Cargando...</li></ul>
+        <p class="muted" style="font-size:12px;margin:0 0 8px">Total: <span data-total>0</span> · Mostrando <span data-shown>0</span></p>
+        <div class="field" style="margin-bottom:8px">
+          <input data-search type="search" placeholder="Buscar por práctica o grupo..." autocomplete="off">
+        </div>
+        <div data-filters style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+          <select data-filter="estado" style="padding:6px 10px;border-radius:10px;border:1px solid var(--c-line);font-size:13px">
+            <option value="">Todos los estados</option>
+            <option value="PROGRAMADA">Programadas</option>
+            <option value="EN_CURSO">En curso</option>
+            <option value="FINALIZADA">Finalizadas</option>
+          </select>
+        </div>
+        <ul class="list" data-list><li class="empty-state">Cargando...</li></ul>
+        <div class="btn-row" data-pagination style="justify-content:center;margin-top:10px" hidden>
+          <button type="button" class="btn btn-mini btn-ghost" data-prev>« Anterior</button>
+          <span class="muted" data-info style="font-size:12px;align-self:center">Página 1 / 1</span>
+          <button type="button" class="btn btn-mini btn-ghost" data-next>Siguiente »</button>
+        </div>
       </article>
     </div>
 
@@ -115,15 +132,31 @@
     <h1 class="section-title">Equipos</h1>
     <p class="section-subtitle">Todos tus equipos. Reporta incidencias en un toque.</p>
 
-    <article class="card">
+    <article class="card" id="equiposBox">
       <h3>Filtro</h3>
-      <label style="display:flex;gap:8px;align-items:center;font-size:13px;color:var(--c-ink-soft);margin:0">
+      <label style="display:flex;gap:8px;align-items:center;font-size:13px;color:var(--c-ink-soft);margin:0 0 8px">
         <input type="checkbox" id="chkIncluirFinalizadas" style="width:18px;height:18px;accent-color:var(--c-orange-600)">
         Incluir sesiones finalizadas
       </label>
+      <p class="muted" style="font-size:12px;margin:0 0 8px">Total: <span data-total>0</span> · Mostrando <span data-shown>0</span></p>
+      <div class="field" style="margin-bottom:8px">
+        <input data-search type="search" placeholder="Buscar por equipo, práctica o grupo..." autocomplete="off">
+      </div>
+      <div data-filters style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+        <select data-filter="estado" style="padding:6px 10px;border-radius:10px;border:1px solid var(--c-line);font-size:13px">
+          <option value="">Todos los estados</option>
+          <option value="PROGRAMADA">Programadas</option>
+          <option value="EN_CURSO">En curso</option>
+          <option value="FINALIZADA">Finalizadas</option>
+        </select>
+      </div>
+      <div data-list id="equiposGlobalLista"><div class="empty-state">Cargando equipos...</div></div>
+      <div class="btn-row" data-pagination style="justify-content:center;margin-top:10px" hidden>
+        <button type="button" class="btn btn-mini btn-ghost" data-prev>« Anterior</button>
+        <span class="muted" data-info style="font-size:12px;align-self:center">Página 1 / 1</span>
+        <button type="button" class="btn btn-mini btn-ghost" data-next>Siguiente »</button>
+      </div>
     </article>
-
-    <div id="equiposGlobalLista"><div class="empty-state">Cargando equipos...</div></div>
   </section>
 
   <!-- ============== TAB: Alumnos ============== -->
@@ -138,14 +171,23 @@
     </div>
 
     <div data-subtab-panel="al-pend">
-      <article class="card">
+      <article class="card" id="pendientesBox">
         <h3>Pendientes de autorización</h3>
-        <ul class="list" id="pendientesList"><li class="empty-state">Cargando...</li></ul>
+        <p class="muted" style="font-size:12px;margin:0 0 8px">Total: <span data-total>0</span> · Mostrando <span data-shown>0</span></p>
+        <div class="field" style="margin-bottom:10px">
+          <input data-search type="search" placeholder="Buscar por nombre, email o grupo..." autocomplete="off">
+        </div>
+        <ul class="list" data-list><li class="empty-state">Cargando...</li></ul>
+        <div class="btn-row" data-pagination style="justify-content:center;margin-top:10px" hidden>
+          <button type="button" class="btn btn-mini btn-ghost" data-prev>« Anterior</button>
+          <span class="muted" data-info style="font-size:12px;align-self:center">Página 1 / 1</span>
+          <button type="button" class="btn btn-mini btn-ghost" data-next>Siguiente »</button>
+        </div>
       </article>
     </div>
 
     <div data-subtab-panel="al-grupo" hidden>
-      <article class="card">
+      <article class="card" id="alumnosActivosBox">
         <h3>Asignar grupo a un alumno activo</h3>
         <p class="muted" style="font-size:13px;margin:0 0 10px">Cambia o asigna el grupo del alumno (puede usarse en cualquier momento).</p>
         <div class="field-tight">
@@ -153,14 +195,32 @@
             <option value="">Mostrar todos los grupos</option>
           </select>
         </div>
-        <ul class="list" id="alumnosActivosList"><li class="empty-state">Cargando...</li></ul>
+        <p class="muted" style="font-size:12px;margin:8px 0">Total: <span data-total>0</span> · Mostrando <span data-shown>0</span></p>
+        <div class="field" style="margin-bottom:10px">
+          <input data-search type="search" placeholder="Buscar por nombre o email..." autocomplete="off">
+        </div>
+        <ul class="list" data-list><li class="empty-state">Cargando...</li></ul>
+        <div class="btn-row" data-pagination style="justify-content:center;margin-top:10px" hidden>
+          <button type="button" class="btn btn-mini btn-ghost" data-prev>« Anterior</button>
+          <span class="muted" data-info style="font-size:12px;align-self:center">Página 1 / 1</span>
+          <button type="button" class="btn btn-mini btn-ghost" data-next>Siguiente »</button>
+        </div>
       </article>
     </div>
 
     <div data-subtab-panel="al-grps" hidden>
-      <article class="card">
+      <article class="card" id="gruposBox">
         <h3>Grupos registrados</h3>
-        <ul class="list" id="gruposList"><li class="empty-state">Cargando...</li></ul>
+        <p class="muted" style="font-size:12px;margin:0 0 8px">Total: <span data-total>0</span> · Mostrando <span data-shown>0</span></p>
+        <div class="field" style="margin-bottom:10px">
+          <input data-search type="search" placeholder="Buscar grupo por nombre..." autocomplete="off">
+        </div>
+        <ul class="list" data-list><li class="empty-state">Cargando...</li></ul>
+        <div class="btn-row" data-pagination style="justify-content:center;margin-top:10px" hidden>
+          <button type="button" class="btn btn-mini btn-ghost" data-prev>« Anterior</button>
+          <span class="muted" data-info style="font-size:12px;align-self:center">Página 1 / 1</span>
+          <button type="button" class="btn btn-mini btn-ghost" data-next>Siguiente »</button>
+        </div>
       </article>
 
       <article class="card">

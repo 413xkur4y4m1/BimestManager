@@ -29,6 +29,28 @@
       <h3>Equipo actual</h3>
       <div id="equipoActual"><div class="empty-state">Cargando...</div></div>
     </article>
+
+    <article class="card" id="firmaCard" hidden>
+      <h3>Firma de responsiva</h3>
+      <p class="section-subtitle" id="firmaSub">Firma con el dedo o el mouse para aceptar la responsabilidad del material.</p>
+
+      <div id="firmaPendiente" hidden>
+        <div class="signature-wrap">
+          <canvas id="signaturePad" width="600" height="220" aria-label="Area para firmar"></canvas>
+          <div class="signature-baseline"></div>
+        </div>
+        <div class="btn-row">
+          <button type="button" class="btn btn-secondary" id="btnLimpiarFirma">Limpiar</button>
+          <button type="button" class="btn btn-primary" id="btnGuardarFirma">Firmar</button>
+        </div>
+      </div>
+
+      <div id="firmaHecha" hidden>
+        <div class="banner banner--ok">Ya firmaste tu responsiva.</div>
+        <img id="firmaPreview" alt="Tu firma" class="signature-preview">
+        <div class="card-row__sub" id="firmaFecha"></div>
+      </div>
+    </article>
   </section>
 
   <!-- ============== TAB: Avisos ============== -->
@@ -36,9 +58,25 @@
     <h1 class="section-title">Avisos</h1>
     <p class="section-subtitle">Notificaciones del laboratorio.</p>
 
-    <article class="card">
+    <article class="card" id="notifBox">
       <h3>Notificaciones</h3>
-      <ul class="list" id="notifList"><li class="empty-state">Sin notificaciones.</li></ul>
+      <p class="muted" style="font-size:12px;margin:0 0 8px">Total: <span data-total>0</span> · Mostrando <span data-shown>0</span></p>
+      <div class="field" style="margin-bottom:8px">
+        <input data-search type="search" placeholder="Buscar en notificaciones..." autocomplete="off">
+      </div>
+      <div data-filters style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+        <select data-filter="leido" style="padding:6px 10px;border-radius:10px;border:1px solid var(--c-line);font-size:13px">
+          <option value="">Todas</option>
+          <option value="no">No leídas</option>
+          <option value="si">Leídas</option>
+        </select>
+      </div>
+      <ul class="list" data-list><li class="empty-state">Sin notificaciones.</li></ul>
+      <div class="btn-row" data-pagination style="justify-content:center;margin-top:10px" hidden>
+        <button type="button" class="btn btn-mini btn-ghost" data-prev>« Anterior</button>
+        <span class="muted" data-info style="font-size:12px;align-self:center">Página 1 / 1</span>
+        <button type="button" class="btn btn-mini btn-ghost" data-next>Siguiente »</button>
+      </div>
     </article>
   </section>
 
@@ -47,9 +85,18 @@
     <h1 class="section-title">Adeudos</h1>
     <p class="section-subtitle">Materiales que tienes que reponer.</p>
 
-    <article class="card">
+    <article class="card" id="adeudosBox">
       <h3>Mis adeudos</h3>
-      <ul class="list" id="adeudosList"><li class="empty-state">Sin adeudos.</li></ul>
+      <p class="muted" style="font-size:12px;margin:0 0 8px">Total: <span data-total>0</span> · Mostrando <span data-shown>0</span></p>
+      <div class="field" style="margin-bottom:10px">
+        <input data-search type="search" placeholder="Buscar por material..." autocomplete="off">
+      </div>
+      <ul class="list" data-list><li class="empty-state">Sin adeudos.</li></ul>
+      <div class="btn-row" data-pagination style="justify-content:center;margin-top:10px" hidden>
+        <button type="button" class="btn btn-mini btn-ghost" data-prev>« Anterior</button>
+        <span class="muted" data-info style="font-size:12px;align-self:center">Página 1 / 1</span>
+        <button type="button" class="btn btn-mini btn-ghost" data-next>Siguiente »</button>
+      </div>
     </article>
   </section>
 </main>

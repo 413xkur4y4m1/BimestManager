@@ -44,7 +44,8 @@
     </article>
 
     <article class="card" id="cardSolicitar" hidden>
-      <h3>Solicitar préstamo</h3>
+      <h3>Solicitar material</h3>
+      <p class="muted" style="font-size:12px;margin:0 0 8px">Tu solicitud le llega al administrador. Hasta que la apruebe no se considera prestada.</p>
       <form id="formPrestamo" class="form-card">
         <label class="field-label" for="materialSel">Material</label>
         <div class="field">
@@ -56,7 +57,7 @@
         <div class="field">
           <input id="cantidad" name="cantidad" type="number" min="1" step="1" value="1" required>
         </div>
-        <button type="submit" class="btn btn-primary" id="btnSolicitar">Solicitar préstamo</button>
+        <button type="submit" class="btn btn-primary" id="btnSolicitar">Enviar solicitud</button>
       </form>
     </article>
   </section>
@@ -73,23 +74,58 @@
     </div>
 
     <div data-subtab-panel="pr-act">
-      <article class="card">
+      <article class="card" id="prestamosBox">
         <h3>Préstamos activos</h3>
-        <ul class="list" id="prestamosList"><li class="empty-state">Sin préstamos.</li></ul>
+        <p class="muted" style="font-size:12px;margin:0 0 8px">Total: <span data-total>0</span> · Mostrando <span data-shown>0</span></p>
+        <div class="field" style="margin-bottom:8px">
+          <input data-search type="search" placeholder="Buscar por material o práctica..." autocomplete="off">
+        </div>
+        <div data-filters style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+          <select data-filter="estado" style="padding:6px 10px;border-radius:10px;border:1px solid var(--c-line);font-size:13px">
+            <option value="">Todos</option>
+            <option value="PENDIENTE">Por aprobar</option>
+            <option value="PRESTADO">Prestados</option>
+            <option value="ADEUDO">Adeudos</option>
+          </select>
+        </div>
+        <ul class="list" data-list><li class="empty-state">Sin préstamos.</li></ul>
+        <div class="btn-row" data-pagination style="justify-content:center;margin-top:10px" hidden>
+          <button type="button" class="btn btn-mini btn-ghost" data-prev>« Anterior</button>
+          <span class="muted" data-info style="font-size:12px;align-self:center">Página 1 / 1</span>
+          <button type="button" class="btn btn-mini btn-ghost" data-next>Siguiente »</button>
+        </div>
       </article>
     </div>
 
     <div data-subtab-panel="pr-deb" hidden>
-      <article class="card">
+      <article class="card" id="adeudosBox">
         <h3>Mis adeudos</h3>
-        <ul class="list" id="adeudosList"><li class="empty-state">Sin adeudos.</li></ul>
+        <p class="muted" style="font-size:12px;margin:0 0 8px">Total: <span data-total>0</span> · Mostrando <span data-shown>0</span></p>
+        <div class="field" style="margin-bottom:10px">
+          <input data-search type="search" placeholder="Buscar por material..." autocomplete="off">
+        </div>
+        <ul class="list" data-list><li class="empty-state">Sin adeudos.</li></ul>
+        <div class="btn-row" data-pagination style="justify-content:center;margin-top:10px" hidden>
+          <button type="button" class="btn btn-mini btn-ghost" data-prev>« Anterior</button>
+          <span class="muted" data-info style="font-size:12px;align-self:center">Página 1 / 1</span>
+          <button type="button" class="btn btn-mini btn-ghost" data-next>Siguiente »</button>
+        </div>
       </article>
     </div>
 
     <div data-subtab-panel="pr-hist" hidden>
-      <article class="card">
+      <article class="card" id="historialBox">
         <h3>Historial</h3>
-        <ul class="list" id="historialList"><li class="empty-state">Sin historial.</li></ul>
+        <p class="muted" style="font-size:12px;margin:0 0 8px">Total: <span data-total>0</span> · Mostrando <span data-shown>0</span></p>
+        <div class="field" style="margin-bottom:10px">
+          <input data-search type="search" placeholder="Buscar por material o práctica..." autocomplete="off">
+        </div>
+        <ul class="list" data-list><li class="empty-state">Sin historial.</li></ul>
+        <div class="btn-row" data-pagination style="justify-content:center;margin-top:10px" hidden>
+          <button type="button" class="btn btn-mini btn-ghost" data-prev>« Anterior</button>
+          <span class="muted" data-info style="font-size:12px;align-self:center">Página 1 / 1</span>
+          <button type="button" class="btn btn-mini btn-ghost" data-next>Siguiente »</button>
+        </div>
       </article>
     </div>
   </section>
@@ -99,9 +135,25 @@
     <h1 class="section-title">Avisos</h1>
     <p class="section-subtitle">Notificaciones del laboratorio de turismo.</p>
 
-    <article class="card">
+    <article class="card" id="notifBox">
       <h3>Notificaciones</h3>
-      <ul class="list" id="notifList"><li class="empty-state">Sin notificaciones.</li></ul>
+      <p class="muted" style="font-size:12px;margin:0 0 8px">Total: <span data-total>0</span> · Mostrando <span data-shown>0</span></p>
+      <div class="field" style="margin-bottom:8px">
+        <input data-search type="search" placeholder="Buscar en notificaciones..." autocomplete="off">
+      </div>
+      <div data-filters style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+        <select data-filter="leido" style="padding:6px 10px;border-radius:10px;border:1px solid var(--c-line);font-size:13px">
+          <option value="">Todas</option>
+          <option value="no">No leídas</option>
+          <option value="si">Leídas</option>
+        </select>
+      </div>
+      <ul class="list" data-list><li class="empty-state">Sin notificaciones.</li></ul>
+      <div class="btn-row" data-pagination style="justify-content:center;margin-top:10px" hidden>
+        <button type="button" class="btn btn-mini btn-ghost" data-prev>« Anterior</button>
+        <span class="muted" data-info style="font-size:12px;align-self:center">Página 1 / 1</span>
+        <button type="button" class="btn btn-mini btn-ghost" data-next>Siguiente »</button>
+      </div>
     </article>
   </section>
 </main>

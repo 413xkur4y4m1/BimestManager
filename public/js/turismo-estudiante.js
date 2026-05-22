@@ -1,10 +1,14 @@
 // Dashboard alumno Turismo
 (function () {
   'use strict';
-  const { api, flash, clearFlash, setLoading, requireAuth, wireHeader, wireTabs, formatFecha, escapeHtml: esc } = window.BM;
+  const { api, flash, clearFlash, setLoading, requireAuth, wireHeader, wireTabs, formatFecha, escapeHtml: esc, makePagedList } = window.BM;
 
   let usuario = null;
   let sesionActivaId = null;
+  let prestamosCtl = null;
+  let historialCtl = null;
+  let adeudosCtl = null;
+  let notifCtl = null;
 
   const cargar = async () => {
     clearFlash('flash');
@@ -81,7 +85,7 @@
             <div class="card-row__sub">Sugerido: ${m.cantidad_sugerida} · Stock: ${m.stock} · ${esc(m.material_estado)}</div>
           </div>
           ${m.material_activo && m.material_estado === 'DISPONIBLE' && m.stock > 0
-            ? `<button class="btn btn-mini btn-secondary" data-mat="${m.material_id}" data-cant="${m.cantidad_sugerida}">Solicitar</button>`
+            ? `<button class="btn btn-mini btn-secondary" data-mat="${m.material_id}" data-cant="${m.cantidad_sugerida}">Enviar solicitud</button>`
             : `<span class="badge badge--neutral">No disponible</span>`}
         </li>
       `).join('');
@@ -105,98 +109,55 @@
       cardSol.hidden = true;
     }
 
-    // Préstamos (separar activos vs historial)
+    // Préstamos: separar activos (no DEVUELTO) vs historial (DEVUELTO)
     const todos = data.misPrestamos || [];
     const activos = todos.filter((p) => p.estado !== 'DEVUELTO');
     const historial = todos.filter((p) => p.estado === 'DEVUELTO');
-
-    const prEl = document.getElementById('prestamosList');
-    if (!activos.length) {
-      prEl.innerHTML = '<li class="empty-state">Sin préstamos activos.</li>';
-    } else {
-      prEl.innerHTML = activos.map((p) => `
-        <li class="card-row">
-          <div class="card-row__main">
-            <div class="card-row__title">${esc(p.material)} × ${p.cantidad}</div>
-            <div class="card-row__sub">${esc(p.practica)} · ${esc(formatFecha(p.fecha_prestamo))}</div>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
-            <span class="badge badge--${badgeForPrestamo(p.estado)}">${esc(p.estado)}</span>
-            ${p.estado === 'PRESTADO' ? `
-              <details style="margin-top:4px">
-                <summary style="color:var(--c-orange-700);font-weight:600;cursor:pointer;font-size:12px">Reportar incidencia</summary>
-                <form class="form-card" data-incidencia="${p.id}" style="margin-top:6px">
-                  <div class="field-tight">
-                    <select name="tipo" required>
-                      <option value="">Tipo...</option>
-                      <option value="ROTO">ROTO</option>
-                      <option value="PERDIDO">PERDIDO</option>
-                    </select>
-                  </div>
-                  <div class="field-tight">
-                    <input name="descripcion" placeholder="Describe lo ocurrido (opcional)" maxlength="255">
-                  </div>
-                  <button class="btn btn-mini btn-danger" type="submit">Reportar</button>
-                </form>
-              </details>
-            ` : ''}
-          </div>
-        </li>
-      `).join('');
-
-      prEl.querySelectorAll('form[data-incidencia]').forEach((f) => {
-        f.addEventListener('submit', (ev) => submitIncidencia(ev, Number(f.dataset.incidencia)));
-      });
-    }
-
-    const histEl = document.getElementById('historialList');
-    if (!historial.length) {
-      histEl.innerHTML = '<li class="empty-state">Sin historial todavía.</li>';
-    } else {
-      histEl.innerHTML = historial.slice(0, 50).map((p) => `
-        <li class="card-row">
-          <div class="card-row__main">
-            <div class="card-row__title">${esc(p.material)} × ${p.cantidad}</div>
-            <div class="card-row__sub">${esc(p.practica)} · ${esc(formatFecha(p.fecha_prestamo))}${p.fecha_devolucion ? ' → ' + esc(formatFecha(p.fecha_devolucion)) : ''}</div>
-          </div>
-          <span class="badge badge--ok">DEVUELTO</span>
-        </li>
-      `).join('');
-    }
-
-    // Adeudos
-    const adEl = document.getElementById('adeudosList');
-    if (!data.misAdeudos || data.misAdeudos.length === 0) {
-      adEl.innerHTML = '<li class="empty-state">Sin adeudos.</li>';
-    } else {
-      adEl.innerHTML = data.misAdeudos.map((a) => `
-        <li class="card-row">
-          <div class="card-row__main">
-            <div class="card-row__title">${esc(a.material)} × ${a.cantidad}</div>
-            <div class="card-row__sub">${esc(formatFecha(a.fecha_prestamo))}${a.incidencia_tipo ? ' · Incidencia: ' + esc(a.incidencia_tipo) : ''}</div>
-            ${a.incidencia_descripcion ? `<div class="card-row__sub">"${esc(a.incidencia_descripcion)}"</div>` : ''}
-          </div>
-          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
-            <span class="badge badge--${badgeForPrestamo(a.prestamo_estado)}">${esc(a.prestamo_estado)}</span>
-            ${a.incidencia_estado ? `<span class="badge badge--${a.incidencia_estado === 'PENDIENTE' ? 'warn' : 'ok'}">${esc(a.incidencia_estado)}</span>` : ''}
-          </div>
-        </li>
-      `).join('');
-    }
-
-    // Notificaciones
-    const noEl = document.getElementById('notifList');
-    if (!data.notificaciones || data.notificaciones.length === 0) {
-      noEl.innerHTML = '<li class="empty-state">Sin notificaciones.</li>';
-    } else {
-      noEl.innerHTML = data.notificaciones.slice(0, 30).map((n) => `
-        <li>
-          <div class="card-row__title">${esc(n.mensaje)}</div>
-          <div class="card-row__sub">${esc(formatFecha(n.created_at))}${!n.leido ? ' · <span class="badge badge--info">NUEVA</span>' : ''}</div>
-        </li>
-      `).join('');
-    }
+    if (prestamosCtl) prestamosCtl.setData(activos);
+    if (historialCtl) historialCtl.setData(historial);
+    if (adeudosCtl) adeudosCtl.setData(data.misAdeudos || []);
+    if (notifCtl) notifCtl.setData(data.notificaciones || []);
   };
+
+  const renderPrestamoItem = (p) => `
+    <li class="card-row">
+      <div class="card-row__main">
+        <div class="card-row__title">${esc(p.material)} × ${p.cantidad}</div>
+        <div class="card-row__sub">${esc(p.practica)} · ${esc(formatFecha(p.fecha_prestamo))}</div>
+        ${p.estado === 'PENDIENTE' ? '<div class="card-row__sub" style="color:var(--c-orange-700)">En espera de aprobación del administrador.</div>' : ''}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+        <span class="badge badge--${badgeForPrestamo(p.estado)}">${esc(p.estado)}</span>
+      </div>
+    </li>`;
+
+  const renderHistorialItem = (p) => `
+    <li class="card-row">
+      <div class="card-row__main">
+        <div class="card-row__title">${esc(p.material)} × ${p.cantidad}</div>
+        <div class="card-row__sub">${esc(p.practica)} · ${esc(formatFecha(p.fecha_prestamo))}${p.fecha_devolucion ? ' → ' + esc(formatFecha(p.fecha_devolucion)) : ''}</div>
+      </div>
+      <span class="badge badge--ok">DEVUELTO</span>
+    </li>`;
+
+  const renderAdeudoItem = (a) => `
+    <li class="card-row">
+      <div class="card-row__main">
+        <div class="card-row__title">${esc(a.material)} × ${a.cantidad}</div>
+        <div class="card-row__sub">${esc(formatFecha(a.fecha_prestamo))}${a.incidencia_tipo ? ' · Incidencia: ' + esc(a.incidencia_tipo) : ''}</div>
+        ${a.incidencia_descripcion ? `<div class="card-row__sub">"${esc(a.incidencia_descripcion)}"</div>` : ''}
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+        <span class="badge badge--${badgeForPrestamo(a.prestamo_estado)}">${esc(a.prestamo_estado)}</span>
+        ${a.incidencia_estado ? `<span class="badge badge--${a.incidencia_estado === 'PENDIENTE' ? 'warn' : 'ok'}">${esc(a.incidencia_estado)}</span>` : ''}
+      </div>
+    </li>`;
+
+  const renderNotifItem = (n) => `
+    <li>
+      <div class="card-row__title">${esc(n.mensaje)}</div>
+      <div class="card-row__sub">${esc(formatFecha(n.created_at))}${!n.leido ? ' · <span class="badge badge--info">NUEVA</span>' : ''}</div>
+    </li>`;
 
   const badgeForPrestamo = (estado) => {
     switch (estado) {
@@ -248,27 +209,6 @@
     cargar();
   };
 
-  const submitIncidencia = async (ev, prestamoId) => {
-    ev.preventDefault();
-    clearFlash('flash');
-    const fd = new FormData(ev.currentTarget);
-    const tipo = String(fd.get('tipo') || '').toUpperCase();
-    const descripcion = String(fd.get('descripcion') || '').trim();
-    if (!tipo) {
-      flash('flash', 'Selecciona un tipo de incidencia.', 'error');
-      return;
-    }
-    const r = await api('POST', '/turismo/estudiantes/prestamos/' + prestamoId + '/incidencia', {
-      tipo, descripcion
-    });
-    if (!r.ok) {
-      flash('flash', (r.data && r.data.error) || 'No se pudo reportar la incidencia.', 'error');
-      return;
-    }
-    flash('flash', (r.data && r.data.message) || 'Incidencia reportada.', 'ok');
-    cargar();
-  };
-
   const wireSubtabs = () => {
     document.querySelectorAll('.subtabs').forEach((bar) => {
       const buttons = bar.querySelectorAll('button[data-subtab]');
@@ -285,12 +225,48 @@
     });
   };
 
+  const initListas = () => {
+    prestamosCtl = makePagedList(document.getElementById('prestamosBox'), {
+      render: renderPrestamoItem,
+      search: (p, q) =>
+        (p.material || '').toLowerCase().includes(q) ||
+        (p.practica || '').toLowerCase().includes(q),
+      filters: { estado: (p, v) => p.estado === v },
+      emptyHtml: '<li class="empty-state">Sin préstamos activos.</li>'
+    });
+
+    historialCtl = makePagedList(document.getElementById('historialBox'), {
+      render: renderHistorialItem,
+      search: (p, q) =>
+        (p.material || '').toLowerCase().includes(q) ||
+        (p.practica || '').toLowerCase().includes(q),
+      emptyHtml: '<li class="empty-state">Sin historial todavía.</li>'
+    });
+
+    adeudosCtl = makePagedList(document.getElementById('adeudosBox'), {
+      render: renderAdeudoItem,
+      search: (a, q) =>
+        (a.material || '').toLowerCase().includes(q) ||
+        (a.incidencia_descripcion || '').toLowerCase().includes(q),
+      emptyHtml: '<li class="empty-state">Sin adeudos.</li>'
+    });
+
+    notifCtl = makePagedList(document.getElementById('notifBox'), {
+      pageSize: 15,
+      render: renderNotifItem,
+      search: (n, q) => (n.mensaje || '').toLowerCase().includes(q),
+      filters: { leido: (n, v) => (v === 'si' ? !!n.leido : !n.leido) },
+      emptyHtml: '<li class="empty-state">Sin notificaciones.</li>'
+    });
+  };
+
   document.addEventListener('DOMContentLoaded', async () => {
     usuario = await requireAuth({ fuente: 'TURISMO', roles: ['ALUMNO'] });
     if (!usuario) return;
     wireHeader(usuario, { onRefresh: cargar });
     wireTabs('home');
     wireSubtabs();
+    initListas();
     document.getElementById('formPrestamo').addEventListener('submit', submitPrestamo);
     cargar();
   });
