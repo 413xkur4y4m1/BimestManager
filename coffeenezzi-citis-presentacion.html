@@ -3,34 +3,49 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Coffee Nezzi — VII CITIS 2026</title>
+<title>Coffee Nezzi — VII CITIS 2026 · Universidad La Salle Nezahualcóyotl</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#0f0a07;
-  --bg-2:#1a110b;
-  --surface:#211611;
-  --surface-2:#2a1a13;
-  --line:rgba(212,174,141,0.18);
-  --line-strong:rgba(212,174,141,0.32);
-  --text:#f5ece2;
-  --text-soft:#cdbba9;
-  --text-mute:#8a7665;
-  --accent:#d4ae8d;
-  --accent-2:#bc8763;
-  --accent-3:#a36b48;
-  --accent-deep:#6f4530;
-  --cream:#f3e9e0;
-  --emerald:#7ec79a;
-  --azure:#7ab8d6;
-  --rose:#e08a8a;
-  --grad-warm:linear-gradient(135deg,#d4ae8d 0%,#a36b48 50%,#6f4530 100%);
-  --grad-soft:linear-gradient(135deg,#f3e9e0 0%,#d4ae8d 100%);
-  --grad-deep:linear-gradient(135deg,#2a1a13 0%,#4a2e21 100%);
-  --shadow:0 12px 40px rgba(0,0,0,0.45);
+  /* Paleta inspirada en la plantilla VII CITIS — claro/profesional */
+  --bg:#ffffff;
+  --bg-2:#f7f9fc;
+  --bg-3:#eef2f8;
+  --surface:#ffffff;
+  --surface-2:#f4f6fb;
+  --line:rgba(15,40,90,0.10);
+  --line-strong:rgba(15,40,90,0.22);
+  --text:#0c1b3a;
+  --text-soft:#3a4763;
+  --text-mute:#6b7691;
+
+  /* Azul y rojo institucionales (La Salle / CITIS) */
+  --salle-blue:#1a2a6c;
+  --salle-blue-2:#0f1f5c;
+  --salle-blue-deep:#0a154a;
+  --salle-red:#c5172e;
+  --salle-red-2:#a01024;
+  --citis-cyan:#2b6cb0;
+  --citis-teal:#2f8a78;
+
+  /* Acentos secundarios */
+  --accent:var(--salle-blue);
+  --accent-warm:#b08858;
+  --emerald:#2f8a78;
+  --azure:#2b6cb0;
+  --rose:#c5172e;
+
+  --grad-blue:linear-gradient(135deg,#1a2a6c 0%,#0a154a 100%);
+  --grad-red:linear-gradient(135deg,#c5172e 0%,#7a0a1c 100%);
+  --grad-blue-red:linear-gradient(135deg,#1a2a6c 0%,#c5172e 100%);
+  --grad-soft:linear-gradient(135deg,#eef2f8 0%,#ffffff 60%,#fdeef0 100%);
+
+  --shadow-sm:0 2px 8px rgba(15,40,90,0.06);
+  --shadow:0 10px 32px rgba(15,40,90,0.10);
+  --shadow-lg:0 18px 50px rgba(15,40,90,0.14);
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%}
@@ -61,29 +76,65 @@ body{
 .slide.active{opacity:1;visibility:visible}
 .slide-content{width:100%;height:100%;display:flex;flex-direction:column;gap:18px}
 
-h1,h2,h3{font-family:'Space Grotesk',sans-serif;letter-spacing:-.01em;line-height:1.1}
+h1,h2,h3{font-family:'Space Grotesk',sans-serif;letter-spacing:-.01em;line-height:1.1;color:var(--text)}
 h1{font-size:clamp(34px,4.6vw,64px);font-weight:700}
-h2{font-size:clamp(24px,2.6vw,38px);font-weight:600;color:var(--text)}
-h3{font-size:clamp(16px,1.4vw,20px);font-weight:600;color:var(--accent)}
+h2{font-size:clamp(24px,2.6vw,38px);font-weight:600}
+h3{font-size:clamp(16px,1.4vw,20px);font-weight:600;color:var(--salle-blue)}
 p,li{font-size:clamp(13px,1.05vw,16px);line-height:1.55;color:var(--text-soft)}
 .mono{font-family:'JetBrains Mono',monospace}
 
+/* =========== Branding bar VII CITIS — corner watermark =========== */
+.brand-corner{
+  position:absolute;top:18px;right:24px;
+  display:flex;align-items:center;gap:14px;
+  z-index:5;
+}
+.brand-corner .citis-mini{
+  display:flex;align-items:center;gap:8px;
+  padding:6px 12px;border-radius:999px;
+  background:#fff;border:1px solid var(--line);
+  box-shadow:var(--shadow-sm);
+}
+.brand-corner .citis-mini .vii{
+  font-family:'Space Grotesk',sans-serif;
+  font-weight:800;color:var(--salle-red);font-size:18px;line-height:1;
+  letter-spacing:-.02em;
+}
+.brand-corner .citis-mini .lbl{
+  font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-mute);
+  letter-spacing:.18em;text-transform:uppercase;
+}
+.brand-corner .salle-mini{
+  height:34px;display:flex;align-items:center;
+  background:#fff;padding:4px 10px;border-radius:8px;
+  border:1px solid var(--line);box-shadow:var(--shadow-sm);
+}
+.brand-corner .salle-mini img{height:24px;width:auto;display:block}
+
+/* =========== Headers / chips =========== */
 .eyebrow{
   display:inline-flex;align-items:center;gap:8px;
   font-family:'JetBrains Mono',monospace;
   font-size:11px;letter-spacing:.22em;text-transform:uppercase;
-  color:var(--accent);
+  color:var(--salle-blue);
   padding:6px 14px;
   border:1px solid var(--line-strong);
   border-radius:999px;
-  background:rgba(212,174,141,0.06);
+  background:#fff;
   width:fit-content;
 }
-.eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent)}
+.eyebrow.red{color:var(--salle-red);border-color:rgba(197,23,46,0.25);background:#fef4f5}
+.eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--salle-red);box-shadow:0 0 8px rgba(197,23,46,0.45)}
 
-.slide-header{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:6px}
+.slide-header{
+  display:flex;justify-content:space-between;align-items:flex-start;gap:24px;
+  padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:6px;
+  padding-right:220px; /* deja espacio al brand-corner */
+}
 .slide-num{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-mute);letter-spacing:.15em}
-.title-grad{background:var(--grad-soft);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.title-grad{background:var(--grad-blue-red);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.title-blue{color:var(--salle-blue)}
+.title-red{color:var(--salle-red)}
 
 .grid{display:grid;gap:18px}
 .grid-2{grid-template-columns:1fr 1fr}
@@ -91,143 +142,368 @@ p,li{font-size:clamp(13px,1.05vw,16px);line-height:1.55;color:var(--text-soft)}
 .grid-4{grid-template-columns:repeat(4,1fr)}
 .grid-asym{grid-template-columns:1.15fr .85fr}
 
+/* =========== Cards =========== */
 .card{
-  background:linear-gradient(180deg,rgba(212,174,141,0.05) 0%,rgba(212,174,141,0.015) 100%);
+  background:#fff;
   border:1px solid var(--line);
   border-radius:14px;
   padding:18px 20px;
   display:flex;flex-direction:column;gap:8px;
   position:relative;overflow:hidden;
+  box-shadow:var(--shadow-sm);
+  transition:transform .25s, box-shadow .25s, border-color .25s;
 }
-.card.accent{border-color:var(--line-strong)}
-.card .num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);letter-spacing:.18em}
-.card h3{color:var(--cream)}
+.card:hover{transform:translateY(-2px);box-shadow:var(--shadow);border-color:var(--line-strong)}
+.card.accent{
+  background:linear-gradient(135deg,#f6f8fd 0%,#fff 50%,#fdf4f5 100%);
+  border-color:var(--line-strong);
+}
+.card .num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--salle-red);letter-spacing:.18em;font-weight:600}
+.card h3{color:var(--salle-blue)}
 .card p{color:var(--text-soft);font-size:clamp(12px,.95vw,14px)}
 
 .kpi{
-  background:linear-gradient(180deg,rgba(212,174,141,0.08),rgba(212,174,141,0.02));
+  background:linear-gradient(160deg,#fff 0%,#f4f6fb 100%);
   border:1px solid var(--line-strong);
   border-radius:16px;padding:18px 20px;
   display:flex;flex-direction:column;gap:4px;
+  box-shadow:var(--shadow-sm);
 }
-.kpi .value{font-family:'Space Grotesk',sans-serif;font-size:clamp(28px,2.8vw,40px);font-weight:700;background:var(--grad-soft);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.kpi .value{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:clamp(28px,2.8vw,40px);font-weight:700;
+  background:var(--grad-blue-red);-webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  line-height:1.05;
+}
 .kpi .label{font-size:11px;text-transform:uppercase;letter-spacing:.18em;color:var(--text-mute);font-family:'JetBrains Mono',monospace}
 
 .bullet{display:flex;gap:12px;align-items:flex-start}
-.bullet .bdot{flex:0 0 8px;height:8px;width:8px;border-radius:50%;background:var(--accent);margin-top:8px;box-shadow:0 0 0 4px rgba(212,174,141,0.12)}
+.bullet .bdot{flex:0 0 8px;height:8px;width:8px;border-radius:50%;background:var(--salle-red);margin-top:8px;box-shadow:0 0 0 4px rgba(197,23,46,0.10)}
 .bullet p{flex:1}
 
-.pill{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border:1px solid var(--line);border-radius:999px;font-size:11px;color:var(--text-soft);font-family:'JetBrains Mono',monospace}
-.pill.warm{background:rgba(212,174,141,0.08);color:var(--accent);border-color:var(--line-strong)}
+.pill{
+  display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border:1px solid var(--line);border-radius:999px;
+  font-size:11px;color:var(--text-soft);font-family:'JetBrains Mono',monospace;background:#fff;
+}
+.pill.blue{background:#eef2fa;color:var(--salle-blue);border-color:rgba(26,42,108,0.18)}
+.pill.red{background:#fef0f2;color:var(--salle-red);border-color:rgba(197,23,46,0.18)}
 
 .tag{
   display:inline-flex;align-items:center;gap:8px;
   padding:6px 12px;border-radius:8px;
-  background:rgba(212,174,141,0.08);
+  background:#f3f5fa;
   border:1px solid var(--line);
-  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cream);
+  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--salle-blue);
 }
 
-/* Cover styles */
+/* =========== Botón abrir chat =========== */
+.chat-trigger{
+  display:inline-flex;align-items:center;gap:10px;
+  padding:10px 18px;border-radius:999px;
+  background:var(--grad-blue);color:#fff;border:none;cursor:pointer;
+  font-family:'Inter',sans-serif;font-weight:600;font-size:13px;
+  box-shadow:0 8px 22px rgba(26,42,108,0.30);
+  transition:transform .2s, box-shadow .2s;
+}
+.chat-trigger:hover{transform:translateY(-1px);box-shadow:0 12px 26px rgba(26,42,108,0.38)}
+.chat-trigger .live{
+  position:relative;display:inline-block;width:8px;height:8px;border-radius:50%;background:#7ee7a0;
+}
+.chat-trigger .live::after{
+  content:'';position:absolute;inset:0;border-radius:50%;background:#7ee7a0;
+  animation:livePulse 1.6s ease-in-out infinite;
+}
+@keyframes livePulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(2.4);opacity:0}}
+
+/* =========== PORTADA VII CITIS =========== */
 .cover{
   background:
-    radial-gradient(1100px 600px at 80% 10%,rgba(163,107,72,0.35),transparent 60%),
-    radial-gradient(900px 700px at 10% 90%,rgba(212,174,141,0.18),transparent 60%),
-    linear-gradient(160deg,#0f0a07 0%,#1a110b 100%);
+    radial-gradient(1200px 700px at 90% 5%, rgba(26,42,108,0.06), transparent 60%),
+    radial-gradient(900px 600px at 5% 95%, rgba(197,23,46,0.05), transparent 60%),
+    linear-gradient(180deg, #ffffff 0%, #f7f9fc 100%);
 }
-.cover-mark{display:flex;align-items:center;gap:14px}
-.cover-mark .glyph{
-  width:54px;height:54px;border-radius:14px;
-  display:grid;place-items:center;
-  background:var(--grad-warm);
-  font-family:'Space Grotesk',sans-serif;font-weight:700;color:#1a110b;font-size:22px;
-  box-shadow:0 8px 30px rgba(212,174,141,0.25);
+.cover-grid{
+  display:grid;grid-template-columns:auto 1fr;gap:48px;align-items:start;
+  height:100%;
 }
-.cover-mark .mark-text{display:flex;flex-direction:column}
-.cover-mark .mark-text strong{font-family:'Space Grotesk',sans-serif;color:var(--cream);letter-spacing:.04em}
-.cover-mark .mark-text span{font-size:11px;color:var(--text-mute);letter-spacing:.2em;text-transform:uppercase;font-family:'JetBrains Mono',monospace}
+.vii-big{
+  font-family:'Space Grotesk',sans-serif;
+  font-weight:800;
+  color:var(--salle-red);
+  font-size:clamp(140px,18vw,280px);
+  line-height:.85;letter-spacing:-.04em;
+  text-shadow:0 6px 24px rgba(197,23,46,0.18);
+}
+.cover-meta-block{
+  display:flex;flex-direction:column;gap:6px;padding-top:18px;
+}
+.cover-meta-block .lvl-1{
+  font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--salle-blue);
+  font-size:clamp(20px,2vw,30px);line-height:1.15;letter-spacing:-.01em;
+}
+.cover-meta-block .lvl-2{
+  font-family:'Inter',sans-serif;font-weight:500;color:var(--text-soft);
+  font-size:clamp(13px,1.1vw,16px);max-width:520px;
+}
+.cover-date{
+  display:inline-flex;align-items:center;gap:10px;margin-top:14px;
+  padding:8px 16px;border-radius:8px;
+  background:var(--grad-red);color:#fff;font-weight:700;
+  font-family:'Space Grotesk',sans-serif;font-size:14px;letter-spacing:.04em;
+  width:fit-content;box-shadow:0 8px 18px rgba(197,23,46,0.28);
+}
 
-.cover-title{font-size:clamp(48px,7vw,104px);font-weight:700;line-height:1;letter-spacing:-.02em}
-.cover-subtitle{font-size:clamp(18px,1.8vw,28px);color:var(--text-soft);max-width:780px;line-height:1.35}
-.cover-meta{display:flex;gap:16px;flex-wrap:wrap;margin-top:6px}
+.cover-bottom-band{
+  position:absolute;bottom:0;left:0;right:0;
+  background:#fff;border-top:1px solid var(--line);
+  padding:18px 64px;
+  display:flex;align-items:center;justify-content:space-between;gap:24px;
+}
+.cover-bottom-band .left{display:flex;align-items:center;gap:28px;flex-wrap:wrap}
+.cover-bottom-band .logo-recodast,
+.cover-bottom-band .logo-citis{
+  height:62px;display:flex;align-items:center;justify-content:center;
+  background:#fff;
+}
+.cover-bottom-band .logo-recodast img,
+.cover-bottom-band .logo-citis img{height:100%;width:auto;display:block;object-fit:contain}
+.cover-bottom-band .logo-salle img{height:54px;width:auto;display:block}
+.cover-bottom-band .right{display:flex;align-items:center;gap:18px}
+.cover-bottom-band .right .sep{width:1px;height:36px;background:var(--line)}
+.cover-bottom-band .uni-txt{
+  display:flex;flex-direction:column;
+}
+.cover-bottom-band .uni-txt strong{
+  font-family:'Space Grotesk',sans-serif;color:var(--salle-blue);font-size:13px;
+}
+.cover-bottom-band .uni-txt span{
+  font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-mute);
+  letter-spacing:.14em;text-transform:uppercase;
+}
 
-/* Architecture diagram */
+/* =========== Architecture diagram =========== */
 .arch{
   display:grid;grid-template-columns:repeat(5,1fr);gap:14px;align-items:center;
-  background:linear-gradient(180deg,rgba(212,174,141,0.04),rgba(212,174,141,0.01));
+  background:linear-gradient(180deg,#f7f9fc,#fff);
   border:1px solid var(--line);border-radius:14px;padding:18px;
 }
 .arch-node{
-  background:var(--surface);
+  background:#fff;
   border:1px solid var(--line-strong);
   border-radius:12px;padding:14px 10px;
   display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;
+  box-shadow:var(--shadow-sm);
 }
 .arch-node .ico{
   width:38px;height:38px;border-radius:10px;display:grid;place-items:center;
-  background:rgba(212,174,141,0.12);color:var(--accent);font-size:18px;
+  background:#eef2fa;color:var(--salle-blue);font-size:18px;
 }
-.arch-node h4{font-size:12px;font-family:'Space Grotesk',sans-serif;color:var(--cream);letter-spacing:.05em}
+.arch-node h4{font-size:12px;font-family:'Space Grotesk',sans-serif;color:var(--salle-blue);letter-spacing:.05em}
 .arch-node p{font-size:10px;color:var(--text-mute);font-family:'JetBrains Mono',monospace}
-.arch-arrow{display:grid;place-items:center;color:var(--accent);font-size:20px}
+.arch-node.highlight{border-color:var(--salle-red);background:#fef4f5}
+.arch-node.highlight .ico{background:#fde0e4;color:var(--salle-red)}
+.arch-node.highlight h4{color:var(--salle-red)}
+.arch-arrow{display:grid;place-items:center;color:var(--salle-red);font-size:20px;font-weight:700}
 
-/* Endpoint table */
+/* =========== Endpoint table =========== */
 .endpoints{display:flex;flex-direction:column;gap:8px}
 .ep{
   display:grid;grid-template-columns:78px 1fr 1.4fr;gap:14px;align-items:center;
   padding:10px 14px;
-  background:rgba(212,174,141,0.04);
+  background:#fff;
   border:1px solid var(--line);border-radius:10px;
+  box-shadow:var(--shadow-sm);
 }
 .ep .method{
-  font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;
+  font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;
   text-align:center;padding:4px 0;border-radius:6px;
 }
-.ep .method.get{background:rgba(126,199,154,0.12);color:var(--emerald);border:1px solid rgba(126,199,154,0.3)}
-.ep .method.post{background:rgba(212,174,141,0.14);color:var(--accent);border:1px solid var(--line-strong)}
-.ep .method.put{background:rgba(122,184,214,0.12);color:var(--azure);border:1px solid rgba(122,184,214,0.3)}
-.ep .path{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--cream)}
+.ep .method.get{background:#e8f5ee;color:#2f8a78;border:1px solid #b8e0c9}
+.ep .method.post{background:#eef2fa;color:var(--salle-blue);border:1px solid rgba(26,42,108,0.20)}
+.ep .method.put{background:#fff4e2;color:#b07a18;border:1px solid #f2d29a}
+.ep .path{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text)}
 .ep .desc{font-size:12px;color:var(--text-soft)}
 
-/* Timeline */
+/* =========== Timeline =========== */
 .timeline{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
 .tl{
-  background:rgba(212,174,141,0.04);
+  background:#fff;
   border:1px solid var(--line);border-radius:10px;
   padding:14px 12px;display:flex;flex-direction:column;gap:6px;
-  position:relative;
+  position:relative;box-shadow:var(--shadow-sm);
+  border-top:3px solid var(--salle-red);
 }
-.tl .step{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:.18em}
-.tl h4{font-size:13px;font-family:'Space Grotesk',sans-serif;color:var(--cream)}
+.tl .step{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--salle-red);letter-spacing:.18em;font-weight:700}
+.tl h4{font-size:13px;font-family:'Space Grotesk',sans-serif;color:var(--salle-blue)}
 .tl p{font-size:11px;color:var(--text-mute);line-height:1.4}
 
-/* Refs */
+/* =========== Refs =========== */
 .refs{display:flex;flex-direction:column;gap:8px}
 .ref{
   display:grid;grid-template-columns:28px 1fr;gap:10px;
   padding:10px 14px;border:1px solid var(--line);border-radius:10px;
-  background:rgba(212,174,141,0.03);
+  background:#fff;box-shadow:var(--shadow-sm);
 }
-.ref .n{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent)}
+.ref .n{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--salle-red);font-weight:700}
 .ref p{font-size:12px;color:var(--text-soft);line-height:1.45}
-.ref em{color:var(--cream);font-style:normal;font-weight:500}
+.ref em{color:var(--salle-blue);font-style:normal;font-weight:600}
 
-/* Footer */
+/* =========== Footer =========== */
 .slide-footer{
   position:absolute;bottom:18px;left:64px;right:64px;
   display:flex;justify-content:space-between;align-items:center;
   font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-mute);letter-spacing:.18em;
   border-top:1px solid var(--line);padding-top:10px;
 }
+.slide-footer .salle-tag{
+  display:inline-flex;align-items:center;gap:8px;color:var(--salle-blue);font-weight:600;
+}
+.slide-footer .salle-tag img{height:18px;width:auto}
 
-/* Progress + nav */
-.progress-bar{position:fixed;top:0;left:0;height:2px;background:var(--accent);transition:width .35s;z-index:1000}
+/* =========== Progress + nav =========== */
+.progress-bar{position:fixed;top:0;left:0;height:3px;background:var(--grad-blue-red);transition:width .35s;z-index:1000}
 .nav-controls{position:fixed;bottom:14px;right:18px;display:flex;align-items:center;gap:10px;z-index:1000}
-.nav-btn{background:rgba(212,174,141,0.1);border:1px solid var(--line-strong);color:var(--cream);width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:14px;display:grid;place-items:center;transition:.2s}
-.nav-btn:hover{background:rgba(212,174,141,0.2)}
+.nav-btn{
+  background:#fff;border:1px solid var(--line-strong);color:var(--salle-blue);
+  width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:16px;
+  display:grid;place-items:center;transition:.2s;box-shadow:var(--shadow-sm);font-weight:700;
+}
+.nav-btn:hover{background:var(--salle-blue);color:#fff;border-color:var(--salle-blue)}
 .slide-counter{color:var(--text-mute);font-size:11px;font-family:'JetBrains Mono',monospace}
 
-/* Responsive */
+/* =========== Modal Chat Demo =========== */
+.modal-overlay{
+  position:fixed;inset:0;z-index:2000;
+  background:rgba(10,20,55,0.55);backdrop-filter:blur(6px);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;visibility:hidden;
+  transition:opacity .35s ease, visibility .35s ease;
+  padding:24px;
+}
+.modal-overlay.active{opacity:1;visibility:visible}
+.modal{
+  width:min(880px,96vw);max-height:92vh;overflow:hidden;
+  background:#fff;border-radius:22px;box-shadow:0 30px 80px rgba(10,20,55,0.40);
+  display:grid;grid-template-columns:1.05fr 1.25fr;
+  transform:translateY(20px) scale(.97);
+  transition:transform .4s cubic-bezier(.2,.7,.2,1.05);
+}
+.modal-overlay.active .modal{transform:translateY(0) scale(1)}
+@media(max-width:760px){.modal{grid-template-columns:1fr;max-height:94vh;overflow-y:auto}}
+
+.modal-left{
+  background:linear-gradient(160deg,var(--salle-blue) 0%,var(--salle-blue-deep) 100%);
+  color:#fff;padding:28px 26px;display:flex;flex-direction:column;gap:14px;
+  position:relative;overflow:hidden;
+}
+.modal-left::before{
+  content:'';position:absolute;top:-80px;right:-80px;width:240px;height:240px;border-radius:50%;
+  background:radial-gradient(circle,rgba(197,23,46,0.45),transparent 70%);
+}
+.modal-left .badge{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:5px 12px;border-radius:999px;
+  background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);
+  font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+  color:#cfd6ec;width:fit-content;position:relative;z-index:1;
+}
+.modal-left h3{font-size:22px;color:#fff;letter-spacing:-.01em;line-height:1.15;position:relative;z-index:1}
+.modal-left p{color:#c9d1ea;font-size:13.5px;line-height:1.5;position:relative;z-index:1}
+.modal-left .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px;position:relative;z-index:1}
+.modal-left .stat{
+  background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.10);
+  border-radius:10px;padding:10px 12px;
+}
+.modal-left .stat .v{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:22px;color:#fff;line-height:1}
+.modal-left .stat .l{font-family:'JetBrains Mono',monospace;font-size:9px;color:#a9b3d4;letter-spacing:.14em;text-transform:uppercase;margin-top:4px}
+.modal-left .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto;position:relative;z-index:1}
+.modal-left .tags span{
+  font-size:10px;font-family:'JetBrains Mono',monospace;padding:4px 9px;border-radius:6px;
+  background:rgba(255,255,255,0.10);color:#dde3f6;
+}
+
+.modal-right{display:flex;flex-direction:column;background:#f4f6fb}
+.modal-chat-header{
+  background:linear-gradient(90deg,var(--salle-blue) 0%,var(--salle-blue-deep) 100%);
+  padding:14px 18px;display:flex;align-items:center;gap:12px;color:#fff;
+}
+.modal-chat-header .avatar{
+  height:36px;width:36px;border-radius:50%;display:grid;place-items:center;
+  background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.22);font-size:16px;
+}
+.modal-chat-header .who strong{font-size:14px;font-family:'Space Grotesk',sans-serif;display:block}
+.modal-chat-header .who .live-row{
+  display:inline-flex;align-items:center;gap:6px;font-size:11px;color:#bfc8e6;margin-top:2px;
+}
+.modal-chat-header .who .live-row .ld{
+  position:relative;width:7px;height:7px;border-radius:50%;background:#7ee7a0;
+}
+.modal-chat-header .who .live-row .ld::after{
+  content:'';position:absolute;inset:0;border-radius:50%;background:#7ee7a0;
+  animation:livePulse 1.6s ease-in-out infinite;
+}
+.modal-close{
+  margin-left:auto;background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.22);
+  color:#fff;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:14px;
+  display:grid;place-items:center;transition:.2s;
+}
+.modal-close:hover{background:var(--salle-red);border-color:var(--salle-red)}
+
+.chat-body{
+  flex:1;overflow-y:auto;padding:18px;min-height:330px;max-height:440px;
+  background:linear-gradient(180deg,#f4f6fb 0%,#eef2f8 100%);
+  display:flex;flex-direction:column;gap:10px;
+}
+.bubble{
+  opacity:0;transform:translateY(8px) scale(.98);
+  animation:bubbleIn .45s ease-out forwards;will-change:transform,opacity;
+  display:flex;
+}
+@keyframes bubbleIn{to{opacity:1;transform:translateY(0) scale(1)}}
+.bubble.from-user{justify-content:flex-end}
+.bubble.from-bot{justify-content:flex-start}
+.bubble .msg{
+  max-width:78%;padding:10px 14px;font-size:13px;line-height:1.5;
+  box-shadow:0 2px 6px rgba(15,40,90,0.06);
+}
+.bubble.from-user .msg{
+  background:var(--salle-blue);color:#fff;border-radius:16px 16px 4px 16px;
+}
+.bubble.from-bot .msg{
+  background:#fff;color:var(--text);border:1px solid var(--line);border-radius:16px 16px 16px 4px;
+}
+.bubble.typing .msg{
+  background:#fff;border:1px solid var(--line);border-radius:16px;
+  padding:10px 14px;display:inline-flex;gap:5px;align-items:center;
+}
+.bubble.typing .dot{
+  width:6px;height:6px;border-radius:50%;background:var(--text-mute);
+  animation:typingBounce 1.4s ease-in-out infinite;
+}
+.bubble.typing .dot:nth-child(2){animation-delay:.18s}
+.bubble.typing .dot:nth-child(3){animation-delay:.36s}
+@keyframes typingBounce{0%,60%,100%{transform:translateY(0);opacity:.5}30%{transform:translateY(-5px);opacity:1}}
+
+.chat-input-row{
+  border-top:1px solid var(--line);
+  background:#fff;padding:10px 14px;display:flex;align-items:center;gap:10px;
+}
+.chat-input-row input{
+  flex:1;border:none;outline:none;background:#f4f6fb;border-radius:999px;
+  padding:9px 14px;font-size:12.5px;color:var(--text);font-family:'Inter',sans-serif;
+}
+.chat-input-row .send{
+  width:34px;height:34px;border-radius:50%;border:none;cursor:pointer;
+  background:var(--grad-blue);color:#fff;display:grid;place-items:center;font-size:14px;
+}
+.chat-replay{
+  margin-left:auto;font-size:11px;color:var(--salle-blue);background:transparent;
+  border:1px solid var(--line);border-radius:999px;padding:6px 12px;cursor:pointer;
+  font-family:'JetBrains Mono',monospace;letter-spacing:.05em;
+}
+.chat-replay:hover{background:var(--bg-3)}
+
+/* =========== Responsive =========== */
 @media (max-width:768px){
   .slide{padding:30px 22px 64px}
   .slide-footer{left:22px;right:22px}
@@ -237,6 +513,13 @@ p,li{font-size:clamp(13px,1.05vw,16px);line-height:1.55;color:var(--text-soft)}
   .timeline{grid-template-columns:1fr 1fr}
   .ep{grid-template-columns:64px 1fr;grid-template-areas:"m p" "m d"}
   .ep .desc{grid-area:d}
+  .brand-corner{top:10px;right:14px;gap:8px}
+  .brand-corner .salle-mini img{height:18px}
+  .brand-corner .citis-mini{padding:4px 8px}
+  .brand-corner .citis-mini .vii{font-size:14px}
+  .slide-header{padding-right:140px}
+  .cover-grid{grid-template-columns:1fr;gap:18px}
+  .cover-bottom-band{padding:14px 22px;flex-wrap:wrap;gap:14px}
 }
 </style>
 </head>
@@ -247,79 +530,98 @@ p,li{font-size:clamp(13px,1.05vw,16px);line-height:1.55;color:var(--text-soft)}
 
 <!-- ============== 1. PORTADA CONFERENCIA ============== -->
 <section class="slide cover active">
-  <div class="slide-content" style="justify-content:space-between">
-    <div class="cover-mark">
-      <div class="glyph">C</div>
-      <div class="mark-text">
-        <strong>VII CITIS · 2026</strong>
-        <span>Coloquio Internacional Transdisciplinario</span>
+  <div class="cover-grid">
+    <div>
+      <div class="vii-big">VII</div>
+    </div>
+    <div class="cover-meta-block">
+      <div class="lvl-1">Coloquio Internacional<br>Transdisciplinario de Ingeniería<br>y Sistemas Inteligentes</div>
+      <div class="lvl-2" style="margin-top:12px">Edición VII · 2026 — espacio de divulgación de proyectos universitarios en IA, sistemas inteligentes y arquitecturas de software contemporáneas.</div>
+      <div class="cover-date">27 de Mayo · 2026</div>
+
+      <div style="margin-top:28px;display:flex;flex-direction:column;gap:6px;max-width:560px">
+        <div class="eyebrow"><span class="dot"></span>Ponencia · Coffee Nezzi</div>
+        <h1 class="title-grad" style="font-size:clamp(28px,3.4vw,46px);margin-top:6px">Bot conversacional para pre-pedidos en cafetería universitaria</h1>
+        <p style="color:var(--text-soft);font-size:14px;margin-top:6px">
+          Microsoft Copilot Studio + backend REST en Node.js — arquitectura reproducible sin licencias premium.
+        </p>
       </div>
     </div>
+  </div>
 
-    <div style="display:flex;flex-direction:column;gap:24px">
-      <div class="eyebrow"><span class="dot"></span>27 de Mayo · 2026</div>
-      <h1 class="cover-title title-grad">VII Coloquio<br>Internacional</h1>
-      <p class="cover-subtitle">Transdisciplinario de Ingeniería y Sistemas Inteligentes — Aplicaciones de IA conversacional en entornos universitarios.</p>
-      <div class="cover-meta">
-        <span class="pill warm">Sistemas Inteligentes</span>
-        <span class="pill warm">IA Conversacional</span>
-        <span class="pill warm">Low-Code Enterprise</span>
-      </div>
+  <div class="cover-bottom-band">
+    <div class="left">
+      <div class="logo-citis"><img src="citis-assets-citis-logo.png" alt="CITIS 2026"></div>
+      <div class="sep" style="width:1px;height:48px;background:var(--line)"></div>
+      <div class="logo-recodast"><img src="citis-assets-recodast.png" alt="RECODAST"></div>
     </div>
-
-    <div style="display:flex;justify-content:space-between;align-items:flex-end">
-      <div>
-        <div class="slide-num">01 / 14</div>
-        <p style="font-size:11px;color:var(--text-mute);margin-top:4px">Coffee Nezzi — Bot conversacional para cafetería universitaria</p>
+    <div class="right">
+      <div class="uni-txt" style="text-align:right">
+        <strong>Universidad La Salle Nezahualcóyotl</strong>
+        <span>Facultad de Ingeniería · ISC</span>
       </div>
-      <div class="mono" style="font-size:10px;color:var(--text-mute);letter-spacing:.2em">EDICIÓN VII · MMXXVI</div>
+      <div class="logo-salle"><img src="citis-assets-lasalle-logo.jpg" alt="Universidad La Salle Nezahualcóyotl"></div>
     </div>
   </div>
 </section>
 
 <!-- ============== 2. PORTADA PROYECTO ============== -->
 <section class="slide">
+  <div class="brand-corner">
+    <div class="citis-mini"><span class="vii">VII</span><span class="lbl">CITIS · 2026</span></div>
+    <div class="salle-mini"><img src="citis-assets-lasalle-logo.jpg" alt="La Salle Nezahualcóyotl"></div>
+  </div>
   <div class="slide-content" style="justify-content:space-between">
     <div class="slide-header">
       <div>
-        <div class="eyebrow"><span class="dot"></span>Universidad La Salle Nezahualcóyotl</div>
+        <div class="eyebrow red"><span class="dot"></span>Universidad La Salle Nezahualcóyotl</div>
       </div>
       <div class="slide-num">02 / 14</div>
     </div>
 
     <div style="display:flex;flex-direction:column;gap:18px;justify-content:center;flex:1">
-      <h3 style="text-transform:uppercase;letter-spacing:.2em;color:var(--text-mute);font-size:12px">Facultad de Ingeniería · Ingeniería en Sistemas Computacionales</h3>
-      <h1 class="title-grad" style="font-size:clamp(40px,5.8vw,82px);max-width:1100px">Coffee Nezzi: bot conversacional para pre-pedidos en cafetería universitaria con Microsoft Copilot Studio y backend REST</h1>
+      <h3 style="text-transform:uppercase;letter-spacing:.2em;color:var(--text-mute);font-size:12px;font-family:'JetBrains Mono',monospace">Facultad de Ingeniería · Ingeniería en Sistemas Computacionales</h3>
+      <h1 class="title-grad" style="font-size:clamp(34px,5vw,72px);max-width:1100px;line-height:1.05">Coffee Nezzi: bot conversacional para pre-pedidos en cafetería universitaria con Microsoft Copilot Studio y backend REST</h1>
       <p style="font-size:clamp(15px,1.4vw,20px);color:var(--text-soft);max-width:900px;margin-top:6px">
         Integración directa de OpenAPI sobre un entorno educativo sin licencias premium — arquitectura reproducible para instituciones con presupuesto restringido.
       </p>
 
-      <div style="display:flex;gap:24px;margin-top:16px;flex-wrap:wrap">
+      <div style="display:flex;gap:32px;margin-top:16px;flex-wrap:wrap;align-items:center">
         <div style="display:flex;flex-direction:column">
-          <span class="mono" style="font-size:10px;color:var(--text-mute);letter-spacing:.18em">PONENTE</span>
-          <strong style="font-family:'Space Grotesk',sans-serif;color:var(--cream);font-size:18px;margin-top:4px">Daniel Cuellar Vázquez</strong>
+          <span class="mono" style="font-size:10px;color:var(--text-mute);letter-spacing:.18em;text-transform:uppercase">Ponente</span>
+          <strong style="font-family:'Space Grotesk',sans-serif;color:var(--salle-blue);font-size:18px;margin-top:4px">Daniel Cuellar Vázquez</strong>
         </div>
         <div style="display:flex;flex-direction:column">
-          <span class="mono" style="font-size:10px;color:var(--text-mute);letter-spacing:.18em">ÁREA</span>
-          <strong style="font-family:'Space Grotesk',sans-serif;color:var(--cream);font-size:18px;margin-top:4px">Sistemas Inteligentes · IA Conversacional</strong>
+          <span class="mono" style="font-size:10px;color:var(--text-mute);letter-spacing:.18em;text-transform:uppercase">Área</span>
+          <strong style="font-family:'Space Grotesk',sans-serif;color:var(--salle-blue);font-size:18px;margin-top:4px">Sistemas Inteligentes · IA Conversacional</strong>
         </div>
         <div style="display:flex;flex-direction:column">
-          <span class="mono" style="font-size:10px;color:var(--text-mute);letter-spacing:.18em">FECHA</span>
-          <strong style="font-family:'Space Grotesk',sans-serif;color:var(--cream);font-size:18px;margin-top:4px">27 · Mayo · 2026</strong>
+          <span class="mono" style="font-size:10px;color:var(--text-mute);letter-spacing:.18em;text-transform:uppercase">Fecha</span>
+          <strong style="font-family:'Space Grotesk',sans-serif;color:var(--salle-blue);font-size:18px;margin-top:4px">27 · Mayo · 2026</strong>
         </div>
+        <button class="chat-trigger" onclick="openChatModal()" style="margin-left:auto">
+          <span class="live"></span>Ver demo del bot
+        </button>
       </div>
     </div>
   </div>
-  <div class="slide-footer"><span>COFFEE NEZZI · VII CITIS</span><span>PRESENTACIÓN PROFESIONAL</span></div>
+  <div class="slide-footer">
+    <span class="salle-tag"><img src="citis-assets-lasalle-logo.jpg" alt=""> La Salle Nezahualcóyotl</span>
+    <span>COFFEE NEZZI · VII CITIS · 02</span>
+  </div>
 </section>
 
 <!-- ============== 3. CONTEXTO ============== -->
 <section class="slide">
+  <div class="brand-corner">
+    <div class="citis-mini"><span class="vii">VII</span><span class="lbl">CITIS · 2026</span></div>
+    <div class="salle-mini"><img src="citis-assets-lasalle-logo.jpg" alt="La Salle Nezahualcóyotl"></div>
+  </div>
   <div class="slide-content">
     <div class="slide-header">
       <div>
         <div class="eyebrow"><span class="dot"></span>Sección 01 · Contexto</div>
-        <h2 style="margin-top:10px">Contexto del problema</h2>
+        <h2 style="margin-top:10px"><span class="title-red">Contexto</span> del problema</h2>
       </div>
       <div class="slide-num">03 / 14</div>
     </div>
@@ -327,13 +629,13 @@ p,li{font-size:clamp(13px,1.05vw,16px);line-height:1.55;color:var(--text-soft)}
     <div class="grid grid-asym" style="flex:1;align-content:start">
       <div style="display:flex;flex-direction:column;gap:14px">
         <p style="font-size:clamp(15px,1.3vw,18px);color:var(--text)">
-          Las cafeterías universitarias concentran picos de demanda en ventanas muy cortas (entrada, recesos, salida). Esto genera filas, esperas y errores de comunicación, especialmente cuando el cliente tiene <strong style="color:var(--cream)">alergias o restricciones alimentarias</strong>.
+          Las cafeterías universitarias concentran picos de demanda en ventanas muy cortas (entrada, recesos, salida). Esto genera filas, esperas y errores de comunicación, especialmente cuando el cliente tiene <strong style="color:var(--salle-red)">alergias o restricciones alimentarias</strong>.
         </p>
         <p>
-          En paralelo, los <strong style="color:var(--cream)">modelos de lenguaje (LLM)</strong> y las plataformas <strong style="color:var(--cream)">low-code de agentes</strong> permiten construir interfaces conversacionales que reemplazan formularios y apps móviles dedicadas, con una fracción del esfuerzo tradicional.
+          En paralelo, los <strong style="color:var(--salle-blue)">modelos de lenguaje (LLM)</strong> y las plataformas <strong style="color:var(--salle-blue)">low-code de agentes</strong> permiten construir interfaces conversacionales que reemplazan formularios y apps móviles dedicadas, con una fracción del esfuerzo tradicional.
         </p>
         <p>
-          El reto es lograr que esta tecnología sea adoptable en <strong style="color:var(--cream)">entornos educativos</strong> que no disponen de licencias premium para conectores personalizados o automatizaciones avanzadas.
+          El reto es lograr que esta tecnología sea adoptable en <strong style="color:var(--salle-blue)">entornos educativos</strong> que no disponen de licencias premium para conectores personalizados o automatizaciones avanzadas.
         </p>
       </div>
 
@@ -346,28 +648,35 @@ p,li{font-size:clamp(13px,1.05vw,16px);line-height:1.55;color:var(--text-soft)}
     </div>
 
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px">
-      <span class="pill warm">IA Conversacional</span>
-      <span class="pill warm">Sistemas Inteligentes</span>
-      <span class="pill warm">Hospitalidad Universitaria</span>
-      <span class="pill warm">Low-Code</span>
+      <span class="pill blue">IA Conversacional</span>
+      <span class="pill blue">Sistemas Inteligentes</span>
+      <span class="pill red">Hospitalidad Universitaria</span>
+      <span class="pill red">Low-Code</span>
     </div>
   </div>
-  <div class="slide-footer"><span>COFFEE NEZZI · VII CITIS</span><span>03 — CONTEXTO</span></div>
+  <div class="slide-footer">
+    <span class="salle-tag"><img src="citis-assets-lasalle-logo.jpg" alt=""> La Salle Nezahualcóyotl</span>
+    <span>COFFEE NEZZI · VII CITIS · 03 — CONTEXTO</span>
+  </div>
 </section>
 
 <!-- ============== 4. PLANTEAMIENTO ============== -->
 <section class="slide">
+  <div class="brand-corner">
+    <div class="citis-mini"><span class="vii">VII</span><span class="lbl">CITIS · 2026</span></div>
+    <div class="salle-mini"><img src="citis-assets-lasalle-logo.jpg" alt="La Salle Nezahualcóyotl"></div>
+  </div>
   <div class="slide-content">
     <div class="slide-header">
       <div>
         <div class="eyebrow"><span class="dot"></span>Sección 02 · Planteamiento</div>
-        <h2 style="margin-top:10px">Planteamiento del problema</h2>
+        <h2 style="margin-top:10px"><span class="title-red">Planteamiento</span> del problema</h2>
       </div>
       <div class="slide-num">04 / 14</div>
     </div>
 
     <p style="font-size:clamp(15px,1.3vw,18px);color:var(--text);max-width:1000px">
-      ¿Cómo ofrecer un canal de pre-pedido conversacional a una comunidad universitaria, integrado a un backend transaccional y desplegable <strong style="color:var(--cream)">sin licencias Power Platform premium</strong>?
+      ¿Cómo ofrecer un canal de pre-pedido conversacional a una comunidad universitaria, integrado a un backend transaccional y desplegable <strong style="color:var(--salle-red)">sin licencias Power Platform premium</strong>?
     </p>
 
     <div class="grid grid-3" style="margin-top:8px">
@@ -388,35 +697,47 @@ p,li{font-size:clamp(13px,1.05vw,16px);line-height:1.55;color:var(--text-soft)}
       </div>
     </div>
 
-    <div class="card accent" style="margin-top:6px;background:linear-gradient(135deg,rgba(212,174,141,0.08),rgba(163,107,72,0.05))">
+    <div class="card accent" style="margin-top:6px">
       <span class="num">NECESIDAD QUE JUSTIFICA LA PROPUESTA</span>
-      <p style="font-size:clamp(14px,1.1vw,16px);color:var(--cream)">
-        Se requiere una arquitectura <strong>reproducible</strong>, basada en <strong>OpenAPI estándar</strong> y un <strong>agente conversacional generativo</strong>, que funcione sobre el tenant educativo existente (sin SKUs Power Platform de pago) y exponga las operaciones del backend con seguridad y trazabilidad.
+      <p style="font-size:clamp(14px,1.1vw,16px);color:var(--text)">
+        Se requiere una arquitectura <strong style="color:var(--salle-blue)">reproducible</strong>, basada en <strong style="color:var(--salle-blue)">OpenAPI estándar</strong> y un <strong style="color:var(--salle-red)">agente conversacional generativo</strong>, que funcione sobre el tenant educativo existente (sin SKUs Power Platform de pago) y exponga las operaciones del backend con seguridad y trazabilidad.
       </p>
     </div>
   </div>
-  <div class="slide-footer"><span>COFFEE NEZZI · VII CITIS</span><span>04 — PLANTEAMIENTO</span></div>
+  <div class="slide-footer">
+    <span class="salle-tag"><img src="citis-assets-lasalle-logo.jpg" alt=""> La Salle Nezahualcóyotl</span>
+    <span>COFFEE NEZZI · VII CITIS · 04 — PLANTEAMIENTO</span>
+  </div>
 </section>
 
 <!-- ============== 5. OBJETIVOS ============== -->
 <section class="slide">
+  <div class="brand-corner">
+    <div class="citis-mini"><span class="vii">VII</span><span class="lbl">CITIS · 2026</span></div>
+    <div class="salle-mini"><img src="citis-assets-lasalle-logo.jpg" alt="La Salle Nezahualcóyotl"></div>
+  </div>
   <div class="slide-content">
     <div class="slide-header">
       <div>
         <div class="eyebrow"><span class="dot"></span>Sección 03 · Objetivos</div>
-        <h2 style="margin-top:10px">Objetivo general y específicos</h2>
+        <h2 style="margin-top:10px"><span class="title-blue">Objetivo general</span> y específicos</h2>
       </div>
       <div class="slide-num">05 / 14</div>
     </div>
 
-    <div class="card accent" style="background:linear-gradient(135deg,rgba(212,174,141,0.1),rgba(163,107,72,0.06));margin-top:4px">
+    <div class="card accent" style="margin-top:4px">
       <span class="num">OBJETIVO GENERAL</span>
-      <p style="font-size:clamp(15px,1.3vw,19px);color:var(--cream);line-height:1.5">
-        Diseñar e implementar un <strong>bot conversacional generativo</strong> integrado a un backend Node.js/Express/MySQL, mediante <strong>OpenAPI directo</strong> en Microsoft Copilot Studio, que permita gestionar el ciclo completo del pedido en una cafetería universitaria sin requerir licencias premium.
+      <p style="font-size:clamp(15px,1.3vw,19px);color:var(--text);line-height:1.5">
+        Diseñar e implementar un <strong style="color:var(--salle-red)">bot conversacional generativo</strong> integrado a un backend Node.js/Express/MySQL, mediante <strong style="color:var(--salle-blue)">OpenAPI directo</strong> en Microsoft Copilot Studio, que permita gestionar el ciclo completo del pedido en una cafetería universitaria sin requerir licencias premium.
       </p>
+      <div style="margin-top:6px">
+        <button class="chat-trigger" onclick="openChatModal()" style="font-size:12px;padding:8px 14px">
+          <span class="live"></span>Ver el objetivo en acción
+        </button>
+      </div>
     </div>
 
-    <h3 style="margin-top:14px;color:var(--accent)">Objetivos específicos</h3>
+    <h3 style="margin-top:14px;color:var(--salle-blue)">Objetivos específicos</h3>
     <div class="grid grid-4" style="margin-top:4px">
       <div class="card">
         <span class="num">OE · 01</span>
@@ -426,7 +747,7 @@ p,li{font-size:clamp(13px,1.05vw,16px);line-height:1.55;color:var(--text-soft)}
       <div class="card">
         <span class="num">OE · 02</span>
         <h3>Modelar</h3>
-        <p>El contrato <span class="mono" style="color:var(--accent)">OpenAPI 2.0</span> con descripciones semánticas que el LLM use para decidir cuándo invocar cada herramienta.</p>
+        <p>El contrato <span class="mono" style="color:var(--salle-red)">OpenAPI 2.0</span> con descripciones semánticas que el LLM use para decidir cuándo invocar cada herramienta.</p>
       </div>
       <div class="card">
         <span class="num">OE · 03</span>
@@ -440,16 +761,23 @@ p,li{font-size:clamp(13px,1.05vw,16px);line-height:1.55;color:var(--text-soft)}
       </div>
     </div>
   </div>
-  <div class="slide-footer"><span>COFFEE NEZZI · VII CITIS</span><span>05 — OBJETIVOS</span></div>
+  <div class="slide-footer">
+    <span class="salle-tag"><img src="citis-assets-lasalle-logo.jpg" alt=""> La Salle Nezahualcóyotl</span>
+    <span>COFFEE NEZZI · VII CITIS · 05 — OBJETIVOS</span>
+  </div>
 </section>
 
 <!-- ============== 6. MARCO TEÓRICO ============== -->
 <section class="slide">
+  <div class="brand-corner">
+    <div class="citis-mini"><span class="vii">VII</span><span class="lbl">CITIS · 2026</span></div>
+    <div class="salle-mini"><img src="citis-assets-lasalle-logo.jpg" alt="La Salle Nezahualcóyotl"></div>
+  </div>
   <div class="slide-content">
     <div class="slide-header">
       <div>
         <div class="eyebrow"><span class="dot"></span>Sección 04 · Fundamentos</div>
-        <h2 style="margin-top:10px">Marco teórico</h2>
+        <h2 style="margin-top:10px"><span class="title-blue">Marco</span> teórico</h2>
       </div>
       <div class="slide-num">06 / 14</div>
     </div>
@@ -482,7 +810,7 @@ p,li{font-size:clamp(13px,1.05vw,16px);line-height:1.55;color:var(--text-soft)}
         <div class="card">
           <span class="num">E · EXPOSICIÓN SEGURA</span>
           <h3>Tunneling HTTPS · ngrok</h3>
-          <p>Dominio reservado <span class="mono" style="color:var(--accent);font-size:11px">desecrate-untwist-smoky.ngrok-free.dev</span> que permite a la nube de Microsoft alcanzar el backend local con TLS, sin abrir puertos en la red institucional.</p>
+          <p>Dominio reservado <span class="mono" style="color:var(--salle-red);font-size:11px">desecrate-untwist-smoky.ngrok-free.dev</span> que permite a la nube de Microsoft alcanzar el backend local con TLS, sin abrir puertos en la red institucional.</p>
         </div>
         <div class="card">
           <span class="num">F · ÁREA DE APLICACIÓN</span>
@@ -492,16 +820,23 @@ p,li{font-size:clamp(13px,1.05vw,16px);line-height:1.55;color:var(--text-soft)}
       </div>
     </div>
   </div>
-  <div class="slide-footer"><span>COFFEE NEZZI · VII CITIS</span><span>06 — MARCO TEÓRICO</span></div>
+  <div class="slide-footer">
+    <span class="salle-tag"><img src="citis-assets-lasalle-logo.jpg" alt=""> La Salle Nezahualcóyotl</span>
+    <span>COFFEE NEZZI · VII CITIS · 06 — MARCO TEÓRICO</span>
+  </div>
 </section>
 
 <!-- ============== 7. TRABAJOS RELACIONADOS ============== -->
 <section class="slide">
+  <div class="brand-corner">
+    <div class="citis-mini"><span class="vii">VII</span><span class="lbl">CITIS · 2026</span></div>
+    <div class="salle-mini"><img src="citis-assets-lasalle-logo.jpg" alt="La Salle Nezahualcóyotl"></div>
+  </div>
   <div class="slide-content">
     <div class="slide-header">
       <div>
         <div class="eyebrow"><span class="dot"></span>Sección 05 · Antecedentes</div>
-        <h2 style="margin-top:10px">Trabajos relacionados</h2>
+        <h2 style="margin-top:10px"><span class="title-red">Trabajos</span> relacionados</h2>
       </div>
       <div class="slide-num">07 / 14</div>
     </div>
@@ -524,30 +859,37 @@ p,li{font-size:clamp(13px,1.05vw,16px);line-height:1.55;color:var(--text-soft)}
       </div>
     </div>
 
-    <div class="card accent" style="margin-top:14px;background:linear-gradient(135deg,rgba(212,174,141,0.08),rgba(163,107,72,0.04))">
+    <div class="card accent" style="margin-top:14px">
       <span class="num">BRECHA DETECTADA · QUÉ APORTA ESTE TRABAJO</span>
       <div class="grid grid-3" style="margin-top:8px;gap:14px">
-        <div class="bullet"><span class="bdot"></span><p><strong style="color:var(--cream)">Sin app nativa:</strong> conversación en Teams, no inversión en iOS/Android.</p></div>
-        <div class="bullet"><span class="bdot"></span><p><strong style="color:var(--cream)">Sin licencia premium:</strong> OpenAPI directo en lugar de Custom Connectors.</p></div>
-        <div class="bullet"><span class="bdot"></span><p><strong style="color:var(--cream)">Transaccional, no informativo:</strong> CRUD completo de pedidos contra MySQL.</p></div>
+        <div class="bullet"><span class="bdot"></span><p><strong style="color:var(--salle-blue)">Sin app nativa:</strong> conversación en Teams, no inversión en iOS/Android.</p></div>
+        <div class="bullet"><span class="bdot"></span><p><strong style="color:var(--salle-blue)">Sin licencia premium:</strong> OpenAPI directo en lugar de Custom Connectors.</p></div>
+        <div class="bullet"><span class="bdot"></span><p><strong style="color:var(--salle-blue)">Transaccional, no informativo:</strong> CRUD completo de pedidos contra MySQL.</p></div>
       </div>
     </div>
   </div>
-  <div class="slide-footer"><span>COFFEE NEZZI · VII CITIS</span><span>07 — ANTECEDENTES</span></div>
+  <div class="slide-footer">
+    <span class="salle-tag"><img src="citis-assets-lasalle-logo.jpg" alt=""> La Salle Nezahualcóyotl</span>
+    <span>COFFEE NEZZI · VII CITIS · 07 — ANTECEDENTES</span>
+  </div>
 </section>
 
 <!-- ============== 8. METODOLOGÍA ============== -->
 <section class="slide">
+  <div class="brand-corner">
+    <div class="citis-mini"><span class="vii">VII</span><span class="lbl">CITIS · 2026</span></div>
+    <div class="salle-mini"><img src="citis-assets-lasalle-logo.jpg" alt="La Salle Nezahualcóyotl"></div>
+  </div>
   <div class="slide-content">
     <div class="slide-header">
       <div>
         <div class="eyebrow"><span class="dot"></span>Sección 06 · Método</div>
-        <h2 style="margin-top:10px">Metodología</h2>
+        <h2 style="margin-top:10px"><span class="title-blue">Metodología</span></h2>
       </div>
       <div class="slide-num">08 / 14</div>
     </div>
 
-    <p style="color:var(--text-soft);max-width:1000px">Enfoque iterativo en seis fases — adaptación de <strong style="color:var(--cream)">CRISP-DM</strong> al desarrollo de agentes conversacionales.</p>
+    <p style="color:var(--text-soft);max-width:1000px">Enfoque iterativo en seis fases — adaptación de <strong style="color:var(--salle-red)">CRISP-DM</strong> al desarrollo de agentes conversacionales.</p>
 
     <div class="timeline" style="margin-top:8px">
       <div class="tl">
@@ -558,7 +900,7 @@ p,li{font-size:clamp(13px,1.05vw,16px);line-height:1.55;color:var(--text-soft)}
       <div class="tl">
         <span class="step">FASE 02</span>
         <h4>API REST</h4>
-        <p>Implementación MVC en Express: rutas, controladores, modelos. Patrón <span class="mono" style="color:var(--accent);font-size:10px">mysql2</span> con pool.</p>
+        <p>Implementación MVC en Express: rutas, controladores, modelos. Patrón <span class="mono" style="color:var(--salle-red);font-size:10px">mysql2</span> con pool.</p>
       </div>
       <div class="tl">
         <span class="step">FASE 03</span>
@@ -582,7 +924,7 @@ p,li{font-size:clamp(13px,1.05vw,16px);line-height:1.55;color:var(--text-soft)}
       </div>
     </div>
 
-    <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+    <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
       <span class="tag">Node.js 18+</span>
       <span class="tag">Express 5</span>
       <span class="tag">MySQL 8</span>
@@ -593,16 +935,23 @@ p,li{font-size:clamp(13px,1.05vw,16px);line-height:1.55;color:var(--text-soft)}
       <span class="tag">Microsoft Teams</span>
     </div>
   </div>
-  <div class="slide-footer"><span>COFFEE NEZZI · VII CITIS</span><span>08 — METODOLOGÍA</span></div>
+  <div class="slide-footer">
+    <span class="salle-tag"><img src="citis-assets-lasalle-logo.jpg" alt=""> La Salle Nezahualcóyotl</span>
+    <span>COFFEE NEZZI · VII CITIS · 08 — METODOLOGÍA</span>
+  </div>
 </section>
 
 <!-- ============== 9. DESARROLLO DE LA PROPUESTA ============== -->
 <section class="slide">
+  <div class="brand-corner">
+    <div class="citis-mini"><span class="vii">VII</span><span class="lbl">CITIS · 2026</span></div>
+    <div class="salle-mini"><img src="citis-assets-lasalle-logo.jpg" alt="La Salle Nezahualcóyotl"></div>
+  </div>
   <div class="slide-content">
     <div class="slide-header">
       <div>
         <div class="eyebrow"><span class="dot"></span>Sección 07 · Propuesta</div>
-        <h2 style="margin-top:10px">Arquitectura del sistema</h2>
+        <h2 style="margin-top:10px"><span class="title-red">Arquitectura</span> del sistema</h2>
       </div>
       <div class="slide-num">09 / 14</div>
     </div>
@@ -614,7 +963,7 @@ p,li{font-size:clamp(13px,1.05vw,16px);line-height:1.55;color:var(--text-soft)}
         <p>Microsoft Teams</p>
       </div>
       <div class="arch-arrow">→</div>
-      <div class="arch-node" style="border-color:var(--accent);background:rgba(212,174,141,0.08)">
+      <div class="arch-node highlight">
         <div class="ico">🤖</div>
         <h4>Copilot Studio</h4>
         <p>Agente generativo</p>
@@ -640,7 +989,7 @@ p,li{font-size:clamp(13px,1.05vw,16px);line-height:1.55;color:var(--text-soft)}
         <p>pool mysql2</p>
       </div>
       <div class="arch-arrow">↺</div>
-      <div class="arch-node" style="border-color:var(--accent);background:rgba(212,174,141,0.08)">
+      <div class="arch-node highlight">
         <div class="ico">📋</div>
         <h4>OpenAPI</h4>
         <p>Contrato compartido</p>
@@ -664,17 +1013,30 @@ p,li{font-size:clamp(13px,1.05vw,16px);line-height:1.55;color:var(--text-soft)}
         <p>Confirmaciones en lenguaje natural + registros en MySQL: pedido creado, productos agregados, estado consultado, pedido cancelado.</p>
       </div>
     </div>
+
+    <div style="margin-top:8px">
+      <button class="chat-trigger" onclick="openChatModal()">
+        <span class="live"></span>Ver flujo conversacional completo
+      </button>
+    </div>
   </div>
-  <div class="slide-footer"><span>COFFEE NEZZI · VII CITIS</span><span>09 — PROPUESTA</span></div>
+  <div class="slide-footer">
+    <span class="salle-tag"><img src="citis-assets-lasalle-logo.jpg" alt=""> La Salle Nezahualcóyotl</span>
+    <span>COFFEE NEZZI · VII CITIS · 09 — PROPUESTA</span>
+  </div>
 </section>
 
 <!-- ============== 10. RESULTADOS ============== -->
 <section class="slide">
+  <div class="brand-corner">
+    <div class="citis-mini"><span class="vii">VII</span><span class="lbl">CITIS · 2026</span></div>
+    <div class="salle-mini"><img src="citis-assets-lasalle-logo.jpg" alt="La Salle Nezahualcóyotl"></div>
+  </div>
   <div class="slide-content">
     <div class="slide-header">
       <div>
         <div class="eyebrow"><span class="dot"></span>Sección 08 · Resultados</div>
-        <h2 style="margin-top:10px">Resultados principales</h2>
+        <h2 style="margin-top:10px"><span class="title-blue">Resultados</span> principales</h2>
       </div>
       <div class="slide-num">10 / 14</div>
     </div>
@@ -696,24 +1058,31 @@ p,li{font-size:clamp(13px,1.05vw,16px);line-height:1.55;color:var(--text-soft)}
         <div class="ep"><span class="method put">PUT</span><span class="path">/api/pedidos/{id}/cancelar</span><span class="desc">Cancela el pedido antes de su preparación</span></div>
       </div>
 
-      <div style="background:rgba(212,174,141,0.04);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column">
-        <h3 style="color:var(--accent);font-size:13px;letter-spacing:.1em;text-transform:uppercase">Cobertura por fase</h3>
+      <div style="background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;box-shadow:var(--shadow-sm)">
+        <h3 style="color:var(--salle-red);font-size:13px;letter-spacing:.1em;text-transform:uppercase">Cobertura por fase</h3>
         <div style="position:relative;flex:1;min-height:180px;margin-top:8px">
           <canvas id="coverageChart"></canvas>
         </div>
       </div>
     </div>
   </div>
-  <div class="slide-footer"><span>COFFEE NEZZI · VII CITIS</span><span>10 — RESULTADOS</span></div>
+  <div class="slide-footer">
+    <span class="salle-tag"><img src="citis-assets-lasalle-logo.jpg" alt=""> La Salle Nezahualcóyotl</span>
+    <span>COFFEE NEZZI · VII CITIS · 10 — RESULTADOS</span>
+  </div>
 </section>
 
 <!-- ============== 11. ANÁLISIS ============== -->
 <section class="slide">
+  <div class="brand-corner">
+    <div class="citis-mini"><span class="vii">VII</span><span class="lbl">CITIS · 2026</span></div>
+    <div class="salle-mini"><img src="citis-assets-lasalle-logo.jpg" alt="La Salle Nezahualcóyotl"></div>
+  </div>
   <div class="slide-content">
     <div class="slide-header">
       <div>
         <div class="eyebrow"><span class="dot"></span>Sección 09 · Análisis</div>
-        <h2 style="margin-top:10px">Análisis e interpretación</h2>
+        <h2 style="margin-top:10px"><span class="title-red">Análisis</span> e interpretación</h2>
       </div>
       <div class="slide-num">11 / 14</div>
     </div>
@@ -723,7 +1092,7 @@ p,li{font-size:clamp(13px,1.05vw,16px);line-height:1.55;color:var(--text-soft)}
         <div class="card">
           <span class="num">HALLAZGO · 01</span>
           <h3>El LLM eligió correctamente la herramienta sin reglas explícitas</h3>
-          <p>El modo generativo, alimentado únicamente con descripciones semánticas del OpenAPI, decidió de forma consistente cuándo invocar cada endpoint — confirmando que el <strong style="color:var(--cream)">diseño de descripciones</strong> es más decisivo que las reglas de tópicos clásicas.</p>
+          <p>El modo generativo, alimentado únicamente con descripciones semánticas del OpenAPI, decidió de forma consistente cuándo invocar cada endpoint — confirmando que el <strong style="color:var(--salle-red)">diseño de descripciones</strong> es más decisivo que las reglas de tópicos clásicas.</p>
         </div>
         <div class="card">
           <span class="num">HALLAZGO · 02</span>
@@ -734,110 +1103,131 @@ p,li{font-size:clamp(13px,1.05vw,16px);line-height:1.55;color:var(--text-soft)}
       <div style="display:flex;flex-direction:column;gap:12px">
         <div class="card">
           <span class="num">HALLAZGO · 03</span>
-          <h3>El campo <span class="mono" style="font-size:12px;color:var(--accent)">notas</span> capturó alergias de forma natural</h3>
+          <h3>El campo <span class="mono" style="font-size:12px;color:var(--salle-red)">notas</span> capturó alergias de forma natural</h3>
           <p>Al instruir al agente a preguntar por restricciones alimentarias antes de crear el pedido, la información quedó estructurada en MySQL sin necesidad de un formulario explícito — reduciendo fricción de adopción.</p>
         </div>
         <div class="card">
           <span class="num">HALLAZGO · 04</span>
           <h3>Implicaciones para el área</h3>
-          <p>El patrón es replicable a otros dominios universitarios: bibliotecas, laboratorios, citas médicas. Cualquier backend REST documentado con OpenAPI se vuelve <strong style="color:var(--cream)">"conversacionalizable"</strong> en horas.</p>
+          <p>El patrón es replicable a otros dominios universitarios: bibliotecas, laboratorios, citas médicas. Cualquier backend REST documentado con OpenAPI se vuelve <strong style="color:var(--salle-blue)">"conversacionalizable"</strong> en horas.</p>
         </div>
       </div>
     </div>
 
-    <div class="card accent" style="margin-top:6px;background:linear-gradient(135deg,rgba(212,174,141,0.08),rgba(163,107,72,0.04))">
-      <p style="font-size:clamp(13px,1.05vw,15px);color:var(--cream)">
-        <strong>Lectura crítica:</strong> los resultados no validan precisión estadística de un modelo entrenado, sino la <em>viabilidad arquitectónica</em> de un patrón de integración. La métrica relevante es la <strong>reducción de barrera de entrada</strong>, no exactitud/F1.
+    <div class="card accent" style="margin-top:6px">
+      <p style="font-size:clamp(13px,1.05vw,15px);color:var(--text)">
+        <strong style="color:var(--salle-red)">Lectura crítica:</strong> los resultados no validan precisión estadística de un modelo entrenado, sino la <em style="color:var(--salle-blue);font-style:normal;font-weight:600">viabilidad arquitectónica</em> de un patrón de integración. La métrica relevante es la <strong style="color:var(--salle-blue)">reducción de barrera de entrada</strong>, no exactitud/F1.
       </p>
     </div>
   </div>
-  <div class="slide-footer"><span>COFFEE NEZZI · VII CITIS</span><span>11 — ANÁLISIS</span></div>
+  <div class="slide-footer">
+    <span class="salle-tag"><img src="citis-assets-lasalle-logo.jpg" alt=""> La Salle Nezahualcóyotl</span>
+    <span>COFFEE NEZZI · VII CITIS · 11 — ANÁLISIS</span>
+  </div>
 </section>
 
 <!-- ============== 12. CONCLUSIONES ============== -->
 <section class="slide">
+  <div class="brand-corner">
+    <div class="citis-mini"><span class="vii">VII</span><span class="lbl">CITIS · 2026</span></div>
+    <div class="salle-mini"><img src="citis-assets-lasalle-logo.jpg" alt="La Salle Nezahualcóyotl"></div>
+  </div>
   <div class="slide-content">
     <div class="slide-header">
       <div>
         <div class="eyebrow"><span class="dot"></span>Sección 10 · Cierre</div>
-        <h2 style="margin-top:10px">Conclusiones</h2>
+        <h2 style="margin-top:10px"><span class="title-blue">Conclusiones</span></h2>
       </div>
       <div class="slide-num">12 / 14</div>
     </div>
 
     <div style="display:flex;flex-direction:column;gap:10px;margin-top:6px">
-      <div class="bullet"><span class="bdot"></span><p style="font-size:clamp(14px,1.15vw,17px);color:var(--text)"><strong style="color:var(--cream)">01 · </strong>Se cumplió el objetivo general: el bot Coffee Nezzi gestiona el ciclo completo de pedido en cafetería universitaria mediante conversación natural.</p></div>
-      <div class="bullet"><span class="bdot"></span><p style="font-size:clamp(14px,1.15vw,17px);color:var(--text)"><strong style="color:var(--cream)">02 · </strong>La integración <span class="mono" style="font-size:12px;color:var(--accent)">OpenAPI → Copilot Studio</span> demostró ser una ruta viable para tenants educativos sin licencias premium, eliminando la dependencia de Custom Connectors.</p></div>
-      <div class="bullet"><span class="bdot"></span><p style="font-size:clamp(14px,1.15vw,17px);color:var(--text)"><strong style="color:var(--cream)">03 · </strong>El <em>tool calling</em> generativo permitió eliminar tópicos rígidos: las descripciones semánticas del contrato bastaron para que el LLM orquestara las llamadas.</p></div>
-      <div class="bullet"><span class="bdot"></span><p style="font-size:clamp(14px,1.15vw,17px);color:var(--text)"><strong style="color:var(--cream)">04 · </strong>El patrón es <strong>escalable y reproducible</strong>: el mismo enfoque aplica a bibliotecas, laboratorios químicos, agenda de citas y cualquier backend REST documentado.</p></div>
-      <div class="bullet"><span class="bdot"></span><p style="font-size:clamp(14px,1.15vw,17px);color:var(--text)"><strong style="color:var(--cream)">05 · </strong>La inclusión del campo <span class="mono" style="font-size:12px;color:var(--accent)">notas</span> para alergias mostró que la <strong>conversación reduce la fricción</strong> en información sensible que un formulario tradicional rara vez captura.</p></div>
+      <div class="bullet"><span class="bdot"></span><p style="font-size:clamp(14px,1.15vw,17px);color:var(--text)"><strong style="color:var(--salle-blue)">01 · </strong>Se cumplió el objetivo general: el bot Coffee Nezzi gestiona el ciclo completo de pedido en cafetería universitaria mediante conversación natural.</p></div>
+      <div class="bullet"><span class="bdot"></span><p style="font-size:clamp(14px,1.15vw,17px);color:var(--text)"><strong style="color:var(--salle-blue)">02 · </strong>La integración <span class="mono" style="font-size:12px;color:var(--salle-red)">OpenAPI → Copilot Studio</span> demostró ser una ruta viable para tenants educativos sin licencias premium, eliminando la dependencia de Custom Connectors.</p></div>
+      <div class="bullet"><span class="bdot"></span><p style="font-size:clamp(14px,1.15vw,17px);color:var(--text)"><strong style="color:var(--salle-blue)">03 · </strong>El <em>tool calling</em> generativo permitió eliminar tópicos rígidos: las descripciones semánticas del contrato bastaron para que el LLM orquestara las llamadas.</p></div>
+      <div class="bullet"><span class="bdot"></span><p style="font-size:clamp(14px,1.15vw,17px);color:var(--text)"><strong style="color:var(--salle-blue)">04 · </strong>El patrón es <strong style="color:var(--salle-red)">escalable y reproducible</strong>: el mismo enfoque aplica a bibliotecas, laboratorios químicos, agenda de citas y cualquier backend REST documentado.</p></div>
+      <div class="bullet"><span class="bdot"></span><p style="font-size:clamp(14px,1.15vw,17px);color:var(--text)"><strong style="color:var(--salle-blue)">05 · </strong>La inclusión del campo <span class="mono" style="font-size:12px;color:var(--salle-red)">notas</span> para alergias mostró que la <strong style="color:var(--salle-red)">conversación reduce la fricción</strong> en información sensible que un formulario tradicional rara vez captura.</p></div>
     </div>
 
-    <div class="card accent" style="margin-top:auto;background:linear-gradient(135deg,rgba(212,174,141,0.1),rgba(163,107,72,0.05))">
-      <p style="font-size:clamp(13px,1.05vw,15px);color:var(--cream);text-align:center">
-        <strong>El valor central no es el chatbot — es la arquitectura que lo hace posible en cualquier institución educativa.</strong>
+    <div class="card accent" style="margin-top:auto">
+      <p style="font-size:clamp(13px,1.05vw,15px);color:var(--text);text-align:center">
+        <strong style="color:var(--salle-blue)">El valor central no es el chatbot</strong> — es la <strong style="color:var(--salle-red)">arquitectura</strong> que lo hace posible en cualquier institución educativa.
       </p>
     </div>
   </div>
-  <div class="slide-footer"><span>COFFEE NEZZI · VII CITIS</span><span>12 — CONCLUSIONES</span></div>
+  <div class="slide-footer">
+    <span class="salle-tag"><img src="citis-assets-lasalle-logo.jpg" alt=""> La Salle Nezahualcóyotl</span>
+    <span>COFFEE NEZZI · VII CITIS · 12 — CONCLUSIONES</span>
+  </div>
 </section>
 
 <!-- ============== 13. APORTACIONES / LIMITACIONES / TRABAJO FUTURO ============== -->
 <section class="slide">
+  <div class="brand-corner">
+    <div class="citis-mini"><span class="vii">VII</span><span class="lbl">CITIS · 2026</span></div>
+    <div class="salle-mini"><img src="citis-assets-lasalle-logo.jpg" alt="La Salle Nezahualcóyotl"></div>
+  </div>
   <div class="slide-content">
     <div class="slide-header">
       <div>
         <div class="eyebrow"><span class="dot"></span>Sección 11 · Cierre extendido</div>
-        <h2 style="margin-top:10px">Aportaciones · Limitaciones · Trabajo futuro</h2>
+        <h2 style="margin-top:10px"><span class="title-red">Aportaciones</span> · <span class="title-blue">Limitaciones</span> · Trabajo futuro</h2>
       </div>
       <div class="slide-num">13 / 14</div>
     </div>
 
     <div class="grid grid-3" style="margin-top:6px;flex:1">
-      <div class="card" style="border-color:rgba(126,199,154,0.3);background:linear-gradient(180deg,rgba(126,199,154,0.06),rgba(126,199,154,0.01))">
-        <span class="num" style="color:var(--emerald)">APORTACIONES</span>
-        <h3 style="color:var(--cream)">Lo que ofrece</h3>
+      <div class="card" style="border-color:#b8e0c9;background:linear-gradient(180deg,#f1faf4,#fff)">
+        <span class="num" style="color:#2f8a78">APORTACIONES</span>
+        <h3 style="color:#2f8a78">Lo que ofrece</h3>
         <ul style="list-style:none;display:flex;flex-direction:column;gap:8px;margin-top:4px">
-          <li class="bullet"><span class="bdot" style="background:var(--emerald);box-shadow:0 0 0 4px rgba(126,199,154,0.15)"></span><p>Patrón reproducible OpenAPI → Copilot Studio sin premium.</p></li>
-          <li class="bullet"><span class="bdot" style="background:var(--emerald);box-shadow:0 0 0 4px rgba(126,199,154,0.15)"></span><p>Manejo estructurado de alergias por conversación.</p></li>
-          <li class="bullet"><span class="bdot" style="background:var(--emerald);box-shadow:0 0 0 4px rgba(126,199,154,0.15)"></span><p>Documentación operativa replicable a otras facultades.</p></li>
-          <li class="bullet"><span class="bdot" style="background:var(--emerald);box-shadow:0 0 0 4px rgba(126,199,154,0.15)"></span><p>Demostración de canal Teams como punto de venta digital.</p></li>
+          <li class="bullet"><span class="bdot" style="background:#2f8a78;box-shadow:0 0 0 4px rgba(47,138,120,0.10)"></span><p>Patrón reproducible OpenAPI → Copilot Studio sin premium.</p></li>
+          <li class="bullet"><span class="bdot" style="background:#2f8a78;box-shadow:0 0 0 4px rgba(47,138,120,0.10)"></span><p>Manejo estructurado de alergias por conversación.</p></li>
+          <li class="bullet"><span class="bdot" style="background:#2f8a78;box-shadow:0 0 0 4px rgba(47,138,120,0.10)"></span><p>Documentación operativa replicable a otras facultades.</p></li>
+          <li class="bullet"><span class="bdot" style="background:#2f8a78;box-shadow:0 0 0 4px rgba(47,138,120,0.10)"></span><p>Demostración de canal Teams como punto de venta digital.</p></li>
         </ul>
       </div>
 
-      <div class="card" style="border-color:rgba(224,138,138,0.3);background:linear-gradient(180deg,rgba(224,138,138,0.05),rgba(224,138,138,0.01))">
-        <span class="num" style="color:var(--rose)">LIMITACIONES</span>
-        <h3 style="color:var(--cream)">Lo pendiente</h3>
+      <div class="card" style="border-color:rgba(197,23,46,0.25);background:linear-gradient(180deg,#fdf4f5,#fff)">
+        <span class="num" style="color:var(--salle-red)">LIMITACIONES</span>
+        <h3 style="color:var(--salle-red)">Lo pendiente</h3>
         <ul style="list-style:none;display:flex;flex-direction:column;gap:8px;margin-top:4px">
-          <li class="bullet"><span class="bdot" style="background:var(--rose);box-shadow:0 0 0 4px rgba(224,138,138,0.15)"></span><p>Conexión "Sin autenticación" no es apta para producción.</p></li>
-          <li class="bullet"><span class="bdot" style="background:var(--rose);box-shadow:0 0 0 4px rgba(224,138,138,0.15)"></span><p>ngrok-free expone un único túnel, sin alta disponibilidad.</p></li>
-          <li class="bullet"><span class="bdot" style="background:var(--rose);box-shadow:0 0 0 4px rgba(224,138,138,0.15)"></span><p>Sin métricas de uso ni telemetría conversacional.</p></li>
-          <li class="bullet"><span class="bdot" style="background:var(--rose);box-shadow:0 0 0 4px rgba(224,138,138,0.15)"></span><p>Evaluación piloto cualitativa, sin estudio cuantitativo amplio.</p></li>
+          <li class="bullet"><span class="bdot" style="background:var(--salle-red);box-shadow:0 0 0 4px rgba(197,23,46,0.10)"></span><p>Conexión "Sin autenticación" no es apta para producción.</p></li>
+          <li class="bullet"><span class="bdot" style="background:var(--salle-red);box-shadow:0 0 0 4px rgba(197,23,46,0.10)"></span><p>ngrok-free expone un único túnel, sin alta disponibilidad.</p></li>
+          <li class="bullet"><span class="bdot" style="background:var(--salle-red);box-shadow:0 0 0 4px rgba(197,23,46,0.10)"></span><p>Sin métricas de uso ni telemetría conversacional.</p></li>
+          <li class="bullet"><span class="bdot" style="background:var(--salle-red);box-shadow:0 0 0 4px rgba(197,23,46,0.10)"></span><p>Evaluación piloto cualitativa, sin estudio cuantitativo amplio.</p></li>
         </ul>
       </div>
 
-      <div class="card" style="border-color:rgba(122,184,214,0.3);background:linear-gradient(180deg,rgba(122,184,214,0.05),rgba(122,184,214,0.01))">
-        <span class="num" style="color:var(--azure)">TRABAJO FUTURO</span>
-        <h3 style="color:var(--cream)">Próximos pasos</h3>
+      <div class="card" style="border-color:rgba(26,42,108,0.25);background:linear-gradient(180deg,#f3f6fd,#fff)">
+        <span class="num" style="color:var(--salle-blue)">TRABAJO FUTURO</span>
+        <h3 style="color:var(--salle-blue)">Próximos pasos</h3>
         <ul style="list-style:none;display:flex;flex-direction:column;gap:8px;margin-top:4px">
-          <li class="bullet"><span class="bdot" style="background:var(--azure);box-shadow:0 0 0 4px rgba(122,184,214,0.15)"></span><p>Auth con API Key + rate limiting en el backend.</p></li>
-          <li class="bullet"><span class="bdot" style="background:var(--azure);box-shadow:0 0 0 4px rgba(122,184,214,0.15)"></span><p>Despliegue Cloud Run / Azure App Service con dominio propio.</p></li>
-          <li class="bullet"><span class="bdot" style="background:var(--azure);box-shadow:0 0 0 4px rgba(122,184,214,0.15)"></span><p>Integración con pasarela de pago (Mercado Pago/Stripe).</p></li>
-          <li class="bullet"><span class="bdot" style="background:var(--azure);box-shadow:0 0 0 4px rgba(122,184,214,0.15)"></span><p>Análisis de logs conversacionales para detectar patrones de demanda.</p></li>
+          <li class="bullet"><span class="bdot" style="background:var(--salle-blue);box-shadow:0 0 0 4px rgba(26,42,108,0.10)"></span><p>Auth con API Key + rate limiting en el backend.</p></li>
+          <li class="bullet"><span class="bdot" style="background:var(--salle-blue);box-shadow:0 0 0 4px rgba(26,42,108,0.10)"></span><p>Despliegue Cloud Run / Azure App Service con dominio propio.</p></li>
+          <li class="bullet"><span class="bdot" style="background:var(--salle-blue);box-shadow:0 0 0 4px rgba(26,42,108,0.10)"></span><p>Integración con pasarela de pago (Mercado Pago/Stripe).</p></li>
+          <li class="bullet"><span class="bdot" style="background:var(--salle-blue);box-shadow:0 0 0 4px rgba(26,42,108,0.10)"></span><p>Análisis de logs conversacionales para detectar patrones de demanda.</p></li>
         </ul>
       </div>
     </div>
   </div>
-  <div class="slide-footer"><span>COFFEE NEZZI · VII CITIS</span><span>13 — APORTACIONES</span></div>
+  <div class="slide-footer">
+    <span class="salle-tag"><img src="citis-assets-lasalle-logo.jpg" alt=""> La Salle Nezahualcóyotl</span>
+    <span>COFFEE NEZZI · VII CITIS · 13 — APORTACIONES</span>
+  </div>
 </section>
 
 <!-- ============== 14. REFERENCIAS ============== -->
 <section class="slide">
+  <div class="brand-corner">
+    <div class="citis-mini"><span class="vii">VII</span><span class="lbl">CITIS · 2026</span></div>
+    <div class="salle-mini"><img src="citis-assets-lasalle-logo.jpg" alt="La Salle Nezahualcóyotl"></div>
+  </div>
   <div class="slide-content">
     <div class="slide-header">
       <div>
         <div class="eyebrow"><span class="dot"></span>Sección 12 · Bibliografía</div>
-        <h2 style="margin-top:10px">Referencias</h2>
+        <h2 style="margin-top:10px"><span class="title-blue">Referencias</span></h2>
       </div>
       <div class="slide-num">14 / 14</div>
     </div>
@@ -855,21 +1245,69 @@ p,li{font-size:clamp(13px,1.05vw,16px);line-height:1.55;color:var(--text-soft)}
       <div class="ref"><span class="n">[10]</span><p>Chapman, P. et al. <em>CRISP-DM 1.0 Step-by-step Data Mining Guide</em>. SPSS Inc., 2000 — base metodológica adaptada.</p></div>
     </div>
 
-    <div style="margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end;border-top:1px solid var(--line);padding-top:14px">
+    <div style="margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end;border-top:1px solid var(--line);padding-top:14px;gap:18px;flex-wrap:wrap">
       <div>
-        <span class="mono" style="font-size:10px;color:var(--text-mute);letter-spacing:.2em">GRACIAS · QUESTIONS &amp; ANSWERS</span>
-        <h3 style="margin-top:4px;color:var(--cream);font-size:18px">Coffee Nezzi — VII CITIS 2026</h3>
+        <span class="mono" style="font-size:10px;color:var(--text-mute);letter-spacing:.2em;text-transform:uppercase">Gracias · Questions &amp; Answers</span>
+        <h3 style="margin-top:4px;color:var(--salle-blue);font-size:20px">Coffee Nezzi — VII CITIS 2026</h3>
       </div>
-      <div style="text-align:right">
-        <p style="font-size:11px;color:var(--text-mute)">Universidad La Salle Nezahualcóyotl</p>
-        <p class="mono" style="font-size:10px;color:var(--text-mute);margin-top:2px">27 · MAYO · 2026</p>
+      <button class="chat-trigger" onclick="openChatModal()">
+        <span class="live"></span>Demo en vivo
+      </button>
+      <div style="text-align:right;display:flex;align-items:center;gap:12px">
+        <div>
+          <p style="font-size:11px;color:var(--text-mute)">Universidad La Salle Nezahualcóyotl</p>
+          <p class="mono" style="font-size:10px;color:var(--text-mute);margin-top:2px">27 · MAYO · 2026</p>
+        </div>
+        <img src="citis-assets-lasalle-logo.jpg" alt="La Salle" style="height:42px">
       </div>
     </div>
   </div>
-  <div class="slide-footer"><span>COFFEE NEZZI · VII CITIS</span><span>14 — REFERENCIAS · FIN</span></div>
+  <div class="slide-footer">
+    <span class="salle-tag"><img src="citis-assets-lasalle-logo.jpg" alt=""> La Salle Nezahualcóyotl</span>
+    <span>COFFEE NEZZI · VII CITIS · 14 — REFERENCIAS · FIN</span>
+  </div>
 </section>
 
 </div><!-- /.slide-deck -->
+
+<!-- ============== MODAL CHAT DEMO ============== -->
+<div class="modal-overlay" id="chatModal" onclick="if(event.target===this)closeChatModal()">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="chatModalTitle">
+    <div class="modal-left">
+      <span class="badge"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#7ee7a0"></span>Demo conversación</span>
+      <h3 id="chatModalTitle">Coffee Nezzi en acción</h3>
+      <p>Esta es la conversación real entre un alumno y el bot — sin formularios, sin menús desplegables. El LLM extrae los parámetros del lenguaje natural y llama al endpoint correcto del backend REST.</p>
+      <div class="stats">
+        <div class="stat"><div class="v">6</div><div class="l">Herramientas REST</div></div>
+        <div class="stat"><div class="v">0 USD</div><div class="l">Licencias premium</div></div>
+        <div class="stat"><div class="v">~15 s</div><div class="l">Hacer un pedido</div></div>
+        <div class="stat"><div class="v">Live</div><div class="l">MySQL → barra</div></div>
+      </div>
+      <div class="tags">
+        <span>OpenAPI directo</span>
+        <span>Tool calling</span>
+        <span>Sin Custom Connector</span>
+        <span>Node + MySQL</span>
+      </div>
+    </div>
+    <div class="modal-right">
+      <div class="modal-chat-header">
+        <div class="avatar">☕</div>
+        <div class="who">
+          <strong>Coffee Nezzi</strong>
+          <span class="live-row"><span class="ld"></span>en línea · Microsoft Teams</span>
+        </div>
+        <button class="modal-close" onclick="closeChatModal()" aria-label="Cerrar">✕</button>
+      </div>
+      <div class="chat-body" id="chatBody"></div>
+      <div class="chat-input-row">
+        <input type="text" placeholder="Escribe tu pedido…" disabled>
+        <button class="chat-replay" onclick="replayChat()">↺ Reiniciar demo</button>
+        <button class="send" aria-label="Enviar">→</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div class="nav-controls">
   <button class="nav-btn" onclick="prevSlide()" aria-label="Anterior">‹</button>
@@ -878,6 +1316,7 @@ p,li{font-size:clamp(13px,1.05vw,16px);line-height:1.55;color:var(--text-soft)}
 </div>
 
 <script>
+/* ============ Slide navigation ============ */
 let current = 1;
 const slides = document.querySelectorAll('.slide');
 const total = slides.length;
@@ -897,12 +1336,17 @@ function nextSlide(){ showSlide(current+1) }
 function prevSlide(){ showSlide(current-1) }
 
 document.addEventListener('keydown', e=>{
+  if(document.getElementById('chatModal').classList.contains('active')){
+    if(e.key==='Escape'){ closeChatModal(); }
+    return;
+  }
   if(e.key==='ArrowRight' || e.key===' '){ e.preventDefault(); nextSlide() }
   if(e.key==='ArrowLeft'){ e.preventDefault(); prevSlide() }
   if(e.key==='Home'){ showSlide(1) }
   if(e.key==='End'){ showSlide(total) }
 });
 
+/* ============ Coverage radar ============ */
 function renderCoverageChart(){
   const ctx = document.getElementById('coverageChart');
   if(!ctx) return;
@@ -913,11 +1357,11 @@ function renderCoverageChart(){
       datasets:[{
         label:'Cobertura',
         data:[100,100,100,100,100,95],
-        backgroundColor:'rgba(212,174,141,0.18)',
-        borderColor:'#d4ae8d',
+        backgroundColor:'rgba(26,42,108,0.15)',
+        borderColor:'#1a2a6c',
         borderWidth:2,
-        pointBackgroundColor:'#d4ae8d',
-        pointBorderColor:'#1a110b',
+        pointBackgroundColor:'#c5172e',
+        pointBorderColor:'#fff',
         pointRadius:4,
       }]
     },
@@ -929,13 +1373,76 @@ function renderCoverageChart(){
         r:{
           beginAtZero:true,
           max:100,
-          angleLines:{ color:'rgba(212,174,141,0.15)' },
-          grid:{ color:'rgba(212,174,141,0.12)' },
-          pointLabels:{ color:'#cdbba9', font:{ size:11, family:'JetBrains Mono' } },
-          ticks:{ color:'#6f4530', backdropColor:'transparent', stepSize:25, font:{ size:9 } }
+          angleLines:{ color:'rgba(26,42,108,0.10)' },
+          grid:{ color:'rgba(26,42,108,0.08)' },
+          pointLabels:{ color:'#1a2a6c', font:{ size:11, family:'JetBrains Mono' } },
+          ticks:{ color:'#6b7691', backdropColor:'transparent', stepSize:25, font:{ size:9 } }
         }
       }
     }
+  });
+}
+
+/* ============ Chat modal — animated bubbles ============ */
+const CHAT_SCRIPT = [
+  { side:'user', text:'Hola, quiero pedir un café en La Cafetera' },
+  { side:'bot',  text:'¡Hola! Para personalizar tu pedido, ¿tienes alguna <strong>alergia</strong> o restricción que deba registrar?' },
+  { side:'user', text:'Sí, soy intolerante a la lactosa' },
+  { side:'bot',  text:'Perfecto, lo registro en las notas. Este es el menú de <strong>La Cafetera</strong>:<br>☕ Latte — $45<br>☕ Americano — $35<br>🥐 Croissant — $30' },
+  { side:'user', text:'Un americano y un croissant a nombre de Daniel' },
+  { side:'typing' },
+  { side:'bot',  text:'Listo. Pedido <strong>#127</strong> a nombre de Daniel.<br>Total: <strong>$65 MXN</strong> · Estado: <em>recibido</em><br><span style="font-size:11px;color:#6b7691">Nota guardada: «intolerante a la lactosa».</span>' },
+  { side:'user', text:'Gracias' },
+  { side:'bot',  text:'¡Listo! En unos minutos lo verás en la pantalla de la barra. 👋' },
+];
+
+let chatTimers = [];
+
+function openChatModal(){
+  const modal = document.getElementById('chatModal');
+  modal.classList.add('active');
+  document.body.style.overflow = 'hidden';
+  runChatAnimation();
+}
+function closeChatModal(){
+  document.getElementById('chatModal').classList.remove('active');
+  document.body.style.overflow = '';
+  clearChatTimers();
+}
+function clearChatTimers(){
+  chatTimers.forEach(t=>clearTimeout(t));
+  chatTimers = [];
+}
+function replayChat(){
+  clearChatTimers();
+  document.getElementById('chatBody').innerHTML = '';
+  runChatAnimation();
+}
+function runChatAnimation(){
+  const body = document.getElementById('chatBody');
+  body.innerHTML = '';
+  let t = 300;
+  CHAT_SCRIPT.forEach((msg, i)=>{
+    chatTimers.push(setTimeout(()=>{
+      // Remove previous typing if present
+      const oldTyping = body.querySelector('.bubble.typing');
+      if(oldTyping && msg.side !== 'typing') oldTyping.remove();
+
+      const wrap = document.createElement('div');
+      if(msg.side === 'typing'){
+        wrap.className = 'bubble from-bot typing';
+        wrap.innerHTML = '<div class="msg"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>';
+      } else {
+        wrap.className = 'bubble from-' + msg.side;
+        wrap.innerHTML = '<div class="msg">' + msg.text + '</div>';
+      }
+      body.appendChild(wrap);
+      body.scrollTop = body.scrollHeight;
+    }, t));
+    // Tiempos progresivos: typing es más corto, mensajes largos más espaciados
+    if(msg.side === 'typing') t += 1100;
+    else if(msg.side === 'user') t += 900;
+    else t += 1400;
   });
 }
 
