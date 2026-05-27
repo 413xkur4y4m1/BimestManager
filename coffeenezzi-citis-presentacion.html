@@ -1181,14 +1181,14 @@
       <img class="citis-tl" src="https://413xkur4y4m1.github.io/BimestManager/image2.png" alt="">
       <img class="uaem-bl" src="https://413xkur4y4m1.github.io/BimestManager/image3.png" alt="">
       <img class="salle-tr" src="https://413xkur4y4m1.github.io/BimestManager/salle.jpg" alt="La Salle">
-      <div class="body-block" style="left:22.00%; top:22.00%; width:55.00%; font-size:1.5em;">
+      <div class="body-block" style="left:21.00%; top:17.00%; width:60.00%; font-size:1.28em; line-height:1.28;">
         <p class="t-title">Desarrollo de la propuesta o modelo</p>
         <p><b>Arquitectura:</b> Usuario (Teams) → Copilot Studio (LLM generativo) → ngrok HTTPS → Express API (Node.js · MVC) → MySQL. El contrato OpenAPI es compartido entre el agente y el backend.</p>
-        <p><b>Entradas:</b> mensajes del usuario en lenguaje natural. El LLM extrae intención, entidades (cafetería, productos, cantidades, alergias) y parámetros estructurados.<br>
-           <b>Procesamiento:</b> tool calling generativo — el agente decide cuándo invocar cada endpoint según el contexto. El prompt de sistema codifica reglas de negocio (un pedido a la vez, notas obligatorias si hay alergia).<br>
-           <b>Salidas:</b> confirmaciones en lenguaje natural + persistencia en MySQL (pedido creado, productos agregados, estado consultado, cancelado).</p>
-        <p><b>Algoritmos aplicados:</b> tool calling sobre LLM generativo · pool de conexiones mysql2 con TLS local · validación de payloads JSON Schema desde OpenAPI.</p>
-        <p>Indicar concretamente <b>¿qué hicimos?</b> Diseñamos el esquema, codificamos la API en Express, escribimos el OpenAPI con descripciones que el LLM entiende, configuramos el agente y validamos el flujo completo.</p>
+        <p><b>Entradas:</b> mensajes en lenguaje natural; el LLM extrae intención y entidades (cafetería, productos, cantidades, alergias).</p>
+        <p><b>Procesamiento:</b> tool calling generativo — el agente decide cuándo invocar cada endpoint según el contexto; el prompt de sistema codifica reglas (un pedido a la vez, notas obligatorias si hay alergia).</p>
+        <p><b>Salidas:</b> confirmaciones en lenguaje natural + persistencia en MySQL (pedido creado, productos agregados, estado consultado, cancelado).</p>
+        <p><b>Algoritmos aplicados:</b> tool calling sobre LLM generativo · pool mysql2 con TLS local · validación JSON Schema desde OpenAPI.</p>
+        <p><b>¿Qué hicimos?</b> Diseñamos el esquema, codificamos la API en Express, escribimos el OpenAPI con descripciones que el LLM entiende, configuramos el agente y validamos el flujo completo.</p>
       </div>
     </section>
 
