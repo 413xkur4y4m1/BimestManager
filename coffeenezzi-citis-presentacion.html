@@ -440,6 +440,8 @@
       background: #f5f7fb;
       overflow: hidden;
     }
+    #chat-modal .sim-stage { min-height: 580px; }
+    #dash-modal .sim-stage { min-height: 640px; }
     .modal-foot {
       padding: 12px 22px;
       border-top: 1px solid #e2e8f0;
@@ -502,7 +504,7 @@
 
     .cm {
       opacity: 0;
-      animation-duration: 14s;
+      animation-duration: 26s;
       animation-iteration-count: infinite;
       animation-fill-mode: both;
       animation-timing-function: ease-out;
@@ -561,9 +563,10 @@
       35% { opacity: 1; transform: translateY(-4px); }
     }
 
-    /* Cada cm aparece en su ventana de tiempo del ciclo de 14s */
-    /* 0s──┬─1s─┬─2s──┬─3.5s──┬─7s──┬─8.5s─┬─9.5s──┬─12s──┬─14s
-            ts   user   typing   bot     user   typing   bot   end  */
+    /* Ciclo 26s — flujo completo del bot
+       ts → user1 → bot1 cafeterías → user2 mimbrecin → bot2 menú →
+       user3 sandwich → bot3 anotado → user4 no eso es todo → bot4 resumen →
+       user5 ya listo? → bot5 ENTREGADO → fade */
     .a0 { animation-name: chatA0; }
     .a1 { animation-name: chatA1; }
     .a2 { animation-name: chatType1; }
@@ -571,42 +574,36 @@
     .a4 { animation-name: chatA4; }
     .a5 { animation-name: chatType2; }
     .a6 { animation-name: chatA6; }
+    .a7 { animation-name: chatA7; }
+    .a8 { animation-name: chatType3; }
+    .a9 { animation-name: chatA9; }
+    .a10 { animation-name: chatA10; }
+    .a11 { animation-name: chatType4; }
+    .a12 { animation-name: chatA12; }
+    .a13 { animation-name: chatA13; }
+    .a14 { animation-name: chatA14; }
+    .a15 { animation-name: chatType5; }
+    .a16 { animation-name: chatA16; }
 
-    @keyframes chatA0 { /* timestamp 0→90% */
-      0%, 2% { opacity: 0; transform: translateY(6px); }
-      4%, 92% { opacity: 1; transform: translateY(0); }
-      96%, 100% { opacity: 0; transform: translateY(-4px); }
-    }
-    @keyframes chatA1 { /* user msg 1 */
-      0%, 6% { opacity: 0; transform: translateY(6px) scale(.95); }
-      9%, 92% { opacity: 1; transform: translateY(0) scale(1); }
-      96%, 100% { opacity: 0; transform: translateY(-4px); }
-    }
-    @keyframes chatType1 { /* typing 1: appears then collapses */
-      0%, 11% { max-height: 0; opacity: 0; margin: 0; }
-      13%, 23% { max-height: 44px; opacity: 1; margin: 4px 0; }
-      25%, 100% { max-height: 0; opacity: 0; margin: 0; }
-    }
-    @keyframes chatA3 { /* bot response 1 */
-      0%, 25% { opacity: 0; transform: translateY(6px); max-height: 0; }
-      27%, 92% { opacity: 1; transform: translateY(0); max-height: 300px; }
-      96%, 100% { opacity: 0; transform: translateY(-4px); }
-    }
-    @keyframes chatA4 { /* user msg 2 mimbrecin */
-      0%, 52% { opacity: 0; transform: translateY(6px) scale(.95); }
-      55%, 92% { opacity: 1; transform: translateY(0) scale(1); }
-      96%, 100% { opacity: 0; transform: translateY(-4px); }
-    }
-    @keyframes chatType2 {
-      0%, 58% { max-height: 0; opacity: 0; margin: 0; }
-      60%, 68% { max-height: 44px; opacity: 1; margin: 4px 0; }
-      70%, 100% { max-height: 0; opacity: 0; margin: 0; }
-    }
-    @keyframes chatA6 { /* bot menu */
-      0%, 70% { opacity: 0; transform: translateY(6px); max-height: 0; }
-      73%, 94% { opacity: 1; transform: translateY(0); max-height: 240px; }
-      97%, 100% { opacity: 0; transform: translateY(-4px); }
-    }
+    /* Cada elemento "permanece visible" desde su aparición hasta 94%
+       luego se desvanece y reinicia el bucle */
+    @keyframes chatA0  { 0%,1%{opacity:0;transform:translateY(6px)} 3%,94%{opacity:1;transform:translateY(0)} 97%,100%{opacity:0} }
+    @keyframes chatA1  { 0%,4%{opacity:0;transform:translateY(6px) scale(.95)} 6%,94%{opacity:1;transform:translateY(0) scale(1)} 97%,100%{opacity:0} }
+    @keyframes chatType1{0%,7%{max-height:0;opacity:0;margin:0} 9%,12%{max-height:44px;opacity:1;margin:4px 0} 14%,100%{max-height:0;opacity:0;margin:0} }
+    @keyframes chatA3  { 0%,12%{opacity:0;transform:translateY(6px);max-height:0} 14%,94%{opacity:1;transform:translateY(0);max-height:300px} 97%,100%{opacity:0} }
+    @keyframes chatA4  { 0%,21%{opacity:0;transform:translateY(6px) scale(.95)} 23%,94%{opacity:1;transform:translateY(0) scale(1)} 97%,100%{opacity:0} }
+    @keyframes chatType2{0%,24%{max-height:0;opacity:0;margin:0} 26%,29%{max-height:44px;opacity:1;margin:4px 0} 31%,100%{max-height:0;opacity:0;margin:0} }
+    @keyframes chatA6  { 0%,29%{opacity:0;transform:translateY(6px);max-height:0} 31%,94%{opacity:1;transform:translateY(0);max-height:260px} 97%,100%{opacity:0} }
+    @keyframes chatA7  { 0%,37%{opacity:0;transform:translateY(6px) scale(.95)} 40%,94%{opacity:1;transform:translateY(0) scale(1)} 97%,100%{opacity:0} }
+    @keyframes chatType3{0%,41%{max-height:0;opacity:0;margin:0} 43%,46%{max-height:44px;opacity:1;margin:4px 0} 48%,100%{max-height:0;opacity:0;margin:0} }
+    @keyframes chatA9  { 0%,46%{opacity:0;transform:translateY(6px);max-height:0} 48%,94%{opacity:1;transform:translateY(0);max-height:160px} 97%,100%{opacity:0} }
+    @keyframes chatA10 { 0%,54%{opacity:0;transform:translateY(6px) scale(.95)} 57%,94%{opacity:1;transform:translateY(0) scale(1)} 97%,100%{opacity:0} }
+    @keyframes chatType4{0%,58%{max-height:0;opacity:0;margin:0} 60%,63%{max-height:44px;opacity:1;margin:4px 0} 65%,100%{max-height:0;opacity:0;margin:0} }
+    @keyframes chatA12 { 0%,63%{opacity:0;transform:translateY(6px);max-height:0} 65%,94%{opacity:1;transform:translateY(0);max-height:240px} 97%,100%{opacity:0} }
+    @keyframes chatA13 { 0%,71%{opacity:0;transform:translateY(6px)} 73%,94%{opacity:1;transform:translateY(0)} 97%,100%{opacity:0} }
+    @keyframes chatA14 { 0%,73%{opacity:0;transform:translateY(6px) scale(.95)} 76%,94%{opacity:1;transform:translateY(0) scale(1)} 97%,100%{opacity:0} }
+    @keyframes chatType5{0%,77%{max-height:0;opacity:0;margin:0} 79%,82%{max-height:44px;opacity:1;margin:4px 0} 84%,100%{max-height:0;opacity:0;margin:0} }
+    @keyframes chatA16 { 0%,82%{opacity:0;transform:translateY(6px);max-height:0} 85%,94%{opacity:1;transform:translateY(0);max-height:200px} 97%,100%{opacity:0} }
 
     /* =========================================================
        SIMULACIÓN: Dashboard cafetero (recreado en HTML/CSS)
@@ -880,6 +877,168 @@
       86%, 94% { opacity: 1; transform: translateX(-50%) translateY(0); }
       97%, 100% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
     }
+
+    /* =========================================================
+       Pantalla PÚBLICA (display que ve el cliente)
+       Sincronizada al ciclo 12s del kanban
+       ========================================================= */
+    .public-display {
+      margin-top: 14px;
+      padding: 14px 16px 16px;
+      background: linear-gradient(180deg, #2e1e15 0%, #1f1610 100%);
+      border-radius: 12px;
+      color: #f5ecd3;
+      position: relative;
+      box-shadow: 0 8px 24px rgba(0,0,0,.18) inset;
+    }
+    .pd-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 10px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid rgba(245,236,211,.1);
+    }
+    .pd-brand { display: flex; align-items: center; gap: 10px; }
+    .pd-logo {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: linear-gradient(135deg, #DEB75D, #b58e3e);
+      color: #2c1d14;
+      display: grid; place-items: center;
+      font-weight: 700; font-size: 12px;
+    }
+    .pd-eyebrow {
+      font-size: 9px; letter-spacing: .22em;
+      color: #DEB75D; text-transform: uppercase;
+      font-weight: 600;
+    }
+    .pd-name { font-size: 14px; font-weight: 700; color: #f5ecd3; }
+    .pd-clock {
+      font-family: 'JetBrains Mono', Consolas, monospace;
+      font-size: 22px; font-weight: 700;
+      color: #f5ecd3;
+      letter-spacing: -.02em;
+    }
+    .pd-cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .pd-col {
+      background: rgba(0,0,0,.35);
+      border-top: 3px solid;
+      border-radius: 8px;
+      padding: 12px;
+      min-height: 96px;
+    }
+    .pd-col.pd-prep      { border-top-color: #DEB75D; }
+    .pd-col.pd-listo-col { border-top-color: #4A7B5C; }
+    .pd-col-head {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 13px; font-weight: 700;
+      margin-bottom: 8px;
+      color: #f5ecd3;
+    }
+    .pd-title { flex: 1; }
+    .pd-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .pd-count {
+      position: relative; width: 24px; height: 24px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.08);
+      display: grid; place-items: center;
+      font-size: 11px; color: #f5ecd3;
+    }
+    .pd-count .cn-1, .pd-count .cn-0 {
+      position: absolute; inset: 0;
+      display: grid; place-items: center;
+      opacity: 0;
+      animation-duration: 12s;
+      animation-iteration-count: infinite;
+      animation-fill-mode: both;
+    }
+    .pd-body { position: relative; min-height: 60px; }
+    .pd-ped {
+      position: absolute; inset: 0;
+      background: rgba(222,183,93,.18);
+      border-radius: 8px;
+      padding: 10px 12px;
+      opacity: 0;
+      animation-duration: 12s;
+      animation-iteration-count: infinite;
+      animation-fill-mode: both;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .pd-ped-listo {
+      background: rgba(74,123,92,.22);
+    }
+    .pd-id { font-size: 19px; font-weight: 700; color: #f5ecd3; line-height: 1; }
+    .pd-cliente {
+      font-size: 10.5px;
+      line-height: 1.25;
+      margin-top: 4px;
+      letter-spacing: .04em;
+      color: rgba(245,236,211,.85);
+    }
+    .pd-empty {
+      position: absolute; inset: 0;
+      display: grid; place-items: center;
+      font-size: 11px;
+      color: rgba(245,236,211,.4);
+      animation-duration: 12s;
+      animation-iteration-count: infinite;
+      animation-fill-mode: both;
+    }
+    .pd-tag {
+      position: absolute;
+      top: -10px; right: 16px;
+      background: #DEB75D;
+      color: #2c1d14;
+      padding: 3px 12px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    /* Mapeo a animations — sincronizado al cycle 12s del kanban del cafetero:
+       - pcPrep visible 24-58%  → display "En preparación" 28-58%
+       - pcListo visible 56-82% → display "Listos para recoger" 60-82% */
+    .pd-ped-prep    { animation-name: pdPrep; }
+    .pd-ped-listo   { animation-name: pdListo; }
+    .pd-empty-prep  { animation-name: pdEmptyPrep; }
+    .pd-empty-listo { animation-name: pdEmptyListo; }
+    .pd-prep .pd-count .cn-1      { animation-name: pdCntPrep1; }
+    .pd-prep .pd-count .cn-0      { animation-name: pdCntPrep0; }
+    .pd-listo-col .pd-count .cn-1 { animation-name: pdCntListo1; }
+    .pd-listo-col .pd-count .cn-0 { animation-name: pdCntListo0; }
+
+    @keyframes pdPrep {
+      0%, 26% { opacity: 0; transform: scale(.94); }
+      30%, 55% { opacity: 1; transform: scale(1); }
+      59%, 100% { opacity: 0; transform: scale(.94); }
+    }
+    @keyframes pdListo {
+      0%, 58% { opacity: 0; transform: scale(.94); }
+      62%, 80% { opacity: 1; transform: scale(1); }
+      84%, 100% { opacity: 0; transform: scale(.94); }
+    }
+    @keyframes pdEmptyPrep {
+      0%, 28% { opacity: 1; }
+      30%, 55% { opacity: 0; visibility: hidden; }
+      59%, 100% { opacity: 1; visibility: visible; }
+    }
+    @keyframes pdEmptyListo {
+      0%, 60% { opacity: 1; }
+      62%, 80% { opacity: 0; visibility: hidden; }
+      84%, 100% { opacity: 1; visibility: visible; }
+    }
+    @keyframes pdCntPrep1   { 0%,28%{opacity:0} 30%,55%{opacity:1} 59%,100%{opacity:0} }
+    @keyframes pdCntPrep0   { 0%,28%{opacity:1} 30%,55%{opacity:0} 59%,100%{opacity:1} }
+    @keyframes pdCntListo1  { 0%,60%{opacity:0} 62%,80%{opacity:1} 84%,100%{opacity:0} }
+    @keyframes pdCntListo0  { 0%,60%{opacity:1} 62%,80%{opacity:0} 84%,100%{opacity:1} }
   </style>
 </head>
 <body>
@@ -900,7 +1059,7 @@
       <div class="fecha"><b>27</b> de Mayo 2026</div>
       <div class="yellow">
         Coffee Nezzi
-        <div class="sub">Bot conversacional para pre-pedidos en cafetería universitaria con Microsoft Copilot Studio y backend REST</div>
+        <div class="sub">Agente especializado en pre-pedidos para cafetería universitaria con Microsoft Copilot Studio y backend REST</div>
       </div>
     </section>
 
@@ -909,11 +1068,11 @@
       <img class="citis-tl" src="https://413xkur4y4m1.github.io/BimestManager/image2.png" alt="" style="left:9.24%; top:11.69%; width:15.06%; height:13.89%;">
       <img class="uaem-bl" src="https://413xkur4y4m1.github.io/BimestManager/image3.png" alt="">
       <img class="salle-tr" src="https://413xkur4y4m1.github.io/BimestManager/salle.jpg" alt="La Salle">
-      <div class="titulo">Coffee Nezzi: bot conversacional para pre-pedidos en cafetería universitaria con Microsoft Copilot Studio y backend REST</div>
+      <div class="titulo">Coffee Nezzi: agente especializado en pre-pedidos para cafetería universitaria con Microsoft Copilot Studio y backend REST</div>
       <div class="ponente">
         <span class="lbl">Ponentes</span>
-         Daniel Mea Sánchez<br>
-        Juan Pablo Flores Varela · Daniel Alejandro Pérez Esquivel
+        Daniel Mea Sánchez · Juan Pablo Flores Varela<br>
+        Daniel Alejandro Pérez Esquivel
       </div>
       <div class="inst">UNIVERSIDAD LA SALLE NEZAHUALCÓYOTL</div>
       <div class="fac">Ingeniería en Sistemas Computacionales y de Software</div>
@@ -956,11 +1115,11 @@
       <img class="salle-tr" src="https://413xkur4y4m1.github.io/BimestManager/salle.jpg" alt="La Salle">
       <div class="body-block" style="left:22.00%; top:22.00%; width:55.00%; font-size:1.55em;">
         <p class="t-title">Objetivo general y objetivos específicos</p>
-        <p><b>Objetivo general:</b> diseñar e implementar un bot conversacional generativo integrado a un backend Node.js/Express/MySQL mediante OpenAPI directo en Microsoft Copilot Studio, que gestione el ciclo completo del pedido en una cafetería universitaria sin requerir licencias premium.</p>
+        <p><b>Objetivo general:</b> diseñar e implementar un agente especializado en pedidos de cafetería universitaria, integrado a un backend Node.js/Express/MySQL mediante OpenAPI directo en Microsoft Copilot Studio, que gestione el ciclo completo del pedido sin requerir licencias premium.</p>
         <p><b>Objetivos específicos:</b></p>
         <p><b>OE 01 · Diseñar</b> el esquema relacional y los 6 endpoints REST (cafeterías, menús, creación, edición, consulta y cancelación de pedidos).<br>
            <b>OE 02 · Modelar</b> el contrato OpenAPI 2.0 con descripciones semánticas para que el LLM decida cuándo invocar cada herramienta.<br>
-           <b>OE 03 · Configurar</b> el agente en Copilot Studio en modo generativo con prompt de sistema y herramientas API REST sin autenticación.<br>
+           <b>OE 03 · Configurar</b> el agente en Copilot Studio en modo generativo con prompt de sistema y herramientas API REST publicadas vía OpenAPI.<br>
            <b>OE 04 · Evaluar</b> el flujo end-to-end: listar → ordenar → agregar varios → consultar → cancelar, registrando alergias en notas.</p>
       </div>
     </section>
@@ -1086,7 +1245,7 @@
       <img class="salle-tr" src="https://413xkur4y4m1.github.io/BimestManager/salle.jpg" alt="La Salle">
       <div class="body-block" style="left:22.00%; top:22.00%; width:55.00%; font-size:1.55em;">
         <p class="t-title">Conclusiones</p>
-        <p><b>01.</b> Se cumplió el objetivo general: el bot Coffee Nezzi gestiona el ciclo completo de pedido en cafetería universitaria mediante conversación natural.</p>
+        <p><b>01.</b> Se cumplió el objetivo general: el agente Coffee Nezzi gestiona el ciclo completo de pedido en cafetería universitaria mediante conversación natural.</p>
         <p><b>02.</b> La integración OpenAPI → Copilot Studio es una ruta viable para tenants educativos sin licencias premium, eliminando la dependencia de Custom Connectors.</p>
         <p><b>03.</b> El <i>tool calling</i> generativo permitió eliminar tópicos rígidos: las descripciones semánticas del contrato bastaron para que el LLM orquestara las llamadas.</p>
         <p><b>04.</b> El patrón es <span class="red">escalable y reproducible</span>: aplica a bibliotecas, laboratorios químicos, agenda de citas y cualquier backend REST documentado.</p>
@@ -1101,7 +1260,7 @@
       <img class="salle-tr" src="https://413xkur4y4m1.github.io/BimestManager/salle.jpg" alt="La Salle">
       <div class="body-block" style="left:22.00%; top:22.00%; width:55.00%; font-size:1.5em;">
         <p class="t-title">Aportaciones, limitaciones y trabajo futuro</p>
-        <p><b style="color:#2f8a78">Aportaciones:</b> patrón reproducible OpenAPI → Copilot Studio sin premium · manejo estructurado de alergias por conversación · documentación operativa replicable a otras facultades · demostración de Teams como punto de venta digital.</p>
+        <p><b style="color:#2f8a78">Aportaciones:</b> patrón reproducible OpenAPI → Copilot Studio sin premium · manejo estructurado de alergias por conversación · documentación operativa replicable a otras facultades.</p>
         <p><b style="color:#C5172E">Limitaciones:</b> dependencia de <b>ngrok-free</b> — un único túnel HTTPS reservado expone el backend local; sin alta disponibilidad ni dominio institucional propio.</p>
         <p><b>Trabajo futuro:</b> que el <b>chatbot envíe una notificación al usuario en cuanto su pedido cambie a estado "listo"</b>, cerrando el ciclo conversacional sin que el usuario tenga que volver a preguntar.</p>
       </div>
@@ -1165,6 +1324,32 @@
                 <li><b>Flan</b> – $50 (ID: 10)</li>
               </ul>
               <p>Dime qué te gustaría y en qué cantidad.</p>
+            </div>
+
+            <div class="cm user a7">quiero un sandwich</div>
+            <div class="cm typing-row a8"><div class="typing"><span></span><span></span><span></span></div></div>
+            <div class="cm bot a9">
+              <p>¡Anotado! Agregué <b>1 Sandwich</b> a tu pedido. ¿Quieres algo más o ya terminamos?</p>
+            </div>
+
+            <div class="cm user a10">no, eso es todo</div>
+            <div class="cm typing-row a11"><div class="typing"><span></span><span></span><span></span></div></div>
+            <div class="cm bot a12">
+              <p>¡Genial! Aquí está el resumen de tu pedido:</p>
+              <ul>
+                <li>🥪 <b>1 Sandwich</b> – $30</li>
+              </ul>
+              <p><b>Total estimado:</b> $30</p>
+              <p>¡Gracias por tu compra, Daniel! Que disfrutes tu comida. 😊</p>
+            </div>
+
+            <div class="cm ts a13">Hace un momento</div>
+            <div class="cm user a14">ya esta listo mi pedido?</div>
+            <div class="cm typing-row a15"><div class="typing"><span></span><span></span><span></span></div></div>
+            <div class="cm bot a16">
+              <p>Tu pedido (ID: <b>15</b>) ya está <b style="color:#2c5b39">ENTREGADO</b> ✅</p>
+              <p>Total: <b>$30</b></p>
+              <p>¡Listo para disfrutar, Daniel! 🤩</p>
             </div>
           </div>
           <div class="chat-input">
@@ -1280,6 +1465,55 @@
             </div>
           </div>
 
+          <!-- Pantalla pública (display que ve el cliente) -->
+          <div class="public-display">
+            <div class="pd-header">
+              <div class="pd-brand">
+                <span class="pd-logo">CN</span>
+                <div>
+                  <div class="pd-eyebrow">COFFEE NEZZI</div>
+                  <div class="pd-name">mimbrecin</div>
+                </div>
+              </div>
+              <div class="pd-clock">20:24</div>
+            </div>
+            <div class="pd-cols">
+              <div class="pd-col pd-prep">
+                <div class="pd-col-head">
+                  <span class="pd-dot dot-yellow"></span>
+                  <span class="pd-title">En preparación</span>
+                  <span class="pd-count">
+                    <span class="cn-1">1</span><span class="cn-0">0</span>
+                  </span>
+                </div>
+                <div class="pd-body">
+                  <div class="pd-ped pd-ped-prep">
+                    <div class="pd-id">#15</div>
+                    <div class="pd-cliente">DANIEL ALEJANDRO PEREZ ESQUIVEL</div>
+                  </div>
+                  <div class="pd-empty pd-empty-prep">Sin pedidos en preparación</div>
+                </div>
+              </div>
+              <div class="pd-col pd-listo-col">
+                <div class="pd-col-head">
+                  <span class="pd-dot dot-green"></span>
+                  <span class="pd-title">Listos para recoger</span>
+                  <span class="pd-count">
+                    <span class="cn-1">1</span><span class="cn-0">0</span>
+                  </span>
+                </div>
+                <div class="pd-body">
+                  <div class="pd-ped pd-ped-listo">
+                    <div class="pd-id">#15</div>
+                    <div class="pd-cliente">DANIEL ALEJANDRO PEREZ ESQUIVEL</div>
+                  </div>
+                  <div class="pd-empty pd-empty-listo">Sin pedidos listos</div>
+                </div>
+              </div>
+            </div>
+            <div class="pd-tag">Pantalla pública · lo que ve el cliente</div>
+          </div>
+
           <div class="dash-toast">✓ Pedido #15 entregado — total $30</div>
         </div>
       </div>
@@ -1327,9 +1561,8 @@
     }
     fsBtn.addEventListener('click', toggleFs);
 
-    /* ===== Modales con animación HTML/CSS infinita =====
-       Truco para reiniciar la animación desde 0 al abrir el modal:
-       quitamos y volvemos a aplicar la clase `play` que activa los keyframes. */
+    /* ===== Modales con animación HTML/CSS infinita ===== */
+    const scrollIntervals = new Map();
     function openModal(id) {
       const modal = document.getElementById(id);
       if (!modal) return;
@@ -1340,17 +1573,29 @@
         stage.style.animation = 'none';
         void stage.offsetWidth;
         stage.style.animation = '';
-        // También reinicia los hijos animados quitando y poniendo display
-        stage.querySelectorAll('[class*="cm "], .ped-card, .empty, .col-count .cn-1, .col-count .cn-0, .dash-toast').forEach(el => {
+        stage.querySelectorAll('[class*="cm "], .ped-card, .empty, .col-count .cn-1, .col-count .cn-0, .dash-toast, .pd-ped, .pd-empty, .pd-count .cn-1, .pd-count .cn-0').forEach(el => {
           const prev = el.style.animationName || '';
           el.style.animationName = 'none';
           void el.offsetWidth;
           el.style.animationName = prev;
         });
       }
+      // Auto-scroll del feed de chat al fondo mientras aparecen mensajes
+      const feed = modal.querySelector('.chat-feed');
+      if (feed) {
+        feed.scrollTop = 0;
+        const t = setInterval(() => {
+          feed.scrollTo({ top: feed.scrollHeight, behavior: 'smooth' });
+        }, 600);
+        scrollIntervals.set(modal, t);
+      }
     }
     function closeModal(modal) {
       modal.classList.remove('open');
+      if (scrollIntervals.has(modal)) {
+        clearInterval(scrollIntervals.get(modal));
+        scrollIntervals.delete(modal);
+      }
     }
 
     document.querySelectorAll('.result-card').forEach(card => {
