@@ -490,7 +490,7 @@
     }
     .tl-step:last-child::after { display: none; }
     .tl-num {
-      width: 2.8em; height: 2.8em;
+      width: 2.9em; height: 2.8em;
       border-radius: 50%;
       background: linear-gradient(135deg, #20419B, #0a154a);
       color: white;
@@ -587,8 +587,8 @@
       background: linear-gradient(135deg, #fff8e1, #fde68a);
       border-left: 5px solid #DEB75D;
       border-radius: .8em;
-      padding: 1em 1.2em;
-      font-size: .9em;
+      padding: 1em .8em;
+      font-size: 1.6em;
       color: #6b4e1f;
       line-height: 1.35;
     }
@@ -1533,8 +1533,11 @@
       <img class="salle-tr" src="https://413xkur4y4m1.github.io/BimestManager/salle.jpg" alt="La Salle">
       <div class="titulo">Coffee Nezzi: agente especializado en pre-pedidos para cafetería universitaria con Microsoft Copilot Studio y backend REST</div>
       <div class="ponente">
+        <span class="lbl">Autores</span>
+        DR.Jesus Gil Velasco
+     
         <span class="lbl">Ponentes</span>
-        Daniel Mea Sánchez · Juan Pablo Flores Varela<br>
+        Daniel Meza Sánchez · Juan Pablo Flores Varela<br>
         Daniel Alejandro Pérez Esquivel
       </div>
       <div class="inst">UNIVERSIDAD LA SALLE NEZAHUALCÓYOTL</div>
@@ -1555,11 +1558,11 @@
         </div>
       </div>
 
-      <div class="sec-body" style="left:20%; top:42%; width:74%; font-size:1.2em;">
+      <div class="sec-body" style="left:13%; top:32%; width:74%; font-size:1.2em;">
         <div class="kpi-grid">
-          <div class="kpi"><div class="v">8-15</div><div class="l">min de espera promedio en hora pico</div></div>
-          <div class="kpi"><div class="v">32%</div><div class="l">de clientes con alguna restricción alimentaria</div></div>
-          <div class="kpi"><div class="v">0</div><div class="l">canales digitales de pre-pedido activos</div></div>
+          <div class="kpi"><div class="v">8-15mins</div><div class="l">min de espera promedio en hora pico</div></div>
+          <div class="kpi"><div class="v">32% Clientes</div><div class="l">de clientes con alguna restricción alimentaria</div></div>
+          <div class="kpi"><div class="v">0 Canales</div><div class="l">canales digitales de pre-pedido activos</div></div>
         </div>
         <div class="chip-row">
           <span class="chip">IA conversacional</span>
@@ -1567,7 +1570,7 @@
           <span class="chip red">Hospitalidad universitaria</span>
           <span class="chip red">Low-code</span>
         </div>
-        <div class="banner red"><b>Problema real:</b> filas largas, alergias mal comunicadas y cero canales digitales en la cafetería del campus.</div>
+        <div class="banner red "><b>Problema real:</b> filas largas, alergias mal comunicadas y cero canales digitales en la cafetería del campus.</div>
       </div>
     </section>
 
@@ -1585,8 +1588,8 @@
         </div>
       </div>
 
-      <div class="sec-body" style="left:20%; top:32%; width:74%; font-size:1.15em;">
-        <div class="hero-q">¿Cómo ofrecer un canal conversacional de pre-pedido <span class="accent">sin licencias premium</span>?</div>
+      <div class="sec-body" style="left:13%; top:32%; width:74%; font-size:1.15em;">
+        <div class="hero-q">¿Cómo ofrecer un canal conversacional de pre-pedido <span class="accent"></span>?</div>
 
         <div class="grid-2">
           <div class="ic-card">
@@ -1594,7 +1597,7 @@
             <div class="b"><h4>Sin canal digital</h4><p>Pedir alergias y notas en hora pico es difícil; no hay forma estructurada.</p></div>
           </div>
           <div class="ic-card">
-            <div class="ic" style="background: linear-gradient(135deg, #f59e0b, #d97706);"><i class="fa-solid fa-users"></i></div>
+            <div class="ic" style="background: linear-gradient(135deg, #C5172E, #7a0a1c);"><i class="fa-solid fa-users"></i></div>
             <div class="b"><h4>Comunidad universitaria</h4><p>Estudiantes y personal con restricciones alimentarias.</p></div>
           </div>
           <div class="ic-card">
@@ -1602,7 +1605,7 @@
             <div class="b"><h4>Apps nativas inviables</h4><p>Starbucks, Tim Hortons → necesitan equipo iOS/Android + presupuesto.</p></div>
           </div>
           <div class="ic-card">
-            <div class="ic" style="background: linear-gradient(135deg, #10b981, #047857);"><i class="fa-solid fa-graduation-cap"></i></div>
+            <div class="ic" style="background: linear-gradient(135deg, #20419B, #0a154a);"><i class="fa-solid fa-graduation-cap"></i></div>
             <div class="b"><h4>Tenant educativo</h4><p>Custom Connectors premium <b>no disponibles</b> en La Salle.</p></div>
           </div>
         </div>
@@ -1623,7 +1626,7 @@
         </div>
       </div>
 
-      <div class="sec-body" style="left:20%; top:32%; width:74%; font-size:1.15em;">
+      <div class="sec-body" style="left:13%; top:32%; width:74%; font-size:1.15em;">
         <div class="banner blue">
           <b>General:</b> diseñar e implementar un agente especializado en pedidos de cafetería universitaria, integrado a backend REST mediante OpenAPI en Copilot Studio — sin licencias premium.
         </div>
@@ -1663,7 +1666,7 @@
         </div>
       </div>
 
-      <div class="sec-body" style="left:20%; top:30%; width:74%; font-size:1.05em;">
+      <div class="sec-body" style="left:13%; top:30%; width:74%; font-size:1.05em;">
         <div class="grid-3-2">
           <div class="concept-card"><div class="ic"><i class="fa-solid fa-brain"></i></div><div><div class="label">LLM + tool calling</div><div class="sub">Modelos invocan funciones por descripción semántica</div></div></div>
           <div class="concept-card"><div class="ic"><i class="fa-solid fa-file-code"></i></div><div><div class="label">OpenAPI 2.0</div><div class="sub">Contrato neutral que el LLM descubre</div></div></div>
@@ -1673,7 +1676,7 @@
           <div class="concept-card"><div class="ic"><i class="fa-solid fa-mug-hot"></i></div><div><div class="label">Hospitalidad inteligente</div><div class="sub">Filas, alergias y personalización</div></div></div>
         </div>
         <div class="banner blue" style="margin-top:.8em;">
-          <b>Metodología base:</b> CRISP-DM adaptada al desarrollo de agentes conversacionales.
+          <b>Metodología base:</b> CRISP-DM para al desarrollo de agentes conversacionales.
         </div>
       </div>
     </section>
@@ -1692,7 +1695,7 @@
         </div>
       </div>
 
-      <div class="sec-body" style="left:20%; top:30%; width:74%; font-size:1.1em;">
+      <div class="sec-body" style="left:13%; top:30%; width:74%; font-size:1.1em;">
         <div class="grid-3">
           <div class="ic-card">
             <div class="ic" style="background: linear-gradient(135deg, #047857, #064e3b);"><i class="fa-solid fa-mug-saucer"></i></div>
@@ -1712,7 +1715,7 @@
           <b>Lo que aportamos:</b>
           <span class="chip-row" style="display:inline-flex; margin-left:.5em;">
             <span class="chip green">Sin app nativa → Teams</span>
-            <span class="chip green">Sin premium → OpenAPI directo</span>
+            <span class="chip green">Gratuito → OpenAPI directo</span>
             <span class="chip green">CRUD completo, no solo informa</span>
           </span>
         </div>
@@ -1733,8 +1736,8 @@
         </div>
       </div>
 
-      <div class="sec-body" style="left:20%; top:35%; width:74%; font-size:1em;">
-        <div class="timeline-h">
+      <div class="sec-body" style="left:8%; top:33%; width:84%; font-size:1.35em; align-items:center;">
+        <div class="timeline-h" style="width:100%; gap:.6em;">
           <div class="tl-step"><div class="tl-num">1</div><div class="tl-label">Modelar dominio</div><div class="tl-sub">Esquema MySQL</div></div>
           <div class="tl-step"><div class="tl-num">2</div><div class="tl-label">API REST</div><div class="tl-sub">Express MVC + pool mysql2</div></div>
           <div class="tl-step"><div class="tl-num">3</div><div class="tl-label">Contrato OpenAPI</div><div class="tl-sub">6 operaciones semánticas</div></div>
@@ -1743,7 +1746,7 @@
           <div class="tl-step"><div class="tl-num">6</div><div class="tl-label">Pruebas E2E</div><div class="tl-sub">Listar → cancelar</div></div>
         </div>
 
-        <div class="chip-row" style="margin-top:1.4em; justify-content:center;">
+        <div class="chip-row" style="margin-top:1.6em; justify-content:center;">
           <span class="chip">Node.js 18+</span>
           <span class="chip">Express 5</span>
           <span class="chip">MySQL 8</span>
@@ -1770,7 +1773,7 @@
         </div>
       </div>
 
-      <div class="sec-body" style="left:20%; top:30%; width:74%; font-size:1em;">
+      <div class="sec-body" style="left:13%; top:30%; width:74%; font-size:1em;">
         <div class="arch-flow">
           <div class="arch-node"><div class="ico"><i class="fa-solid fa-user"></i></div><div class="name">Usuario</div><div class="tech">Microsoft Teams</div></div>
           <div class="arch-arrow">→</div>
@@ -1847,7 +1850,7 @@
         </div>
       </div>
 
-      <div class="sec-body" style="left:20%; top:35%; width:74%; font-size:1.15em; align-items:center;">
+      <div class="sec-body" style="left:13%; top:35%; width:74%; font-size:1.15em; align-items:center;">
         <div class="hero-q" style="text-align:center;">
           El agente <span class="accent">responde correctamente</span><br>
           y los resultados <b style="color:#10b981">concuerdan con lo esperado</b>.
@@ -1875,7 +1878,7 @@
         </div>
       </div>
 
-      <div class="sec-body" style="left:20%; top:30%; width:74%; font-size:1.1em;">
+      <div class="sec-body" style="left:13%; top:30%; width:74%; font-size:1.1em;">
         <div class="check-list">
           <div class="check-item"><div class="ci-num">1</div><div class="ci-text"><b>Objetivo cumplido:</b> agente gestiona el ciclo completo de pedido por conversación.</div></div>
           <div class="check-item"><div class="ci-num">2</div><div class="ci-text"><b>OpenAPI → Copilot Studio</b> es ruta viable para tenants educativos sin licencias premium.</div></div>
@@ -1900,7 +1903,7 @@
         </div>
       </div>
 
-      <div class="sec-body" style="left:20%; top:32%; width:74%; font-size:1em;">
+      <div class="sec-body" style="left:13%; top:32%; width:74%; font-size:1em;">
         <div class="grid-3" style="align-items:stretch;">
           <div class="compare-col green">
             <h4 style="color:#047857;"><i class="fa-solid fa-gift"></i> Aportaciones</h4>
@@ -1942,7 +1945,7 @@
         </div>
       </div>
 
-      <div class="sec-body" style="left:20%; top:30%; width:74%; font-size:.9em;">
+      <div class="sec-body" style="left:13%; top:30%; width:74%; font-size:.9em;">
         <div class="grid-2" style="gap:.55em;">
           <button type="button" class="ic-card ref-btn" data-ref="01"><div class="ic" style="background:#475569;">01</div><div class="b"><h4>Microsoft Copilot Studio</h4><p>Generative agents · learn.microsoft.com, 2025</p></div><i class="fa-solid fa-up-right-from-square ref-arrow"></i></button>
           <button type="button" class="ic-card ref-btn" data-ref="02"><div class="ic" style="background:#475569;">02</div><div class="b"><h4>OpenAPI Initiative</h4><p>Specification v2.0 · spec.openapis.org, 2014</p></div><i class="fa-solid fa-up-right-from-square ref-arrow"></i></button>
