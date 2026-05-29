@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Coffee Nezzi — Presentación</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Coffee Nezzi · Presentación</title>
+<script type="module" src="https://unpkg.com/@splinetool/viewer@1.12.95/build/spline-viewer.js"></script>
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700;800&display=swap');
+
 :root{
   --espresso:#160F0B;
   --coffee:#211710;
@@ -23,15 +23,17 @@
   --s1:#E6A85A; --s2:#5BCBC0; --s3:#B79CED; --s4:#6EA9F2; --s5:#EC8662; --s6:#79D58C; --s7:#E48FAE;
   --accent:var(--s1);
 }
-*{margin:0;padding:0;box-sizing:border-box}
-html,body{height:100%;overflow:hidden}
-body{
+
+.deck-root *{margin:0;padding:0;box-sizing:border-box}
+.deck-root{
+  position:fixed;inset:0;overflow:hidden;
   background:var(--espresso);
   color:var(--cream);
   font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
   -webkit-font-smoothing:antialiased;
+  z-index:0;
 }
-.deck{position:fixed;inset:0;}
+.deck{position:absolute;inset:0;}
 .slide{
   position:absolute;inset:0;
   display:flex;flex-direction:column;justify-content:center;
@@ -54,223 +56,210 @@ body{
 @keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
 
 /* ---- tipografía base ---- */
-.kicker{
+.deck-root .kicker{
   font-size:.82rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase;
   color:var(--accent);display:inline-flex;align-items:center;gap:.6em;margin-bottom:1.1rem;
 }
-.kicker::before{content:"";width:30px;height:2px;background:var(--accent);border-radius:2px}
-h1{font-family:'Fraunces',serif;font-weight:900;line-height:1.02;letter-spacing:-.02em}
-h2{font-family:'Fraunces',serif;font-weight:700;line-height:1.05;letter-spacing:-.015em;
+.deck-root .kicker::before{content:"";width:30px;height:2px;background:var(--accent);border-radius:2px}
+.deck-root h1{font-family:'Fraunces',serif;font-weight:900;line-height:1.02;letter-spacing:-.02em}
+.deck-root h2{font-family:'Fraunces',serif;font-weight:700;line-height:1.05;letter-spacing:-.015em;
    font-size:clamp(1.9rem,4.6vw,3.4rem);margin-bottom:.4em}
-.lead{font-size:clamp(1.05rem,1.7vw,1.45rem);color:var(--cream-dim);max-width:42ch;line-height:1.55}
-.big-accent{color:var(--accent)}
-.muted{color:var(--cream-dim)}
+.deck-root .lead{font-size:clamp(1.05rem,1.7vw,1.45rem);color:var(--cream-dim);max-width:42ch;line-height:1.55}
+.deck-root .big-accent{color:var(--accent)}
+.deck-root .muted{color:var(--cream-dim)}
 
 /* ---- portada ---- */
-.cover{align-items:flex-start;justify-content:center}
-.cover h1{font-size:clamp(3rem,9vw,7.5rem)}
-.cover .cup{position:absolute;right:6vw;top:50%;transform:translateY(-50%);width:min(34vw,420px);opacity:.95}
-.brandline{display:flex;align-items:center;gap:.7rem;color:var(--cream-dim);font-weight:600;letter-spacing:.04em;margin-top:2rem;font-size:clamp(.85rem,1.3vw,1.05rem)}
-.dot{width:6px;height:6px;border-radius:50%;background:var(--accent)}
-.cover-sub{font-size:clamp(1.1rem,2.2vw,1.7rem);color:var(--cream);font-weight:500;margin-top:1.2rem;max-width:24ch;line-height:1.35}
-.pill{display:inline-flex;gap:.5rem;align-items:center;background:rgba(231,182,108,.1);border:1px solid var(--line);
+.deck-root .cover{align-items:flex-start;justify-content:center}
+.deck-root .cover h1{font-size:clamp(3rem,9vw,7.5rem)}
+.deck-root .cover-spline{position:absolute;right:-4%;top:0;width:min(60%,720px);height:100%;opacity:.95;z-index:1}
+.deck-root .cover .reveal{position:relative;z-index:2}
+.deck-root .brandline{display:flex;align-items:center;gap:.7rem;color:var(--cream-dim);font-weight:600;letter-spacing:.04em;margin-top:2rem;font-size:clamp(.85rem,1.3vw,1.05rem)}
+.deck-root .dot{width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.deck-root .cover-sub{font-size:clamp(1.1rem,2.2vw,1.7rem);color:var(--cream);font-weight:500;margin-top:1.2rem;max-width:24ch;line-height:1.35}
+.deck-root .pill{display:inline-flex;gap:.5rem;align-items:center;background:rgba(231,182,108,.1);border:1px solid var(--line);
   padding:.5rem 1rem;border-radius:999px;font-size:.85rem;font-weight:600;color:var(--cream-dim);margin-top:2.2rem}
 
 /* ---- grids de tarjetas ---- */
-.grid{display:grid;gap:1.1rem;margin-top:1.6rem;width:100%}
-.g2{grid-template-columns:repeat(2,1fr)}
-.g3{grid-template-columns:repeat(3,1fr)}
-.g4{grid-template-columns:repeat(4,1fr)}
-.card{
+.deck-root .grid{display:grid;gap:1.1rem;margin-top:1.6rem;width:100%}
+.deck-root .g2{grid-template-columns:repeat(2,1fr)}
+.deck-root .g3{grid-template-columns:repeat(3,1fr)}
+.deck-root .g4{grid-template-columns:repeat(4,1fr)}
+.deck-root .card{
   background:linear-gradient(160deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
   border:1px solid var(--line);border-radius:18px;padding:1.3rem 1.4rem;
   backdrop-filter:blur(4px);
 }
-.card .ic{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;margin-bottom:.9rem;
+.deck-root .card .ic{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;margin-bottom:.9rem;
   background:color-mix(in srgb,var(--accent) 20%, transparent);color:var(--accent)}
-.card h3{font-size:1.12rem;font-weight:700;margin-bottom:.35rem}
-.card p{font-size:.95rem;color:var(--cream-dim);line-height:1.45}
-.card.tight{padding:1.05rem 1.15rem}
-.card.tight h3{font-size:1rem}
-.card.tight p{font-size:.86rem}
+.deck-root .card h3{font-size:1.12rem;font-weight:700;margin-bottom:.35rem}
+.deck-root .card p{font-size:.95rem;color:var(--cream-dim);line-height:1.45}
+.deck-root .card.tight{padding:1.05rem 1.15rem}
+.deck-root .card.tight h3{font-size:1rem}
+.deck-root .card.tight p{font-size:.86rem}
 
 /* chips */
-.chips{display:flex;flex-wrap:wrap;gap:.7rem;margin-top:1.4rem}
-.chip{display:inline-flex;align-items:center;gap:.55rem;background:rgba(255,255,255,.05);
+.deck-root .chips{display:flex;flex-wrap:wrap;gap:.7rem;margin-top:1.4rem}
+.deck-root .chip{display:inline-flex;align-items:center;gap:.55rem;background:rgba(255,255,255,.05);
   border:1px solid var(--line);border-radius:999px;padding:.6rem 1.1rem;font-weight:600;font-size:.98rem}
-.chip svg{color:var(--accent)}
+.deck-root .chip svg{color:var(--accent)}
 
 /* stats */
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem;margin-top:2rem;width:100%}
-.stat .num{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(2.6rem,6.5vw,5rem);color:var(--accent);line-height:1}
-.stat .lab{color:var(--cream-dim);font-size:1rem;margin-top:.4rem;max-width:18ch}
+.deck-root .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem;margin-top:2rem;width:100%}
+.deck-root .stat .num{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(2.6rem,6.5vw,5rem);color:var(--accent);line-height:1}
+.deck-root .stat .lab{color:var(--cream-dim);font-size:1rem;margin-top:.4rem;max-width:18ch}
 
 /* ---- divisor de sección ---- */
-.divider{justify-content:center}
-.divider .snum{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(7rem,22vw,18rem);
+.deck-root .divider{justify-content:center}
+.deck-root .divider .snum{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(7rem,22vw,18rem);
   line-height:.8;color:transparent;-webkit-text-stroke:2px color-mix(in srgb,var(--accent) 70%,transparent);opacity:.9}
-.divider h2{font-size:clamp(2.4rem,6vw,4.6rem);margin-top:.2em}
-.divider .time{display:inline-flex;align-items:center;gap:.6rem;margin-top:1.6rem;color:var(--accent);
+.deck-root .divider h2{font-size:clamp(2.4rem,6vw,4.6rem);margin-top:.2em}
+.deck-root .divider .time{display:inline-flex;align-items:center;gap:.6rem;margin-top:1.6rem;color:var(--accent);
   font-weight:700;letter-spacing:.05em;background:color-mix(in srgb,var(--accent) 14%,transparent);
   border:1px solid var(--line);padding:.55rem 1.2rem;border-radius:999px;font-size:1rem}
 
 /* ---- diagrama de flujo / arquitectura ---- */
-.flow{display:flex;align-items:stretch;gap:.6rem;flex-wrap:wrap;margin-top:2rem;justify-content:center}
-.node{flex:1;min-width:120px;background:linear-gradient(160deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
+.deck-root .flow{display:flex;align-items:stretch;gap:.6rem;flex-wrap:wrap;margin-top:2rem;justify-content:center}
+.deck-root .node{flex:1;min-width:120px;background:linear-gradient(160deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
   border:1px solid var(--line);border-radius:16px;padding:1.1rem .9rem;text-align:center}
-.node .ic{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;margin:0 auto .7rem;
+.deck-root .node .ic{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;margin:0 auto .7rem;
   background:color-mix(in srgb,var(--accent) 22%,transparent);color:var(--accent)}
-.node b{display:block;font-size:1rem}
-.node small{color:var(--cream-dim);font-size:.8rem;line-height:1.3;display:block;margin-top:.25rem}
-.arrow{display:flex;align-items:center;color:var(--accent);font-size:1.6rem;font-weight:800}
+.deck-root .node b{display:block;font-size:1rem}
+.deck-root .node small{color:var(--cream-dim);font-size:.8rem;line-height:1.3;display:block;margin-top:.25rem}
+.deck-root .arrow{display:flex;align-items:center;color:var(--accent);font-size:1.6rem;font-weight:800}
 
 /* ---- chat mockup ---- */
-.chat{width:min(560px,46vw);background:#1b130d;border:1px solid var(--line);border-radius:22px;overflow:hidden;
+.deck-root .chat{width:min(560px,46vw);background:#1b130d;border:1px solid var(--line);border-radius:22px;overflow:hidden;
   box-shadow:0 30px 60px rgba(0,0,0,.4)}
-.chat .top{display:flex;align-items:center;gap:.7rem;padding:.9rem 1.1rem;background:rgba(255,255,255,.04);border-bottom:1px solid var(--line)}
-.chat .av{width:34px;height:34px;border-radius:10px;background:color-mix(in srgb,var(--accent) 30%,transparent);display:grid;place-items:center;color:var(--accent)}
-.chat .top b{font-size:.95rem}.chat .top small{color:var(--cream-dim);font-size:.75rem;display:block}
-.chat .body{padding:1.1rem;display:flex;flex-direction:column;gap:.7rem}
-.bub{max-width:80%;padding:.7rem .95rem;border-radius:16px;font-size:.95rem;line-height:1.4}
-.bub.u{align-self:flex-end;background:color-mix(in srgb,var(--accent) 80%,#000);color:#1b130d;font-weight:600;border-bottom-right-radius:5px}
-.bub.b{align-self:flex-start;background:rgba(255,255,255,.07);border:1px solid var(--line);border-bottom-left-radius:5px}
-.tag{display:inline-block;font-size:.74rem;font-weight:700;background:color-mix(in srgb,var(--accent) 20%,transparent);
+.deck-root .chat .top{display:flex;align-items:center;gap:.7rem;padding:.9rem 1.1rem;background:rgba(255,255,255,.04);border-bottom:1px solid var(--line)}
+.deck-root .chat .av{width:34px;height:34px;border-radius:10px;background:color-mix(in srgb,var(--accent) 30%,transparent);display:grid;place-items:center;color:var(--accent)}
+.deck-root .chat .top b{font-size:.95rem}.deck-root .chat .top small{color:var(--cream-dim);font-size:.75rem;display:block}
+.deck-root .chat .body{padding:1.1rem;display:flex;flex-direction:column;gap:.7rem}
+.deck-root .bub{max-width:80%;padding:.7rem .95rem;border-radius:16px;font-size:.95rem;line-height:1.4}
+.deck-root .bub.u{align-self:flex-end;background:color-mix(in srgb,var(--accent) 80%,#000);color:#1b130d;font-weight:600;border-bottom-right-radius:5px}
+.deck-root .bub.b{align-self:flex-start;background:rgba(255,255,255,.07);border:1px solid var(--line);border-bottom-left-radius:5px}
+.deck-root .tag{display:inline-block;font-size:.74rem;font-weight:700;background:color-mix(in srgb,var(--accent) 20%,transparent);
   color:var(--accent);padding:.15rem .5rem;border-radius:6px;margin:.15rem .25rem 0 0}
 
 /* ---- kanban ---- */
-.kanban{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:1.6rem;width:100%}
-.kcol{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:16px;padding:1rem}
-.kcol .h{display:flex;align-items:center;gap:.5rem;font-weight:700;font-size:.95rem;margin-bottom:.8rem}
-.kcol .h .d{width:9px;height:9px;border-radius:50%}
-.kc{background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:10px;padding:.6rem .75rem;margin-bottom:.55rem;font-size:.85rem}
-.kc b{font-size:.9rem}.kc small{color:var(--cream-dim);display:block;margin-top:.15rem}
+.deck-root .kanban{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:1.6rem;width:100%}
+.deck-root .kcol{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:16px;padding:1rem}
+.deck-root .kcol .h{display:flex;align-items:center;gap:.5rem;font-weight:700;font-size:.95rem;margin-bottom:.8rem}
+.deck-root .kcol .h .d{width:9px;height:9px;border-radius:50%}
+.deck-root .kc{background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:10px;padding:.6rem .75rem;margin-bottom:.55rem;font-size:.85rem}
+.deck-root .kc b{font-size:.9rem}.deck-root .kc small{color:var(--cream-dim);display:block;margin-top:.15rem}
 
 /* ---- timeline estados ---- */
-.timeline{display:flex;align-items:center;gap:0;margin-top:2.4rem;width:100%}
-.tl-step{flex:1;text-align:center;position:relative}
-.tl-step .c{width:64px;height:64px;border-radius:50%;margin:0 auto;display:grid;place-items:center;
+.deck-root .timeline{display:flex;align-items:center;gap:0;margin-top:2.4rem;width:100%}
+.deck-root .tl-step{flex:1;text-align:center;position:relative}
+.deck-root .tl-step .c{width:64px;height:64px;border-radius:50%;margin:0 auto;display:grid;place-items:center;
   background:color-mix(in srgb,var(--accent) 18%,transparent);border:2px solid var(--accent);color:var(--accent)}
-.tl-step b{display:block;margin-top:.8rem;font-size:1.05rem}
-.tl-step small{color:var(--cream-dim);font-size:.82rem}
-.tl-line{height:2px;flex:.6;background:linear-gradient(90deg,var(--accent),color-mix(in srgb,var(--accent) 30%,transparent))}
+.deck-root .tl-step b{display:block;margin-top:.8rem;font-size:1.05rem}
+.deck-root .tl-step small{color:var(--cream-dim);font-size:.82rem}
+.deck-root .tl-line{height:2px;flex:.6;background:linear-gradient(90deg,var(--accent),color-mix(in srgb,var(--accent) 30%,transparent))}
 
 /* ---- code / json ---- */
-.code{background:#0f0a07;border:1px solid var(--line);border-radius:16px;padding:1.4rem 1.6rem;
+.deck-root .code{background:#0f0a07;border:1px solid var(--line);border-radius:16px;padding:1.4rem 1.6rem;
   font-family:'SF Mono',ui-monospace,Menlo,Consolas,monospace;font-size:clamp(.85rem,1.5vw,1.05rem);
   line-height:1.7;width:min(560px,46vw)}
-.code .k{color:var(--amber-bright)}.code .s{color:#8fd6c9}.code .n{color:#c3a0f0}.code .p{color:var(--cream-faint)}
+.deck-root .code .k{color:var(--amber-bright)}.deck-root .code .s{color:#8fd6c9}.deck-root .code .n{color:#c3a0f0}.deck-root .code .p{color:var(--cream-faint)}
 
 /* layout dos columnas */
-.split{display:grid;grid-template-columns:1fr 1fr;gap:3vw;align-items:center;width:100%}
-.split.wide{grid-template-columns:1.05fr .95fr}
+.deck-root .split{display:grid;grid-template-columns:1fr 1fr;gap:3vw;align-items:center;width:100%}
+.deck-root .split.wide{grid-template-columns:1.05fr .95fr}
 
 /* lista visual */
-.vlist{display:flex;flex-direction:column;gap:.9rem;margin-top:1.4rem}
-.vitem{display:flex;gap:1rem;align-items:flex-start}
-.vitem .b{flex:none;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;
+.deck-root .vlist{display:flex;flex-direction:column;gap:.9rem;margin-top:1.4rem}
+.deck-root .vitem{display:flex;gap:1rem;align-items:flex-start}
+.deck-root .vitem .b{flex:none;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;
   background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--accent);font-weight:800;font-size:.95rem}
-.vitem .t b{font-size:1.05rem}.vitem .t p{color:var(--cream-dim);font-size:.92rem;margin-top:.15rem;line-height:1.4}
+.deck-root .vitem .t b{font-size:1.05rem}.deck-root .vitem .t p{color:var(--cream-dim);font-size:.92rem;margin-top:.15rem;line-height:1.4}
 
 /* quote / cierre */
-.center{align-items:center;text-align:center}
-.center .lead{max-width:54ch}
+.deck-root .center{align-items:center;text-align:center}
+.deck-root .center .lead{max-width:54ch}
 
 /* ---- chrome (navegación) ---- */
-.progress{position:fixed;top:0;left:0;height:3px;background:var(--accent);z-index:50;transition:width .4s ease}
-.footer{position:fixed;bottom:18px;left:0;right:0;display:flex;justify-content:space-between;align-items:center;
+.deck-root .progress{position:fixed;top:0;left:0;height:3px;background:var(--accent);z-index:50;transition:width .4s ease}
+.deck-root .footer{position:fixed;bottom:18px;left:0;right:0;display:flex;justify-content:space-between;align-items:center;
   padding:0 28px;z-index:40;pointer-events:none;font-size:.78rem;color:var(--cream-faint);font-weight:600;letter-spacing:.04em}
-.footer .sec{display:inline-flex;align-items:center;gap:.5rem}
-.footer .sec .d{width:8px;height:8px;border-radius:50%;background:var(--accent)}
-.nav{position:fixed;bottom:14px;right:22px;display:flex;gap:.5rem;z-index:45}
-.nav button{pointer-events:auto;width:42px;height:42px;border-radius:12px;border:1px solid var(--line);
+.deck-root .footer .sec{display:inline-flex;align-items:center;gap:.5rem}
+.deck-root .footer .sec .d{width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.deck-root .nav{position:fixed;bottom:14px;right:22px;display:flex;gap:.5rem;z-index:45}
+.deck-root .nav button{pointer-events:auto;width:42px;height:42px;border-radius:12px;border:1px solid var(--line);
   background:rgba(255,255,255,.05);color:var(--cream);font-size:1.1rem;cursor:pointer;backdrop-filter:blur(6px);
   display:grid;place-items:center;transition:.2s}
-.nav button:hover{background:var(--accent);color:#1b130d;border-color:var(--accent)}
-.count{position:fixed;bottom:20px;left:28px;z-index:45;font-weight:700;color:var(--cream-dim);font-size:.85rem}
-.count b{color:var(--cream)}
-.brandtag{position:fixed;top:16px;right:24px;z-index:45;font-weight:800;letter-spacing:.02em;font-size:.85rem;color:var(--cream-dim)}
-.brandtag b{color:var(--accent)}
+.deck-root .nav button:hover{background:var(--accent);color:#1b130d;border-color:var(--accent)}
+.deck-root .count{position:fixed;bottom:20px;left:28px;z-index:45;font-weight:700;color:var(--cream-dim);font-size:.85rem}
+.deck-root .count b{color:var(--cream)}
+.deck-root .brandtag{position:fixed;top:16px;right:24px;z-index:45;font-weight:800;letter-spacing:.02em;font-size:.85rem;color:var(--cream-dim)}
+.deck-root .brandtag b{color:var(--accent)}
 
 /* notas del orador */
-.notes{position:fixed;left:50%;bottom:70px;transform:translateX(-50%);z-index:60;max-width:min(760px,86vw);
+.deck-root .notes{position:fixed;left:50%;bottom:70px;transform:translateX(-50%);z-index:60;max-width:min(760px,86vw);
   background:rgba(15,10,7,.96);border:1px solid var(--line);border-radius:14px;padding:.9rem 1.3rem;
   color:var(--cream-dim);font-size:.95rem;line-height:1.5;display:none;box-shadow:0 20px 50px rgba(0,0,0,.5)}
-.notes.show{display:block;animation:rise .3s ease both}
-.notes b{color:var(--accent);display:block;font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;margin-bottom:.35rem}
+.deck-root .notes.show{display:block;animation:rise .3s ease both}
+.deck-root .notes b{color:var(--accent);display:block;font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;margin-bottom:.35rem}
 
-.help{position:fixed;inset:0;background:rgba(10,7,5,.9);z-index:80;display:none;place-items:center;backdrop-filter:blur(6px)}
-.help.show{display:grid}
-.help .box{background:var(--bean);border:1px solid var(--line);border-radius:20px;padding:2.4rem 2.8rem;max-width:460px}
-.help h3{font-family:'Fraunces',serif;font-size:1.6rem;margin-bottom:1.2rem;color:var(--accent)}
-.help .row{display:flex;justify-content:space-between;gap:1.5rem;padding:.5rem 0;border-bottom:1px solid var(--line);font-size:.95rem}
-.help kbd{background:rgba(255,255,255,.08);border:1px solid var(--line);border-radius:6px;padding:.2rem .6rem;font-family:monospace;font-size:.85rem}
-.help small{display:block;margin-top:1.2rem;color:var(--cream-faint);text-align:center}
+.deck-root .help{position:fixed;inset:0;background:rgba(10,7,5,.9);z-index:80;display:none;place-items:center;backdrop-filter:blur(6px)}
+.deck-root .help.show{display:grid}
+.deck-root .help .box{background:var(--bean);border:1px solid var(--line);border-radius:20px;padding:2.4rem 2.8rem;max-width:460px}
+.deck-root .help h3{font-family:'Fraunces',serif;font-size:1.6rem;margin-bottom:1.2rem;color:var(--accent)}
+.deck-root .help .row{display:flex;justify-content:space-between;gap:1.5rem;padding:.5rem 0;border-bottom:1px solid var(--line);font-size:.95rem}
+.deck-root .help kbd{background:rgba(255,255,255,.08);border:1px solid var(--line);border-radius:6px;padding:.2rem .6rem;font-family:monospace;font-size:.85rem}
+.deck-root .help small{display:block;margin-top:1.2rem;color:var(--cream-faint);text-align:center}
 
 @media(max-width:760px){
-  .g3,.g4{grid-template-columns:1fr 1fr}.split{grid-template-columns:1fr}.cover .cup{display:none}
-  .chat,.code{width:100%}.flow{flex-direction:column}.arrow{transform:rotate(90deg)}
+  .deck-root .g3,.deck-root .g4{grid-template-columns:1fr 1fr}.deck-root .split{grid-template-columns:1fr}
+  .deck-root .cover-spline{display:none}
+  .deck-root .chat,.deck-root .code{width:100%}.deck-root .flow{flex-direction:column}.deck-root .arrow{transform:rotate(90deg)}
 }
+
+
+  html,body{margin:0;padding:0;background:#0b0b0f}
+  spline-viewer{width:100%;height:100%;display:block}
+  .deck-root .cover-glow{position:absolute;left:-5%;top:-10%;width:70%;height:90%;
+    background:radial-gradient(closest-side, rgba(244,190,108,.22), transparent 70%);
+    filter:blur(40px);z-index:0;pointer-events:none}
+
 </style>
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<div class="brandtag"><b>☕ Coffee Nezzi</b></div>
-<div class="deck" id="deck">
+  <div class="deck-root">
+    <div class="progress" style="width:0%"></div>
+    <div class="brandtag"><b>☕ Coffee Nezzi</b></div>
 
-<!-- ============ PORTADA ============ -->
-<section class="slide cover" data-section="Inicio" data-accent="--s1"
-  data-notes="Saluda, preséntate y presenta al equipo. Una sola frase: 'Les vamos a mostrar cómo convertimos un proceso 100% manual en un sistema inteligente de pre-pedidos.'">
-  <svg class="cup" viewBox="0 0 200 200" fill="none">
-    <g opacity=".7" stroke="var(--accent)" stroke-width="3" stroke-linecap="round">
-      <path d="M70 35 C70 20 85 20 85 35 C85 48 72 48 78 62"><animate attributeName="opacity" values=".2;.8;.2" dur="3s" repeatCount="indefinite"/></path>
-      <path d="M100 30 C100 14 116 14 116 30 C116 45 102 45 108 60"><animate attributeName="opacity" values=".8;.2;.8" dur="3.4s" repeatCount="indefinite"/></path>
-      <path d="M130 35 C130 20 145 20 145 35 C145 48 132 48 138 62"><animate attributeName="opacity" values=".3;.7;.3" dur="2.6s" repeatCount="indefinite"/></path>
-    </g>
-    <path d="M45 80 H150 V120 C150 145 130 162 100 162 C70 162 50 145 50 120 Z" fill="color-mix(in srgb,var(--accent) 22%,transparent)" stroke="var(--accent)" stroke-width="3.5"/>
-    <path d="M150 90 H165 C178 90 178 118 165 118 H150" fill="none" stroke="var(--accent)" stroke-width="3.5"/>
-    <rect x="42" y="166" width="116" height="10" rx="5" fill="var(--accent)"/>
-  </svg>
-  <div class="reveal kicker">La Salle Nezahualcóyotl · Ing. en Sistemas Comp. y de Software</div>
-  <h1 class="reveal">Coffee&nbsp;Nezzi</h1>
-  <div class="reveal cover-sub">Pre-pedidos inteligentes para cafeterías universitarias</div>
-  <div class="reveal brandline"><span class="dot"></span> IA conversacional · Automatización · Backend REST</div>
-  <div class="reveal pill">⏱ Presentación · 1 hora &nbsp;|&nbsp; Pulsa <b style="color:var(--accent);margin:0 .3em">→</b> para avanzar &nbsp;·&nbsp; <b style="color:var(--accent);margin:0 .3em">?</b> ayuda</div>
-</section>
-
-<!-- ============ AGENDA ============ -->
-<section class="slide" data-section="Agenda" data-accent="--s1"
-  data-notes="Da el mapa de la charla en 20 segundos. Menciona que reconocer limitaciones al final le da seriedad al proyecto.">
+    <div class="deck">
+      <section class="slide cover" data-section="Inicio" data-accent="--s1">
+        <div class="cover-glow"></div>
+        <div class="cover-spline">
+          <spline-viewer url="https://prod.spline.design/9agNyjK83XJSUQHW/scene.splinecode"></spline-viewer>
+        </div>
+        <div class="reveal kicker">La Salle Nezahualcóyotl · Ing. en Sistemas Comp. y de Software</div>
+        <h1 class="reveal">Coffee&nbsp;Nezzi</h1>
+        <div class="reveal cover-sub">Pre-pedidos inteligentes para cafeterías universitarias</div>
+        <div class="reveal brandline"><span class="dot"></span> IA conversacional · Automatización · Backend REST</div>
+        <div class="reveal pill">Pulsa <b style="color:var(--accent);margin:0 .3em">→</b> para avanzar &nbsp;·&nbsp; <b style="color:var(--accent);margin:0 .3em">?</b> ayuda</div>
+      </section>
+      <section class="slide" data-section="Agenda" data-accent="--s1">
   <div class="reveal kicker">Recorrido de hoy</div>
   <h2 class="reveal">Agenda</h2>
   <div class="reveal grid g3">
-    <div class="card tight" style="--accent:var(--s1)"><div class="ic">1</div><h3>Introducción y contexto</h3><p>El problema real de las cafeterías · 8 min</p></div>
-    <div class="card tight" style="--accent:var(--s2)"><div class="ic">2</div><h3>Investigación y análisis</h3><p>Por qué elegimos esta tecnología · 8 min</p></div>
-    <div class="card tight" style="--accent:var(--s3)"><div class="ic">3</div><h3>Diseño y arquitectura</h3><p>El ecosistema completo · 10 min</p></div>
-    <div class="card tight" style="--accent:var(--s4)"><div class="ic">4</div><h3>Explicación técnica</h3><p>Cómo funciona por dentro · 12 min</p></div>
-    <div class="card tight" style="--accent:var(--s5)"><div class="ic">5</div><h3>Seguridad</h3><p>Protección e integridad · 4 min</p></div>
-    <div class="card tight" style="--accent:var(--s6)"><div class="ic">6</div><h3>Impacto y limitaciones</h3><p>Beneficios y retos reales · 9 min</p></div>
-  </div>
-</section>
-
-<!-- ====================================================== -->
-<!-- ============ SECCIÓN 1: INTRODUCCIÓN ================= -->
-<!-- ====================================================== -->
-<section class="slide divider center" data-section="1 · Introducción" data-accent="--s1"
-  data-notes="Arranca fuerte: 'Algo tan simple como comprar un café esconde muchos problemas operativos.'">
+    <div class="card tight" style="--accent:var(--s1)"><div class="ic">1</div><h3>Introducción y contexto</h3><p>El problema real de las cafeterías</p></div>
+    <div class="card tight" style="--accent:var(--s2)"><div class="ic">2</div><h3>Investigación y análisis</h3><p>Por qué elegimos esta tecnología</p></div>
+    <div class="card tight" style="--accent:var(--s3)"><div class="ic">3</div><h3>Diseño y arquitectura</h3><p>El ecosistema completo</p></div>
+    <div class="card tight" style="--accent:var(--s4)"><div class="ic">4</div><h3>Explicación técnica</h3><p>Cómo funciona por dentro</p></div>
+    <div class="card tight" style="--accent:var(--s5)"><div class="ic">5</div><h3>Seguridad</h3><p>Protección e integridad</p></div>
+    <div class="card tight" style="--accent:var(--s6)"><div class="ic">6</div><h3>Impacto y limitaciones</h3><p>Beneficios y retos reales</p></div>
+  </div></section>
+      <section class="slide divider center" data-section="1 · Introducción" data-accent="--s1">
   <div class="reveal snum">01</div>
-  <h2 class="reveal">Introducción y contexto</h2>
-  <div class="reveal time">⏱ 8 minutos</div>
-</section>
-
-<section class="slide" data-section="1 · Introducción" data-accent="--s1"
-  data-notes="Las cafeterías universitarias siguen siendo 100% manuales. Parece simple, pero detrás hay muchos problemas operativos.">
+  <h2 class="reveal">Introducción y contexto</h2></section>
+      <section class="slide" data-section="1 · Introducción" data-accent="--s1">
   <div class="reveal kicker">El punto de partida</div>
   <h2 class="reveal">Las cafeterías siguen siendo<br><span class="big-accent">100% manuales</span></h2>
-  <p class="reveal lead">Un proceso que parece simple, pero que esconde problemas operativos que afectan a estudiantes y personal todos los días.</p>
-</section>
-
-<section class="slide" data-section="1 · Introducción" data-accent="--s1"
-  data-notes="Cuatro problemas detectados al observar el entorno: filas, errores humanos, estrés del personal y restricciones no comunicadas.">
+  <p class="reveal lead">Un proceso que parece simple, pero que esconde problemas operativos que afectan a estudiantes y personal todos los días.</p></section>
+      <section class="slide" data-section="1 · Introducción" data-accent="--s1">
   <div class="reveal kicker">¿Qué ocurre hoy?</div>
   <h2 class="reveal">Problemas que detectamos</h2>
   <div class="reveal grid g4">
@@ -278,11 +267,8 @@ h2{font-family:'Fraunces',serif;font-weight:700;line-height:1.05;letter-spacing:
     <div class="card"><div class="ic">⚠️</div><h3>Errores humanos</h3><p>Pedidos mal tomados o confundidos</p></div>
     <div class="card"><div class="ic">🔥</div><h3>Estrés operativo</h3><p>Mucha demanda en poco tiempo</p></div>
     <div class="card"><div class="ic">🥜</div><h3>Restricciones</h3><p>Alergias que no se comunican bien</p></div>
-  </div>
-</section>
-
-<section class="slide" data-section="1 · Introducción" data-accent="--s1"
-  data-notes="No es solo rapidez: impacta la experiencia, la accesibilidad, la eficiencia y la inclusión alimentaria.">
+  </div></section>
+      <section class="slide" data-section="1 · Introducción" data-accent="--s1">
   <div class="reveal kicker">¿Por qué resolverlo?</div>
   <h2 class="reveal">No es solo ir más rápido</h2>
   <div class="reveal grid g2">
@@ -290,21 +276,15 @@ h2{font-family:'Fraunces',serif;font-weight:700;line-height:1.05;letter-spacing:
     <div class="card"><div class="ic">♿</div><h3>Accesibilidad</h3><p>No todos pueden esperar formados en entornos saturados</p></div>
     <div class="card"><div class="ic">📈</div><h3>Eficiencia operativa</h3><p>Menos errores, menos saturación, atención consistente</p></div>
     <div class="card"><div class="ic">🥗</div><h3>Inclusión alimentaria</h3><p>Alergias, intolerancias y restricciones desde el pedido</p></div>
-  </div>
-</section>
-
-<section class="slide center" data-section="1 · Introducción" data-accent="--s1"
-  data-notes="Datos aproximados del entorno para dimensionar el problema. Aclara que son estimaciones de nuestra observación.">
+  </div></section>
+      <section class="slide center" data-section="1 · Introducción" data-accent="--s1">
   <div class="reveal kicker">Datos aproximados del entorno</div>
   <div class="reveal stats">
     <div class="stat"><div class="num">100s</div><div class="lab">de estudiantes en el campus</div></div>
     <div class="stat"><div class="num">A diario</div><div class="lab">gran parte usa la cafetería</div></div>
     <div class="stat"><div class="num">8–15<small style="font-size:1.4rem"> min</small></div><div class="lab">de espera en horas pico</div></div>
-  </div>
-</section>
-
-<section class="slide" data-section="1 · Introducción" data-accent="--s1"
-  data-notes="El flujo completo es manual: 6 pasos del estudiante. La conclusión es que el problema NO es solo la fila, es la falta de digitalización. Aquí presentas la solución.">
+  </div></section>
+      <section class="slide" data-section="1 · Introducción" data-accent="--s1">
   <div class="reveal kicker">Observación del entorno</div>
   <h2 class="reveal">Todo el flujo es manual</h2>
   <div class="reveal chips">
@@ -316,21 +296,11 @@ h2{font-family:'Fraunces',serif;font-weight:700;line-height:1.05;letter-spacing:
     <span class="chip">6 · Esperar preparación</span>
   </div>
   <p class="reveal lead" style="margin-top:1.8rem">El problema no es solo la fila: es la <span class="big-accent">falta de digitalización</span> de todo el proceso.</p>
-  <div class="reveal pill" style="--accent:var(--s2);background:color-mix(in srgb,var(--s2) 14%,transparent);color:var(--s2);border-color:var(--s2)">💡 Nuestra solución: IA conversacional + pre-pedidos automatizados</div>
-</section>
-
-<!-- ====================================================== -->
-<!-- ============ SECCIÓN 2: INVESTIGACIÓN =============== -->
-<!-- ====================================================== -->
-<section class="slide divider center" data-section="2 · Investigación" data-accent="--s2"
-  data-notes="Transición: 'Una vez claro el problema, investigamos qué tecnología era la más adecuada.'">
+  <div class="reveal pill" style="--accent:var(--s2);background:color-mix(in srgb,var(--s2) 14%,transparent);color:var(--s2);border-color:var(--s2)">💡 Nuestra solución: IA conversacional + pre-pedidos automatizados</div></section>
+      <section class="slide divider center" data-section="2 · Investigación" data-accent="--s2">
   <div class="reveal snum">02</div>
-  <h2 class="reveal">Investigación y análisis</h2>
-  <div class="reveal time">⏱ 8 minutos</div>
-</section>
-
-<section class="slide" data-section="2 · Investigación" data-accent="--s2"
-  data-notes="Evaluamos cuatro caminos tecnológicos antes de decidir.">
+  <h2 class="reveal">Investigación y análisis</h2></section>
+      <section class="slide" data-section="2 · Investigación" data-accent="--s2">
   <div class="reveal kicker">Investigación tecnológica</div>
   <h2 class="reveal">Alternativas que evaluamos</h2>
   <div class="reveal grid g4">
@@ -338,22 +308,16 @@ h2{font-family:'Fraunces',serif;font-weight:700;line-height:1.05;letter-spacing:
     <div class="card"><div class="ic">💬</div><h3>Chatbot web</h3></div>
     <div class="card"><div class="ic">🟢</div><h3>WhatsApp</h3></div>
     <div class="card" style="border-color:var(--s2);background:color-mix(in srgb,var(--s2) 10%,transparent)"><div class="ic">🤖</div><h3>IA conversacional</h3></div>
-  </div>
-</section>
-
-<section class="slide" data-section="2 · Investigación" data-accent="--s2"
-  data-notes="Comparativa honesta: cada opción tenía ventajas pero también limitaciones para nuestro contexto.">
+  </div></section>
+      <section class="slide" data-section="2 · Investigación" data-accent="--s2">
   <div class="reveal kicker">Comparativa de tecnologías</div>
   <h2 class="reveal">Pros y contras</h2>
   <div class="reveal grid g3">
     <div class="card"><div class="ic">📱</div><h3>App móvil</h3><p><span style="color:var(--s6)">＋</span> Personalización total<br><span style="color:var(--s5)">－</span> Más desarrollo, mantenimiento e instalación</p></div>
     <div class="card"><div class="ic">🟢</div><h3>WhatsApp</h3><p><span style="color:var(--s6)">＋</span> Familiar, sin instalar<br><span style="color:var(--s5)">－</span> Costos de API y menos flexibilidad</p></div>
     <div class="card"><div class="ic">💬</div><h3>Chatbot web</h3><p><span style="color:var(--s6)">＋</span> Control total<br><span style="color:var(--s5)">－</span> Toda la lógica desde cero</p></div>
-  </div>
-</section>
-
-<section class="slide" data-section="2 · Investigación" data-accent="--s2"
-  data-notes="Elegimos Copilot Studio porque acelera el desarrollo y encaja con el entorno institucional. Conecta con el backend vía OpenAPI.">
+  </div></section>
+      <section class="slide" data-section="2 · Investigación" data-accent="--s2">
   <div class="reveal kicker">La decisión</div>
   <h2 class="reveal">¿Por qué <span class="big-accent">Microsoft Copilot Studio?</span></h2>
   <div class="reveal grid g3">
@@ -363,11 +327,8 @@ h2{font-family:'Fraunces',serif;font-weight:700;line-height:1.05;letter-spacing:
     <div class="card tight"><div class="ic">🔌</div><h3>APIs / OpenAPI</h3><p>Conecta con nuestro backend REST</p></div>
     <div class="card tight"><div class="ic">🧠</div><h3>IA conversacional</h3><p>Interpretación de lenguaje natural</p></div>
     <div class="card tight"><div class="ic">🏛️</div><h3>Enfoque institucional</h3><p>Pensado para automatización empresarial</p></div>
-  </div>
-</section>
-
-<section class="slide" data-section="2 · Investigación" data-accent="--s2"
-  data-notes="El backend REST separa responsabilidades y permite escalar e integrar a futuro (apps, pagos, más cafeterías).">
+  </div></section>
+      <section class="slide" data-section="2 · Investigación" data-accent="--s2">
   <div class="reveal kicker">Arquitectura</div>
   <h2 class="reveal">¿Por qué un <span class="big-accent">backend REST?</span></h2>
   <div class="split">
@@ -385,11 +346,8 @@ h2{font-family:'Fraunces',serif;font-weight:700;line-height:1.05;letter-spacing:
         <span class="chip">🛠️ Mantenimiento</span><span class="chip">🚀 Integraciones futuras</span>
       </div>
     </div>
-  </div>
-</section>
-
-<section class="slide" data-section="2 · Investigación" data-accent="--s2"
-  data-notes="Este es el flujo general que repetiremos toda la charla: estudiante → Teams → Copilot → backend → base de datos → dashboard.">
+  </div></section>
+      <section class="slide" data-section="2 · Investigación" data-accent="--s2">
   <div class="reveal kicker">Arquitectura final seleccionada</div>
   <h2 class="reveal">El flujo completo</h2>
   <div class="reveal flow">
@@ -404,28 +362,15 @@ h2{font-family:'Fraunces',serif;font-weight:700;line-height:1.05;letter-spacing:
     <div class="node"><div class="ic">🗄️</div><b>MySQL</b><small>almacenamiento</small></div>
     <div class="arrow">→</div>
     <div class="node"><div class="ic">📊</div><b>Dashboard</b><small>cafetería</small></div>
-  </div>
-</section>
-
-<!-- ====================================================== -->
-<!-- ============ SECCIÓN 3: DISEÑO ====================== -->
-<!-- ====================================================== -->
-<section class="slide divider center" data-section="3 · Diseño" data-accent="--s3"
-  data-notes="Transición: 'No queríamos solo un chatbot, sino un sistema completo. Veamos cada pieza.'">
+  </div></section>
+      <section class="slide divider center" data-section="3 · Diseño" data-accent="--s3">
   <div class="reveal snum">03</div>
-  <h2 class="reveal">Diseño de solución y arquitectura</h2>
-  <div class="reveal time">⏱ 10 minutos</div>
-</section>
-
-<section class="slide" data-section="3 · Diseño" data-accent="--s3"
-  data-notes="El objetivo no era un chatbot, sino un ecosistema que conecta usuarios, IA, backend, almacenamiento y administración.">
+  <h2 class="reveal">Diseño de solución y arquitectura</h2></section>
+      <section class="slide" data-section="3 · Diseño" data-accent="--s3">
   <div class="reveal kicker">Diseño de la solución</div>
   <h2 class="reveal">No un chatbot:<br>un <span class="big-accent">ecosistema completo</span></h2>
-  <p class="reveal lead">Una arquitectura modular donde cada componente cumple una función específica dentro del flujo.</p>
-</section>
-
-<section class="slide" data-section="3 · Diseño" data-accent="--s3"
-  data-notes="Siete componentes que trabajan conectados para automatizar todo el proceso de atención.">
+  <p class="reveal lead">Una arquitectura modular donde cada componente cumple una función específica dentro del flujo.</p></section>
+      <section class="slide" data-section="3 · Diseño" data-accent="--s3">
   <div class="reveal kicker">Arquitectura general</div>
   <h2 class="reveal">Los 7 componentes</h2>
   <div class="reveal grid g4">
@@ -436,11 +381,8 @@ h2{font-family:'Fraunces',serif;font-weight:700;line-height:1.05;letter-spacing:
     <div class="card tight"><div class="ic">🗄️</div><h3>Base de datos</h3></div>
     <div class="card tight"><div class="ic">📊</div><h3>Dashboard admin</h3></div>
     <div class="card tight"><div class="ic">🔄</div><h3>Sincronización</h3></div>
-  </div>
-</section>
-
-<section class="slide" data-section="3 · Diseño" data-accent="--s3"
-  data-notes="Frontend = Teams. Ventaja clave: el estudiante NO instala nada nuevo, usa una plataforma que ya conoce.">
+  </div></section>
+      <section class="slide" data-section="3 · Diseño" data-accent="--s3">
   <div class="reveal kicker">Frontend conversacional</div>
   <h2 class="reveal">Microsoft Teams</h2>
   <div class="split">
@@ -450,11 +392,8 @@ h2{font-family:'Fraunces',serif;font-weight:700;line-height:1.05;letter-spacing:
       <span class="chip">📝 Agregar observaciones</span><span class="chip">🥜 Indicar alergias</span>
       <span class="chip">✅ Confirmar órdenes</span>
     </div>
-  </div>
-</section>
-
-<section class="slide" data-section="3 · Diseño" data-accent="--s3"
-  data-notes="El núcleo lógico de interacción. En vez de formularios rígidos, el usuario conversa. Interpreta intención y decide qué hacer.">
+  </div></section>
+      <section class="slide" data-section="3 · Diseño" data-accent="--s3">
   <div class="reveal kicker">Inteligencia artificial conversacional</div>
   <h2 class="reveal">El núcleo de interacción</h2>
   <p class="reveal lead">En lugar de formularios rígidos, el usuario <span class="big-accent">conversa</span>. El agente interpreta la intención y decide la acción.</p>
@@ -463,11 +402,8 @@ h2{font-family:'Fraunces',serif;font-weight:700;line-height:1.05;letter-spacing:
     <div class="card tight"><div class="ic">✔️</div><h3>Valida información</h3></div>
     <div class="card tight"><div class="ic">❓</div><h3>Pide datos faltantes</h3></div>
     <div class="card tight"><div class="ic">📦</div><h3>Confirma pedidos</h3></div>
-  </div>
-</section>
-
-<section class="slide" data-section="3 · Diseño" data-accent="--s3"
-  data-notes="El backend es el cerebro operativo: registra, valida, procesa, actualiza y conecta todos los componentes mediante endpoints REST.">
+  </div></section>
+      <section class="slide" data-section="3 · Diseño" data-accent="--s3">
   <div class="reveal kicker">Backend REST</div>
   <h2 class="reveal">Toda la lógica operativa</h2>
   <div class="reveal grid g4">
@@ -476,11 +412,8 @@ h2{font-family:'Fraunces',serif;font-weight:700;line-height:1.05;letter-spacing:
     <div class="card tight"><div class="ic">⚙️</div><h3>Procesa solicitudes</h3></div>
     <div class="card tight"><div class="ic">🔄</div><h3>Actualiza estados</h3></div>
   </div>
-  <p class="reveal muted" style="margin-top:1.4rem;font-weight:600">Comunicación entre servicios mediante <span class="big-accent">endpoints estructurados</span></p>
-</section>
-
-<section class="slide" data-section="3 · Diseño" data-accent="--s3"
-  data-notes="El recorrido de un mensaje: el alumno escribe → Copilot interpreta → HTTP al backend → procesa y guarda → respuesta vuelve y el dashboard se actualiza. Todo sincronizado.">
+  <p class="reveal muted" style="margin-top:1.4rem;font-weight:600">Comunicación entre servicios mediante <span class="big-accent">endpoints estructurados</span></p></section>
+      <section class="slide" data-section="3 · Diseño" data-accent="--s3">
   <div class="reveal kicker">API y flujo de mensajes</div>
   <h2 class="reveal">El viaje de un pedido</h2>
   <div class="reveal vlist">
@@ -489,11 +422,8 @@ h2{font-family:'Fraunces',serif;font-weight:700;line-height:1.05;letter-spacing:
     <div class="vitem"><div class="b">3</div><div class="t"><b>Solicitud HTTP al backend</b><p>A través de la API REST</p></div></div>
     <div class="vitem"><div class="b">4</div><div class="t"><b>El backend procesa y registra</b><p>Guarda en la base de datos</p></div></div>
     <div class="vitem"><div class="b">5</div><div class="t"><b>Respuesta + dashboard actualizado</b><p>Todo sincronizado en tiempo real</p></div></div>
-  </div>
-</section>
-
-<section class="slide" data-section="3 · Diseño" data-accent="--s3"
-  data-notes="Base de datos relacional (MySQL): guarda pedidos, productos, estados y observaciones. Da persistencia y abre la puerta a estadísticas y reportes.">
+  </div></section>
+      <section class="slide" data-section="3 · Diseño" data-accent="--s3">
   <div class="reveal kicker">Almacenamiento</div>
   <h2 class="reveal">Base de datos relacional</h2>
   <div class="split">
@@ -509,11 +439,8 @@ h2{font-family:'Fraunces',serif;font-weight:700;line-height:1.05;letter-spacing:
         <span class="chip">📊 Estadísticas</span><span class="chip">🕘 Historial</span><span class="chip">📈 Análisis de consumo</span><span class="chip">📄 Reportes</span>
       </div>
     </div>
-  </div>
-</section>
-
-<section class="slide" data-section="3 · Diseño" data-accent="--s3"
-  data-notes="El dashboard es la vista de la cafetería: ve los pedidos organizados por estado. Mejora la organización y reduce confusiones en horas pico.">
+  </div></section>
+      <section class="slide" data-section="3 · Diseño" data-accent="--s3">
   <div class="reveal kicker">Dashboard administrativo</div>
   <h2 class="reveal">La vista de la cafetería</h2>
   <div class="reveal kanban">
@@ -527,11 +454,8 @@ h2{font-family:'Fraunces',serif;font-weight:700;line-height:1.05;letter-spacing:
     <div class="kcol"><div class="h"><span class="d" style="background:var(--s6)"></span>Listo</div>
       <div class="kc"><b>☕ Americano x2</b><small>13:58</small></div>
     </div>
-  </div>
-</section>
-
-<section class="slide center" data-section="3 · Diseño" data-accent="--s3"
-  data-notes="Pieza clave del diseño: cualquier cambio se refleja automáticamente entre chatbot, backend, base de datos y dashboard. Ejemplo: estado 'listo' → el usuario y la cafetería se enteran al instante.">
+  </div></section>
+      <section class="slide center" data-section="3 · Diseño" data-accent="--s3">
   <div class="reveal kicker">Sincronización de pedidos</div>
   <h2 class="reveal">Todo conectado, <span class="big-accent">en tiempo real</span></h2>
   <div class="reveal flow" style="max-width:780px">
@@ -540,21 +464,11 @@ h2{font-family:'Fraunces',serif;font-weight:700;line-height:1.05;letter-spacing:
     <div class="node"><div class="ic">🗄️</div><b>Base de datos</b></div><div class="arrow">⇄</div>
     <div class="node"><div class="ic">📊</div><b>Dashboard</b></div>
   </div>
-  <p class="reveal lead" style="margin-top:1.6rem">Sin inconsistencias: si un pedido pasa a <b style="color:var(--s6)">"listo"</b>, todos lo ven al instante.</p>
-</section>
-
-<!-- ====================================================== -->
-<!-- ============ SECCIÓN 4: TÉCNICA ===================== -->
-<!-- ====================================================== -->
-<section class="slide divider center" data-section="4 · Técnica" data-accent="--s4"
-  data-notes="Transición: 'Ahora veamos cómo funciona por dentro.' Esta es la parte más técnica, tómate tu tiempo.">
+  <p class="reveal lead" style="margin-top:1.6rem">Sin inconsistencias: si un pedido pasa a <b style="color:var(--s6)">"listo"</b>, todos lo ven al instante.</p></section>
+      <section class="slide divider center" data-section="4 · Técnica" data-accent="--s4">
   <div class="reveal snum">04</div>
-  <h2 class="reveal">Explicación técnica profunda</h2>
-  <div class="reveal time">⏱ 12 minutos</div>
-</section>
-
-<section class="slide" data-section="4 · Técnica" data-accent="--s4"
-  data-notes="El backend es el centro operativo. Implementa endpoints especializados para cada operación.">
+  <h2 class="reveal">Explicación técnica profunda</h2></section>
+      <section class="slide" data-section="4 · Técnica" data-accent="--s4">
   <div class="reveal kicker">Backend REST · Endpoints</div>
   <h2 class="reveal">El centro operativo</h2>
   <div class="reveal grid g4">
@@ -563,11 +477,8 @@ h2{font-family:'Fraunces',serif;font-weight:700;line-height:1.05;letter-spacing:
     <div class="card tight"><div class="ic">🔄</div><h3>Actualizar estados</h3><p>PUT /pedidos/:id</p></div>
     <div class="card tight"><div class="ic">📋</div><h3>Info de productos</h3><p>GET /productos</p></div>
   </div>
-  <p class="reveal muted" style="margin-top:1.3rem;font-weight:600">Recibe, procesa, valida, almacena y coordina la comunicación entre componentes.</p>
-</section>
-
-<section class="slide" data-section="4 · Técnica" data-accent="--s4"
-  data-notes="La información viaja en JSON. Muestra el ejemplo: incluye usuario, producto, cantidad, restricciones, estado y hora. JSON da interoperabilidad y claridad.">
+  <p class="reveal muted" style="margin-top:1.3rem;font-weight:600">Recibe, procesa, valida, almacena y coordina la comunicación entre componentes.</p></section>
+      <section class="slide" data-section="4 · Técnica" data-accent="--s4">
   <div class="reveal kicker">Estructura de datos</div>
   <h2 class="reveal">Todo viaja en <span class="big-accent">JSON</span></h2>
   <div class="split">
@@ -588,11 +499,8 @@ h2{font-family:'Fraunces',serif;font-weight:700;line-height:1.05;letter-spacing:
         <span class="chip">🤝 Comunicación entre servicios</span><span class="chip">📈 Fácil de escalar</span>
       </div>
     </div>
-  </div>
-</section>
-
-<section class="slide" data-section="4 · Técnica" data-accent="--s4"
-  data-notes="Antes de guardar, el backend valida. Punto crítico: las validaciones de restricciones alimentarias aseguran que la info importante llegue a la cafetería. Errores controlados evitan inconsistencias.">
+  </div></section>
+      <section class="slide" data-section="4 · Técnica" data-accent="--s4">
   <div class="reveal kicker">Validaciones del sistema</div>
   <h2 class="reveal">Nada entra sin validar</h2>
   <div class="reveal grid g4">
@@ -601,11 +509,8 @@ h2{font-family:'Fraunces',serif;font-weight:700;line-height:1.05;letter-spacing:
     <div class="card tight"><div class="ic">🔢</div><h3>Cantidades</h3></div>
     <div class="card tight" style="border-color:var(--s4);background:color-mix(in srgb,var(--s4) 10%,transparent)"><div class="ic">🥜</div><h3>Restricciones alimentarias</h3></div>
   </div>
-  <p class="reveal muted" style="margin-top:1.3rem;font-weight:600">Si algo falta o es incorrecto → <span class="big-accent">mensajes de error controlados</span>, sin inconsistencias.</p>
-</section>
-
-<section class="slide center" data-section="4 · Técnica" data-accent="--s4"
-  data-notes="Cada pedido pasa por 3 estados. Se registra como 'recibido', cambia a 'en preparación' y finalmente a 'listo'. Esto da seguimiento en tiempo real.">
+  <p class="reveal muted" style="margin-top:1.3rem;font-weight:600">Si algo falta o es incorrecto → <span class="big-accent">mensajes de error controlados</span>, sin inconsistencias.</p></section>
+      <section class="slide center" data-section="4 · Técnica" data-accent="--s4">
   <div class="reveal kicker">Control de estados</div>
   <h2 class="reveal">El ciclo de vida del pedido</h2>
   <div class="reveal timeline">
@@ -614,11 +519,8 @@ h2{font-family:'Fraunces',serif;font-weight:700;line-height:1.05;letter-spacing:
     <div class="tl-step"><div class="c" style="--accent:var(--s1)">👨‍🍳</div><b>En preparación</b><small>la cafetería lo toma</small></div>
     <div class="tl-line"></div>
     <div class="tl-step"><div class="c" style="--accent:var(--s6)">✅</div><b>Listo</b><small>para entregar</small></div>
-  </div>
-</section>
-
-<section class="slide" data-section="4 · Técnica" data-accent="--s4"
-  data-notes="La IA permite lenguaje natural en vez de formularios. Lee los ejemplos en voz alta: son muy ilustrativos.">
+  </div></section>
+      <section class="slide" data-section="4 · Técnica" data-accent="--s4">
   <div class="reveal kicker">IA conversacional</div>
   <h2 class="reveal">Lenguaje natural, no formularios</h2>
   <div class="reveal chat">
@@ -631,11 +533,8 @@ h2{font-family:'Fraunces',serif;font-weight:700;line-height:1.05;letter-spacing:
       <div class="bub u">Un sándwich sin mayonesa, soy alérgico</div>
       <div class="bub b">Anotado: <b>Sándwich</b>, sin mayonesa ⚠️ alergia registrada.</div>
     </div>
-  </div>
-</section>
-
-<section class="slide" data-section="4 · Técnica" data-accent="--s4"
-  data-notes="El agente interpreta la intención: extrae producto, cantidad, observaciones, restricciones y contexto, y arma la estructura para el backend.">
+  </div></section>
+      <section class="slide" data-section="4 · Técnica" data-accent="--s4">
   <div class="reveal kicker">Interpretación de pedidos</div>
   <h2 class="reveal">De la frase a los datos</h2>
   <div class="reveal grid g3">
@@ -645,22 +544,16 @@ h2{font-family:'Fraunces',serif;font-weight:700;line-height:1.05;letter-spacing:
     <div class="card tight"><div class="ic">🥜</div><h3>Restricciones</h3></div>
     <div class="card tight"><div class="ic">💭</div><h3>Contexto</h3></div>
     <div class="card tight" style="border-color:var(--s4);background:color-mix(in srgb,var(--s4) 10%,transparent)"><div class="ic">➡️</div><h3>Estructura al backend</h3></div>
-  </div>
-</section>
-
-<section class="slide" data-section="4 · Técnica" data-accent="--s4"
-  data-notes="Punto fuerte del proyecto: el manejo de alergias y restricciones. El flujo detecta esta info y la registra en el pedido, reduciendo errores de comunicación.">
+  </div></section>
+      <section class="slide" data-section="4 · Técnica" data-accent="--s4">
   <div class="reveal kicker">Manejo de alergias y restricciones</div>
   <h2 class="reveal">Inclusión alimentaria<br><span class="big-accent">desde el pedido</span></h2>
   <div class="reveal chips">
     <span class="chip">🥜 Alergias</span><span class="chip">🥛 Intolerancia a lactosa</span>
     <span class="chip">💊 Restricciones médicas</span><span class="chip">🥗 Preferencias específicas</span>
   </div>
-  <p class="reveal lead" style="margin-top:1.6rem">El sistema lo registra y lo lleva hasta la cafetería: <span class="big-accent">menos errores de comunicación.</span></p>
-</section>
-
-<section class="slide" data-section="4 · Técnica" data-accent="--s4"
-  data-notes="El bot no solo responde: sigue una secuencia lógica de 6 pasos diseñada con prompts y flujos para evitar ambigüedades.">
+  <p class="reveal lead" style="margin-top:1.6rem">El sistema lo registra y lo lleva hasta la cafetería: <span class="big-accent">menos errores de comunicación.</span></p></section>
+      <section class="slide" data-section="4 · Técnica" data-accent="--s4">
   <div class="reveal kicker">Prompts y flujo conversacional</div>
   <h2 class="reveal">Una secuencia guiada</h2>
   <div class="reveal chips">
@@ -671,46 +564,27 @@ h2{font-family:'Fraunces',serif;font-weight:700;line-height:1.05;letter-spacing:
     <span class="chip">5 · Generar pedido</span>
     <span class="chip">6 · Enviar al backend</span>
   </div>
-  <p class="reveal muted" style="margin-top:1.6rem;font-weight:600">Conversaciones organizadas, sin ambigüedades.</p>
-</section>
-
-<section class="slide center" data-section="4 · Técnica" data-accent="--s4"
-  data-notes="Cierre técnico: no es solo una interfaz conversacional, es una arquitectura completa que procesa, valida, sincroniza y mejora la operación con IA.">
+  <p class="reveal muted" style="margin-top:1.6rem;font-weight:600">Conversaciones organizadas, sin ambigüedades.</p></section>
+      <section class="slide center" data-section="4 · Técnica" data-accent="--s4">
   <div class="reveal kicker">Cierre técnico</div>
   <h2 class="reveal">Una solución <span class="big-accent">integral</span></h2>
-  <p class="reveal lead">No solo una interfaz conversacional: una arquitectura que procesa información, valida datos, sincroniza pedidos y mejora la operación con IA.</p>
-</section>
-
-<!-- ====================================================== -->
-<!-- ============ SECCIÓN 5: SEGURIDAD =================== -->
-<!-- ====================================================== -->
-<section class="slide divider center" data-section="5 · Seguridad" data-accent="--s5"
-  data-notes="Transición: 'La seguridad no es un extra, es parte fundamental de la arquitectura.'">
+  <p class="reveal lead">No solo una interfaz conversacional: una arquitectura que procesa información, valida datos, sincroniza pedidos y mejora la operación con IA.</p></section>
+      <section class="slide divider center" data-section="5 · Seguridad" data-accent="--s5">
   <div class="reveal snum">05</div>
-  <h2 class="reveal">Seguridad del sistema</h2>
-  <div class="reveal time">⏱ 4 minutos</div>
-</section>
-
-<section class="slide" data-section="5 · Seguridad" data-accent="--s5"
-  data-notes="El sistema maneja usuarios, pedidos, restricciones y comunicación entre componentes: la seguridad es fundamental, no un agregado.">
+  <h2 class="reveal">Seguridad del sistema</h2></section>
+      <section class="slide" data-section="5 · Seguridad" data-accent="--s5">
   <div class="reveal kicker">Seguridad del sistema</div>
   <h2 class="reveal">Parte fundamental,<br>no un <span class="big-accent">extra</span></h2>
-  <p class="reveal lead">El sistema maneja usuarios, pedidos, restricciones alimentarias y comunicación constante entre componentes.</p>
-</section>
-
-<section class="slide" data-section="5 · Seguridad" data-accent="--s5"
-  data-notes="Protección de la información en tránsito y en reposo: HTTPS, cifrado y protección de endpoints reducen interceptación o manipulación.">
+  <p class="reveal lead">El sistema maneja usuarios, pedidos, restricciones alimentarias y comunicación constante entre componentes.</p></section>
+      <section class="slide" data-section="5 · Seguridad" data-accent="--s5">
   <div class="reveal kicker">Protección de información</div>
   <h2 class="reveal">Cómo viaja y se guarda</h2>
   <div class="reveal grid g3">
     <div class="card"><div class="ic">🔒</div><h3>HTTPS</h3><p>Conexiones seguras</p></div>
     <div class="card"><div class="ic">🔐</div><h3>Cifrado de datos</h3><p>Información protegida</p></div>
     <div class="card"><div class="ic">🛡️</div><h3>Endpoints protegidos</h3><p>Contra interceptación</p></div>
-  </div>
-</section>
-
-<section class="slide" data-section="5 · Seguridad" data-accent="--s5"
-  data-notes="Control de acceso por roles: estudiantes, administradores y personal NO deben tener los mismos permisos. Autenticación institucional, roles, sesiones y permisos.">
+  </div></section>
+      <section class="slide" data-section="5 · Seguridad" data-accent="--s5">
   <div class="reveal kicker">Autenticación y control de acceso</div>
   <h2 class="reveal">Cada quién, su rol</h2>
   <div class="split">
@@ -721,11 +595,8 @@ h2{font-family:'Fraunces',serif;font-weight:700;line-height:1.05;letter-spacing:
       <span class="chip">🏛️ Autenticación institucional</span><span class="chip">🎭 Control de roles</span>
       <span class="chip">⏱️ Validación de sesiones</span><span class="chip">🔑 Permisos específicos</span>
     </div>
-  </div>
-</section>
-
-<section class="slide" data-section="5 · Seguridad" data-accent="--s5"
-  data-notes="El backend recibe solicitudes constantes: hay que proteger los endpoints contra solicitudes maliciosas y accesos no autorizados. Tokens, headers, rate limiting, monitoreo.">
+  </div></section>
+      <section class="slide" data-section="5 · Seguridad" data-accent="--s5">
   <div class="reveal kicker">Seguridad en APIs · Información sensible</div>
   <h2 class="reveal">Proteger cada solicitud</h2>
   <div class="reveal grid g4">
@@ -734,31 +605,18 @@ h2{font-family:'Fraunces',serif;font-weight:700;line-height:1.05;letter-spacing:
     <div class="card tight"><div class="ic">🚦</div><h3>Rate limiting</h3></div>
     <div class="card tight"><div class="ic">👁️</div><h3>Monitoreo de actividad</h3></div>
   </div>
-  <p class="reveal muted" style="margin-top:1.3rem;font-weight:600">Información sensible: nombres, preferencias y restricciones médicas → buenas prácticas de privacidad.</p>
-</section>
-
-<section class="slide center" data-section="5 · Seguridad" data-accent="--s5"
-  data-notes="La seguridad debe crecer con el sistema: a gran escala se necesitan auditorías, monitoreo continuo, respaldos y políticas robustas.">
+  <p class="reveal muted" style="margin-top:1.3rem;font-weight:600">Información sensible: nombres, preferencias y restricciones médicas → buenas prácticas de privacidad.</p></section>
+      <section class="slide center" data-section="5 · Seguridad" data-accent="--s5">
   <div class="reveal kicker">Seguridad futura</div>
   <h2 class="reveal">Evoluciona con el sistema</h2>
   <div class="reveal chips" style="justify-content:center">
     <span class="chip">🔍 Auditorías</span><span class="chip">📡 Monitoreo continuo</span>
     <span class="chip">💾 Respaldos</span><span class="chip">📜 Políticas robustas</span>
-  </div>
-</section>
-
-<!-- ====================================================== -->
-<!-- ============ SECCIÓN 6: IMPACTO + LIMITACIONES ====== -->
-<!-- ====================================================== -->
-<section class="slide divider center" data-section="6 · Impacto" data-accent="--s6"
-  data-notes="Transición: 'No solo desarrollamos funciones; pensamos en a quién benefician.'">
+  </div></section>
+      <section class="slide divider center" data-section="6 · Impacto" data-accent="--s6">
   <div class="reveal snum">06</div>
-  <h2 class="reveal">Impacto y beneficios</h2>
-  <div class="reveal time">⏱ 5 minutos</div>
-</section>
-
-<section class="slide" data-section="6 · Impacto" data-accent="--s6"
-  data-notes="Beneficios para el estudiante: menos espera, más comodidad, accesibilidad e inclusión alimentaria.">
+  <h2 class="reveal">Impacto y beneficios</h2></section>
+      <section class="slide" data-section="6 · Impacto" data-accent="--s6">
   <div class="reveal kicker">Beneficios para estudiantes</div>
   <h2 class="reveal">Mejor experiencia</h2>
   <div class="reveal grid g4">
@@ -766,11 +624,8 @@ h2{font-family:'Fraunces',serif;font-weight:700;line-height:1.05;letter-spacing:
     <div class="card"><div class="ic">😌</div><h3>Comodidad</h3><p>Sin pedidos apresurados</p></div>
     <div class="card"><div class="ic">♿</div><h3>Accesibilidad</h3><p>Interacción natural en Teams</p></div>
     <div class="card"><div class="ic">🥗</div><h3>Inclusión</h3><p>Alergias e intolerancias</p></div>
-  </div>
-</section>
-
-<section class="slide" data-section="6 · Impacto" data-accent="--s6"
-  data-notes="Beneficios para la cafetería: orden operativo, digitalización, métricas útiles y menos errores humanos.">
+  </div></section>
+      <section class="slide" data-section="6 · Impacto" data-accent="--s6">
   <div class="reveal kicker">Beneficios administrativos</div>
   <h2 class="reveal">Operación más ordenada</h2>
   <div class="reveal grid g4">
@@ -778,29 +633,19 @@ h2{font-family:'Fraunces',serif;font-weight:700;line-height:1.05;letter-spacing:
     <div class="card"><div class="ic">💻</div><h3>Digitalización</h3><p>De lo manual a lo automatizado</p></div>
     <div class="card"><div class="ic">📊</div><h3>Métricas útiles</h3><p>Demanda, productos, tiempos</p></div>
     <div class="card"><div class="ic">✅</div><h3>Menos errores</h3><p>Comunicación más clara</p></div>
-  </div>
-</section>
-
-<section class="slide" data-section="6 · Impacto" data-accent="--s6"
-  data-notes="Beneficios tecnológicos: escalabilidad, reutilización (comedores, bibliotecas, labs) e integración futura (apps, pagos, plataformas).">
+  </div></section>
+      <section class="slide" data-section="6 · Impacto" data-accent="--s6">
   <div class="reveal kicker">Beneficios tecnológicos</div>
   <h2 class="reveal">Pensado para crecer</h2>
   <div class="reveal grid g3">
     <div class="card"><div class="ic">📈</div><h3>Escalabilidad</h3><p>Más cafeterías, productos y funciones</p></div>
     <div class="card"><div class="ic">♻️</div><h3>Reutilización</h3><p>Comedores, bibliotecas, laboratorios</p></div>
     <div class="card"><div class="ic">🔗</div><h3>Integración futura</h3><p>Apps, pagos, plataformas institucionales</p></div>
-  </div>
-</section>
-
-<section class="slide divider center" data-section="7 · Limitaciones" data-accent="--s7"
-  data-notes="Transición: 'Para cerrar con seriedad: ningún sistema es perfecto. Estas son nuestras limitaciones reales.'">
+  </div></section>
+      <section class="slide divider center" data-section="7 · Limitaciones" data-accent="--s7">
   <div class="reveal snum">07</div>
-  <h2 class="reveal">Limitaciones reales</h2>
-  <div class="reveal time">⏱ 4 minutos</div>
-</section>
-
-<section class="slide" data-section="7 · Limitaciones" data-accent="--s7"
-  data-notes="Reconocer limitaciones hace al proyecto más realista y profesional. Repasa cada una brevemente.">
+  <h2 class="reveal">Limitaciones reales</h2></section>
+      <section class="slide" data-section="7 · Limitaciones" data-accent="--s7">
   <div class="reveal kicker">Limitaciones del sistema</div>
   <h2 class="reveal">Retos que reconocemos</h2>
   <div class="reveal grid g3">
@@ -810,100 +655,106 @@ h2{font-family:'Fraunces',serif;font-weight:700;line-height:1.05;letter-spacing:
     <div class="card tight"><div class="ic">📈</div><h3>Escalabilidad real</h3><p>Requiere infraestructura adicional</p></div>
     <div class="card tight"><div class="ic">🔐</div><h3>Seguridad productiva</h3><p>El prototipo necesita medidas robustas</p></div>
     <div class="card tight"><div class="ic">💳</div><h3>Validación de pagos</h3><p>Expansión futura del proyecto</p></div>
-  </div>
-</section>
-
-<section class="slide center" data-section="7 · Limitaciones" data-accent="--s7"
-  data-notes="Reconocer las limitaciones nos permite entender áreas de mejora y la evolución futura del proyecto.">
+  </div></section>
+      <section class="slide center" data-section="7 · Limitaciones" data-accent="--s7">
   <div class="reveal kicker">En conclusión</div>
   <h2 class="reveal">Ventajas claras,<br>retos <span class="big-accent">honestos</span></h2>
-  <p class="reveal lead">Reconocer estas limitaciones nos permite entender las áreas de mejora y la evolución futura del proyecto.</p>
-</section>
-
-<!-- ============ CIERRE ============ -->
-<section class="slide center" data-section="Cierre" data-accent="--s1"
-  data-notes="Cierre: resume el valor (de manual a inteligente), agradece y abre preguntas. ¡Buena suerte!">
+  <p class="reveal lead">Reconocer estas limitaciones nos permite entender las áreas de mejora y la evolución futura del proyecto.</p></section>
+      <section class="slide center" data-section="Cierre" data-accent="--s1">
   <div class="reveal kicker" style="justify-content:center">Gracias</div>
   <h1 class="reveal" style="font-size:clamp(2.6rem,7vw,5.5rem)">De lo <span class="muted">manual</span><br>a lo <span class="big-accent">inteligente</span></h1>
   <p class="reveal lead" style="margin-top:1.4rem">Coffee Nezzi · IA conversacional + automatización de pre-pedidos para cafeterías universitarias.</p>
-  <div class="reveal pill" style="margin-top:2rem">💬 ¿Preguntas?</div>
-</section>
+  <div class="reveal pill" style="margin-top:2rem">💬 ¿Preguntas?</div></section>
+    </div>
 
-</div><!-- /deck -->
+    <div class="footer">
+      <span class="sec"><span class="d"></span><span data-sec>—</span></span>
+      <span>N · notas &nbsp;·&nbsp; F · pantalla completa &nbsp;·&nbsp; ? · ayuda</span>
+    </div>
+    <div class="count"><b>1</b> / <span data-total>0</span></div>
+    <div class="nav">
+      <button data-prev aria-label="Anterior">‹</button>
+      <button data-next aria-label="Siguiente">›</button>
+    </div>
 
-<!-- chrome -->
-<div class="footer">
-  <span class="sec"><span class="d"></span><span id="secLabel">Inicio</span></span>
-  <span id="hint">N · notas &nbsp;·&nbsp; F · pantalla completa &nbsp;·&nbsp; ? · ayuda</span>
-</div>
-<div class="count"><b id="cur">1</b> / <span id="total">1</span></div>
-<div class="nav">
-  <button id="prev" aria-label="Anterior">‹</button>
-  <button id="next" aria-label="Siguiente">›</button>
-</div>
-<div class="notes" id="notes"><b>Nota del orador</b><span id="notesText"></span></div>
+    <div class="notes"><b>Nota del orador</b><span data-notes> —</span></div>
 
-<div class="help" id="help">
-  <div class="box">
-    <h3>Controles</h3>
-    <div class="row"><span>Siguiente</span><span><kbd>→</kbd> <kbd>Espacio</kbd></span></div>
-    <div class="row"><span>Anterior</span><span><kbd>←</kbd></span></div>
-    <div class="row"><span>Inicio / Fin</span><span><kbd>Home</kbd> <kbd>End</kbd></span></div>
-    <div class="row"><span>Notas del orador</span><span><kbd>N</kbd></span></div>
-    <div class="row"><span>Pantalla completa</span><span><kbd>F</kbd></span></div>
-    <div class="row"><span>Esta ayuda</span><span><kbd>?</kbd></span></div>
-    <small>Pulsa cualquier tecla para cerrar</small>
+    <div class="help">
+      <div class="box">
+        <h3>Controles</h3>
+        <div class="row"><span>Siguiente</span><span><kbd>→</kbd> <kbd>Espacio</kbd></span></div>
+        <div class="row"><span>Anterior</span><span><kbd>←</kbd></span></div>
+        <div class="row"><span>Inicio / Fin</span><span><kbd>Home</kbd> <kbd>End</kbd></span></div>
+        <div class="row"><span>Notas del orador</span><span><kbd>N</kbd></span></div>
+        <div class="row"><span>Pantalla completa</span><span><kbd>F</kbd></span></div>
+        <div class="row"><span>Esta ayuda</span><span><kbd>?</kbd></span></div>
+        <small>Pulsa cualquier tecla para cerrar</small>
+      </div>
+    </div>
   </div>
-</div>
 
 <script>
-const slides=[...document.querySelectorAll('.slide')];
-const total=slides.length;
-let i=0, notesOn=false;
-document.getElementById('total').textContent=total;
+  const NOTES = ["Saluda, preséntate y presenta al equipo. Una sola frase: 'Les vamos a mostrar cómo convertimos un proceso 100% manual en un sistema inteligente de pre-pedidos.'","Da el mapa de la charla en 20 segundos. Menciona que reconocer limitaciones al final le da seriedad al proyecto.","Arranca fuerte: 'Algo tan simple como comprar un café esconde muchos problemas operativos.'","Las cafeterías universitarias siguen siendo 100% manuales. Parece simple, pero detrás hay muchos problemas operativos.","Cuatro problemas detectados al observar el entorno: filas, errores humanos, estrés del personal y restricciones no comunicadas.","No es solo rapidez: impacta la experiencia, la accesibilidad, la eficiencia y la inclusión alimentaria.","Datos aproximados del entorno para dimensionar el problema. Aclara que son estimaciones de nuestra observación.","El flujo completo es manual: 6 pasos del estudiante. La conclusión es que el problema NO es solo la fila, es la falta de digitalización. Aquí presentas la solución.","Transición: 'Una vez claro el problema, investigamos qué tecnología era la más adecuada.'","Evaluamos cuatro caminos tecnológicos antes de decidir.","Comparativa honesta: cada opción tenía ventajas pero también limitaciones para nuestro contexto.","Elegimos Copilot Studio porque acelera el desarrollo y encaja con el entorno institucional. Conecta con el backend vía OpenAPI.","El backend REST separa responsabilidades y permite escalar e integrar a futuro (apps, pagos, más cafeterías).","Este es el flujo general que repetiremos toda la charla: estudiante → Teams → Copilot → backend → base de datos → dashboard.","Transición: 'No queríamos solo un chatbot, sino un sistema completo. Veamos cada pieza.'","El objetivo no era un chatbot, sino un ecosistema que conecta usuarios, IA, backend, almacenamiento y administración.","Siete componentes que trabajan conectados para automatizar todo el proceso de atención.","Frontend = Teams. Ventaja clave: el estudiante NO instala nada nuevo, usa una plataforma que ya conoce.","El núcleo lógico de interacción. En vez de formularios rígidos, el usuario conversa. Interpreta intención y decide qué hacer.","El backend es el cerebro operativo: registra, valida, procesa, actualiza y conecta todos los componentes mediante endpoints REST.","El recorrido de un mensaje: el alumno escribe → Copilot interpreta → HTTP al backend → procesa y guarda → respuesta vuelve y el dashboard se actualiza. Todo sincronizado.","Base de datos relacional (MySQL): guarda pedidos, productos, estados y observaciones. Da persistencia y abre la puerta a estadísticas y reportes.","El dashboard es la vista de la cafetería: ve los pedidos organizados por estado. Mejora la organización y reduce confusiones en horas pico.","Pieza clave del diseño: cualquier cambio se refleja automáticamente entre chatbot, backend, base de datos y dashboard. Ejemplo: estado 'listo' → el usuario y la cafetería se enteran al instante.","Transición: 'Ahora veamos cómo funciona por dentro.' Esta es la parte más técnica, tómate tu tiempo.","El backend es el centro operativo. Implementa endpoints especializados para cada operación.","La información viaja en JSON. Muestra el ejemplo: incluye usuario, producto, cantidad, restricciones, estado y hora. JSON da interoperabilidad y claridad.","Antes de guardar, el backend valida. Punto crítico: las validaciones de restricciones alimentarias aseguran que la info importante llegue a la cafetería. Errores controlados evitan inconsistencias.","Cada pedido pasa por 3 estados. Se registra como 'recibido', cambia a 'en preparación' y finalmente a 'listo'. Esto da seguimiento en tiempo real.","La IA permite lenguaje natural en vez de formularios. Lee los ejemplos en voz alta: son muy ilustrativos.","El agente interpreta la intención: extrae producto, cantidad, observaciones, restricciones y contexto, y arma la estructura para el backend.","Punto fuerte del proyecto: el manejo de alergias y restricciones. El flujo detecta esta info y la registra en el pedido, reduciendo errores de comunicación.","El bot no solo responde: sigue una secuencia lógica de 6 pasos diseñada con prompts y flujos para evitar ambigüedades.","Cierre técnico: no es solo una interfaz conversacional, es una arquitectura completa que procesa, valida, sincroniza y mejora la operación con IA.","Transición: 'La seguridad no es un extra, es parte fundamental de la arquitectura.'","El sistema maneja usuarios, pedidos, restricciones y comunicación entre componentes: la seguridad es fundamental, no un agregado.","Protección de la información en tránsito y en reposo: HTTPS, cifrado y protección de endpoints reducen interceptación o manipulación.","Control de acceso por roles: estudiantes, administradores y personal NO deben tener los mismos permisos. Autenticación institucional, roles, sesiones y permisos.","El backend recibe solicitudes constantes: hay que proteger los endpoints contra solicitudes maliciosas y accesos no autorizados. Tokens, headers, rate limiting, monitoreo.","La seguridad debe crecer con el sistema: a gran escala se necesitan auditorías, monitoreo continuo, respaldos y políticas robustas.","Transición: 'No solo desarrollamos funciones; pensamos en a quién benefician.'","Beneficios para el estudiante: menos espera, más comodidad, accesibilidad e inclusión alimentaria.","Beneficios para la cafetería: orden operativo, digitalización, métricas útiles y menos errores humanos.","Beneficios tecnológicos: escalabilidad, reutilización (comedores, bibliotecas, labs) e integración futura (apps, pagos, plataformas).","Transición: 'Para cerrar con seriedad: ningún sistema es perfecto. Estas son nuestras limitaciones reales.'","Reconocer limitaciones hace al proyecto más realista y profesional. Repasa cada una brevemente.","Reconocer las limitaciones nos permite entender áreas de mejora y la evolución futura del proyecto.","Cierre: resume el valor (de manual a inteligente), agradece y abre preguntas. ¡Buena suerte!"];
+  const SECTIONS = ["Inicio","Agenda","1 · Introducción","1 · Introducción","1 · Introducción","1 · Introducción","1 · Introducción","1 · Introducción","2 · Investigación","2 · Investigación","2 · Investigación","2 · Investigación","2 · Investigación","2 · Investigación","3 · Diseño","3 · Diseño","3 · Diseño","3 · Diseño","3 · Diseño","3 · Diseño","3 · Diseño","3 · Diseño","3 · Diseño","3 · Diseño","4 · Técnica","4 · Técnica","4 · Técnica","4 · Técnica","4 · Técnica","4 · Técnica","4 · Técnica","4 · Técnica","4 · Técnica","4 · Técnica","5 · Seguridad","5 · Seguridad","5 · Seguridad","5 · Seguridad","5 · Seguridad","5 · Seguridad","6 · Impacto","6 · Impacto","6 · Impacto","6 · Impacto","7 · Limitaciones","7 · Limitaciones","7 · Limitaciones","Cierre"];
+  const root = document.querySelector('.deck-root');
+  const slides = Array.from(document.querySelectorAll('.deck > section'));
+  const total = slides.length;
+  const progress = document.querySelector('.progress');
+  const countB = document.querySelector('.count b');
+  const totalEl = document.querySelector('[data-total]');
+  const secEl = document.querySelector('[data-sec]');
+  const notesEl = document.querySelector('[data-notes]');
+  const notesPanel = document.querySelector('.notes');
+  const helpPanel = document.querySelector('.help');
+  let i = 0, notesOn = false, helpOn = false;
+  totalEl.textContent = total;
 
-function show(n){
-  i=Math.max(0,Math.min(total-1,n));
-  slides.forEach((s,k)=>s.classList.toggle('active',k===i));
-  const s=slides[i];
-  const accent=s.dataset.accent||'--s1';
-  document.documentElement.style.setProperty('--accent',`var(${accent})`);
-  document.getElementById('secLabel').textContent=s.dataset.section||'';
-  document.getElementById('cur').textContent=i+1;
-  document.getElementById('progress').style.width=((i+1)/total*100)+'%';
-  document.getElementById('notesText').textContent=' '+(s.dataset.notes||'—');
-  location.hash=i+1;
-}
-function next(){show(i+1)}
-function prev(){show(i-1)}
-
-document.getElementById('next').onclick=next;
-document.getElementById('prev').onclick=prev;
-
-const help=document.getElementById('help');
-const notes=document.getElementById('notes');
-
-document.addEventListener('keydown',e=>{
-  if(help.classList.contains('show')){help.classList.remove('show');return;}
-  switch(e.key){
-    case'ArrowRight':case' ':case'PageDown':e.preventDefault();next();break;
-    case'ArrowLeft':case'PageUp':e.preventDefault();prev();break;
-    case'Home':show(0);break;
-    case'End':show(total-1);break;
-    case'n':case'N':notesOn=!notesOn;notes.classList.toggle('show',notesOn);break;
-    case'f':case'F':if(!document.fullscreenElement)document.documentElement.requestFullscreen();else document.exitFullscreen();break;
-    case'?':help.classList.add('show');break;
+  function render(){
+    slides.forEach((s,k)=>s.classList.toggle('active', k===i));
+    const accent = slides[i].dataset.accent || '--s1';
+    root.style.setProperty('--accent', 'var(' + accent + ')');
+    progress.style.width = ((i+1)/total*100) + '%';
+    countB.textContent = i+1;
+    secEl.textContent = SECTIONS[i] || '';
+    notesEl.textContent = ' ' + (NOTES[i] || '—');
+    history.replaceState(null,'', '#'+(i+1));
   }
-});
+  function show(n){ i = Math.max(0, Math.min(total-1, n)); render(); }
+  const next = ()=>show(i+1);
+  const prev = ()=>show(i-1);
 
-// swipe en móvil
-let x0=null;
-addEventListener('touchstart',e=>x0=e.touches[0].clientX);
-addEventListener('touchend',e=>{if(x0===null)return;const dx=e.changedTouches[0].clientX-x0;if(Math.abs(dx)>50){dx<0?next():prev();}x0=null;});
+  document.querySelector('[data-next]').addEventListener('click', next);
+  document.querySelector('[data-prev]').addEventListener('click', prev);
 
-// arranca en el hash si existe
-const start=parseInt(location.hash.replace('#',''));
-show(start>0?start-1:0);
+  window.addEventListener('keydown', (e)=>{
+    if (helpOn){ helpOn=false; helpPanel.classList.remove('show'); return; }
+    switch(e.key){
+      case 'ArrowRight': case ' ': case 'PageDown': e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'PageUp': e.preventDefault(); prev(); break;
+      case 'Home': show(0); break;
+      case 'End': show(total-1); break;
+      case 'n': case 'N': notesOn=!notesOn; notesPanel.classList.toggle('show', notesOn); break;
+      case 'f': case 'F':
+        if(!document.fullscreenElement) document.documentElement.requestFullscreen();
+        else document.exitFullscreen();
+        break;
+      case '?': helpOn=true; helpPanel.classList.add('show'); break;
+    }
+  });
+
+  // swipe móvil
+  let touchX = null;
+  window.addEventListener('touchstart', (e)=>{ touchX = e.touches[0].clientX; });
+  window.addEventListener('touchend', (e)=>{
+    if (touchX===null) return;
+    const dx = e.changedTouches[0].clientX - touchX;
+    if (Math.abs(dx) > 50) (dx < 0 ? next : prev)();
+    touchX = null;
+  });
+
+  // arranca en el hash si existe
+  const start = parseInt((location.hash||'').replace('#',''), 10);
+  show(start > 0 ? start-1 : 0);
 </script>
 </body>
 </html>
