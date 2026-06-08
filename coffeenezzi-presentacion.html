@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coffee Nezzi — Tu café, sin filas. Sin app. Sin esperar.</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['Inter', 'ui-sans-serif', 'system-ui'],
+          mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular'],
+        },
+        colors: {
+          coffee: {
+            50:'#fbf7f4', 100:'#f3e9e0', 200:'#e6d0bc', 300:'#d4ae8d',
+            400:'#bc8763', 500:'#a36b48', 600:'#8a553a', 700:'#6f4530',
+            800:'#4a2e21', 900:'#2a1a13',
+          },
+        },
+      },
+    },
+  };
+</script>
+<style>
+  *{font-feature-settings:'cv11','ss01'}
+  body{font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;background:#fff;color:#0f172a}
+  ::selection{background:#0f172a;color:#fff}
+
+  /* === BACKGROUND PATHS — fluye continuo, sin parpadeo === */
+  /* Estrategia: pathLength="1" normaliza cada path a longitud 1.
+     stroke-dasharray FIJO (no se recalcula en cada frame).
+     Solo stroke-dashoffset (mover el patrón) y stroke-opacity (oscilar) se animan. */
+  .bg-paths-wrap{
+    position:absolute;inset:0;pointer-events:none;
+  }
+  .bg-paths-svg{
+    width:100%;height:100%;
+    display:block;
+  }
+  .bg-paths-svg path{
+    stroke-dasharray:0.55 1;       /* segmento visible 55%, gap 45% — fijo */
+    stroke-dashoffset:0;
+    animation:pathFlow var(--dur,24s) linear var(--delay,0s) infinite;
+  }
+  /* Movimiento continuo: el dashoffset se desplaza dos ciclos completos por iteración,
+     creando flujo perpetuo sin saltos. La opacidad respira en paralelo. */
+  @keyframes pathFlow{
+    0%   {stroke-dashoffset:0;  stroke-opacity:0.3}
+    50%  {stroke-dashoffset:-1; stroke-opacity:0.6}
+    100% {stroke-dashoffset:-2; stroke-opacity:0.3}
+  }
+
+  /* === Letter reveal (replica letter-by-letter) === */
+  .letter{
+    display:inline-block;opacity:0;
+    transform:translate3d(0,60px,0);
+    background:linear-gradient(to right,#0a0a0a 0%,#404040 100%);
+    -webkit-background-clip:text;background-clip:text;
+    -webkit-text-fill-color:transparent;
+    animation:letterIn .8s cubic-bezier(.2,.7,.2,1.05) forwards;
+    will-change:transform,opacity;
+  }
+  @keyframes letterIn{
+    0%  {opacity:0;transform:translate3d(0,80px,0)}
+    60% {opacity:1}
+    100%{opacity:1;transform:translate3d(0,0,0)}
+  }
+
+  /* === Fade in on scroll — solo transform/opacity (GPU) === */
+  .reveal{opacity:0;transform:translate3d(0,24px,0);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
+  .reveal.in{opacity:1;transform:translate3d(0,0,0)}
+  .reveal-delay-1{transition-delay:.08s}
+  .reveal-delay-2{transition-delay:.16s}
+  .reveal-delay-3{transition-delay:.24s}
+
+  /* === Marquee — capa GPU dedicada === */
+  @keyframes marqueeL{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}
+  .marquee-track{animation:marqueeL 40s linear infinite;will-change:transform}
+
+  /* === Live dot pulse — solo escala/opacidad === */
+  @keyframes livePulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(2.2);opacity:0}}
+  .live-pulse::after{content:'';position:absolute;inset:0;border-radius:9999px;background:currentColor;animation:livePulse 1.8s ease-in-out infinite;will-change:transform,opacity}
+
+  /* === Arrow flow — solo en arquitectura, pocos elementos === */
+  @keyframes flowDash{to{stroke-dashoffset:-20}}
+  .flow-line{stroke-dasharray:5 5;animation:flowDash 1.4s linear infinite}
+
+  /* Chat bubble appear */
+  @keyframes bubbleIn{from{opacity:0;transform:translate3d(0,10px,0) scale(.96)}to{opacity:1;transform:translate3d(0,0,0) scale(1)}}
+  .bubble{opacity:0;animation:bubbleIn .45s ease-out forwards;will-change:transform,opacity}
+
+  /* hover lift */
+  .lift{transition:transform .3s cubic-bezier(.2,.7,.2,1),box-shadow .3s,border-color .3s,ring-color .3s}
+  .lift:hover{transform:translate3d(0,-3px,0)}
+
+  /* Scrollbar refinement */
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-track{background:#f8fafc}
+  ::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:5px}
+  ::-webkit-scrollbar-thumb:hover{background:#94a3b8}
+
+  /* Reduce motion */
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+  }
+</style>
+</head>
+<body class="bg-white text-slate-900">
+
+<!-- ============ NAV ============ -->
+<nav class="fixed top-0 inset-x-0 z-50 border-b border-black/5 bg-white/70 backdrop-blur-xl">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <a href="#hero" class="flex items-center gap-2.5 font-bold tracking-tight text-slate-900">
+      <span class="relative inline-flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-coffee-700 to-coffee-900 text-white text-[12px] shadow-sm">☕</span>
+      <span class="text-[15px]">Coffee Nezzi</span>
+      <span class="hidden sm:inline text-xs font-medium text-slate-400 tracking-normal ml-1">· Proyecto integrador</span>
+    </a>
+    <div class="hidden md:flex items-center gap-1 text-[13px] font-medium text-slate-600">
+      <a href="#que-hace" class="px-3 py-2 rounded-md hover:text-slate-900 hover:bg-slate-100 transition">¿Qué hace?</a>
+      <a href="#problema" class="px-3 py-2 rounded-md hover:text-slate-900 hover:bg-slate-100 transition">¿Qué soluciona?</a>
+      <a href="#arquitectura" class="px-3 py-2 rounded-md hover:text-slate-900 hover:bg-slate-100 transition">Arquitectura</a>
+      <a href="#procesos" class="px-3 py-2 rounded-md hover:text-slate-900 hover:bg-slate-100 transition">Procesos</a>
+      <a href="#stack" class="px-3 py-2 rounded-md hover:text-slate-900 hover:bg-slate-100 transition">Stack</a>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-semibold ring-1 ring-emerald-100">
+        <span class="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500 text-emerald-500 live-pulse"></span>
+        Bot activo
+      </span>
+      <a href="#chat-demo" class="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3.5 py-2 text-[12.5px] font-semibold text-white hover:bg-slate-800 transition shadow-sm">
+        Ver demo <span aria-hidden="true">→</span>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- ============ HERO con BackgroundPaths ============ -->
+<section id="hero" class="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-white pt-16">
+
+  <!-- SVG Paths Background — réplica fiel del FloatingPaths de framer-motion -->
+  <div class="bg-paths-wrap">
+    <svg class="bg-paths-svg text-slate-950" viewBox="0 0 696 316" fill="none" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <title>Coffee Nezzi flowing paths</title>
+      <g id="paths-1"></g>
+      <g id="paths-2"></g>
+    </svg>
+  </div>
+
+  <!-- Subtle radial mask -->
+  <div class="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_80%_50%_at_50%_50%,transparent_30%,white_85%)]"></div>
+
+  <div class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 text-center">
+
+    <!-- Pre-title chip -->
+    <div class="inline-flex items-center gap-2 mb-7 rounded-full bg-white/80 backdrop-blur-md px-4 py-1.5 ring-1 ring-slate-200/70 shadow-sm">
+      <span class="inline-flex h-1.5 w-1.5 rounded-full bg-coffee-700 animate-pulse"></span>
+      <span class="text-[11.5px] font-semibold tracking-[.18em] text-slate-700 uppercase">Bot conversacional · Copilot Studio</span>
+    </div>
+
+    <!-- Animated title -->
+    <h1 id="hero-title" class="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-bold mb-8 tracking-tighter leading-[.9]">
+      <!-- letras se insertan por JS -->
+    </h1>
+
+    <p class="max-w-2xl mx-auto text-base sm:text-lg md:text-xl text-slate-600 mb-10 reveal" style="transition-delay:1.2s">
+      Tu café, <strong class="text-slate-900 font-semibold">sin filas, sin app, sin esperar</strong>. <br class="hidden sm:block">
+      Pídelo por chat, paga al recoger, recíbelo listo en barra.
+    </p>
+
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-3 reveal" style="transition-delay:1.4s">
+      <!-- Botón principal (replica BackgroundPaths button) -->
+      <div class="inline-block group relative bg-gradient-to-b from-black/10 to-white/10 p-px rounded-2xl backdrop-blur-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
+        <a href="#que-hace" class="block rounded-[1.15rem] px-7 py-4 text-base font-semibold backdrop-blur-md bg-white/95 hover:bg-white text-slate-900 transition-all duration-300 group-hover:-translate-y-0.5 border border-black/10 hover:shadow-md">
+          <span class="opacity-90 group-hover:opacity-100 transition-opacity">Descubrir el proyecto</span>
+          <span class="ml-3 opacity-70 group-hover:opacity-100 group-hover:translate-x-1.5 transition-all duration-300 inline-block">→</span>
+        </a>
+      </div>
+      <a href="#arquitectura" class="text-[13px] font-medium text-slate-500 hover:text-slate-900 transition px-4 py-3">Ver arquitectura técnica</a>
+    </div>
+
+    <!-- Stat badges -->
+    <div class="mt-16 grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-3xl mx-auto reveal" style="transition-delay:1.6s">
+      <div class="px-4 py-3 rounded-xl bg-white/70 backdrop-blur ring-1 ring-slate-200/70 text-left">
+        <div class="text-2xl font-bold tracking-tight text-slate-900">6</div>
+        <div class="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Herramientas REST</div>
+      </div>
+      <div class="px-4 py-3 rounded-xl bg-white/70 backdrop-blur ring-1 ring-slate-200/70 text-left">
+        <div class="text-2xl font-bold tracking-tight text-slate-900">0</div>
+        <div class="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Apps a descargar</div>
+      </div>
+      <div class="px-4 py-3 rounded-xl bg-white/70 backdrop-blur ring-1 ring-slate-200/70 text-left">
+        <div class="text-2xl font-bold tracking-tight text-slate-900">~15s</div>
+        <div class="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Hacer un pedido</div>
+      </div>
+      <div class="px-4 py-3 rounded-xl bg-white/70 backdrop-blur ring-1 ring-slate-200/70 text-left">
+        <div class="text-2xl font-bold tracking-tight text-slate-900">Live</div>
+        <div class="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Display en barra</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Scroll hint -->
+  <div class="absolute bottom-8 left-1/2 -translate-x-1/2 text-slate-400 text-[11px] font-medium tracking-widest uppercase animate-pulse">
+    scroll
+    <div class="mx-auto mt-2 w-px h-8 bg-gradient-to-b from-slate-400 to-transparent"></div>
+  </div>
+</section>
+
+
+<!-- ============ ¿QUÉ HACE? ============ -->
+<section id="que-hace" class="relative py-28 sm:py-32 bg-slate-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-3xl mb-16 reveal">
+      <div class="inline-flex items-center gap-2 mb-4 rounded-full bg-white px-3 py-1 ring-1 ring-slate-200">
+        <span class="text-[10px] font-bold tracking-[.2em] uppercase text-coffee-700">01 · ¿Qué hace?</span>
+      </div>
+      <h2 class="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tighter leading-[1.02] text-slate-900">
+        Un asistente que <span class="bg-gradient-to-r from-coffee-700 to-coffee-900 bg-clip-text text-transparent">toma tu pedido</span> de café por chat.
+      </h2>
+      <p class="mt-6 text-lg text-slate-600 leading-relaxed max-w-2xl">
+        Coffee Nezzi es un agente conversacional construido en Microsoft Copilot Studio, conectado a un backend Node.js + MySQL. El usuario chatea en lenguaje natural y el bot resuelve todo el flujo: elige cafetería, muestra el menú, arma el pedido, calcula total y le devuelve número de orden.
+      </p>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-4">
+      <div class="lift bg-white rounded-2xl p-7 ring-1 ring-slate-200 hover:ring-slate-900/20 hover:shadow-xl reveal reveal-delay-1">
+        <div class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-coffee-50 ring-1 ring-coffee-100 text-coffee-800 mb-5">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <h3 class="text-xl font-bold tracking-tight text-slate-900 mb-2">Conversación natural</h3>
+        <p class="text-[14.5px] text-slate-600 leading-relaxed">
+          El usuario escribe "<em>quiero un latte grande con avena</em>" y el LLM de Copilot Studio extrae los parámetros y llama a la herramienta correcta del backend.
+        </p>
+      </div>
+
+      <div class="lift bg-white rounded-2xl p-7 ring-1 ring-slate-200 hover:ring-slate-900/20 hover:shadow-xl reveal reveal-delay-2">
+        <div class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-coffee-50 ring-1 ring-coffee-100 text-coffee-800 mb-5">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+        </div>
+        <h3 class="text-xl font-bold tracking-tight text-slate-900 mb-2">Pedido en MySQL</h3>
+        <p class="text-[14.5px] text-slate-600 leading-relaxed">
+          Cada conversación se traduce a un registro real en la base. Tabla <code class="font-mono text-[12px] bg-slate-100 px-1.5 py-0.5 rounded">pedidos</code>, <code class="font-mono text-[12px] bg-slate-100 px-1.5 py-0.5 rounded">detalle_pedido</code> y stock decremental en <code class="font-mono text-[12px] bg-slate-100 px-1.5 py-0.5 rounded">menus</code>.
+        </p>
+      </div>
+
+      <div class="lift bg-white rounded-2xl p-7 ring-1 ring-slate-200 hover:ring-slate-900/20 hover:shadow-xl reveal reveal-delay-3">
+        <div class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-coffee-50 ring-1 ring-coffee-100 text-coffee-800 mb-5">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <h3 class="text-xl font-bold tracking-tight text-slate-900 mb-2">Display en vivo</h3>
+        <p class="text-[14.5px] text-slate-600 leading-relaxed">
+          En la barra de la cafetería corre una pantalla en EJS + Socket.IO que muestra pedidos en cola en tiempo real. Sin refrescar.
+        </p>
+      </div>
+    </div>
+
+    <!-- CHAT DEMO MOCKUP -->
+    <div id="chat-demo" class="mt-20 grid lg:grid-cols-5 gap-10 items-center">
+      <div class="lg:col-span-2 reveal">
+        <div class="inline-flex items-center gap-2 mb-4 rounded-full bg-coffee-50 px-3 py-1 ring-1 ring-coffee-100">
+          <span class="text-[10px] font-bold tracking-[.2em] uppercase text-coffee-700">Demo conversación</span>
+        </div>
+        <h3 class="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 leading-tight">Así suena una orden real.</h3>
+        <p class="mt-4 text-slate-600 leading-relaxed">
+          El bot no devuelve menús desplegables ni formularios. Mantiene una conversación humana, llama a la API cuando hace falta y guarda el pedido en MySQL.
+        </p>
+        <div class="mt-6 flex flex-wrap gap-2 text-[12px] font-medium">
+          <span class="px-2.5 py-1 rounded-md bg-white ring-1 ring-slate-200 text-slate-700">LLM generativo</span>
+          <span class="px-2.5 py-1 rounded-md bg-white ring-1 ring-slate-200 text-slate-700">Rellenar con IA</span>
+          <span class="px-2.5 py-1 rounded-md bg-white ring-1 ring-slate-200 text-slate-700">OpenAPI directo</span>
+          <span class="px-2.5 py-1 rounded-md bg-white ring-1 ring-slate-200 text-slate-700">Sin Custom Connector</span>
+        </div>
+      </div>
+
+      <div class="lg:col-span-3 reveal reveal-delay-2">
+        <div class="rounded-3xl bg-white ring-1 ring-slate-200 shadow-2xl shadow-slate-900/5 overflow-hidden">
+          <div class="bg-gradient-to-r from-coffee-800 to-coffee-900 px-5 py-3.5 flex items-center gap-3">
+            <div class="h-8 w-8 rounded-full bg-white/15 backdrop-blur grid place-items-center text-white text-sm font-bold ring-1 ring-white/20">☕</div>
+            <div>
+              <div class="text-white font-semibold text-[14px]">Coffee Nezzi</div>
+              <div class="text-coffee-200 text-[11px] flex items-center gap-1.5">
+                <span class="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400 text-emerald-400 live-pulse"></span>
+                en línea
+              </div>
+            </div>
+          </div>
+          <div class="bg-slate-50 p-6 space-y-3 min-h-[380px]">
+            <div class="bubble flex justify-end" style="animation-delay:.1s">
+              <div class="max-w-[78%] rounded-2xl rounded-tr-md bg-slate-900 text-white px-4 py-2.5 text-[13.5px] leading-snug shadow-sm">
+                Hola, quiero pedir un café en La Cafetera
+              </div>
+            </div>
+            <div class="bubble flex justify-start" style="animation-delay:.8s">
+              <div class="max-w-[82%] rounded-2xl rounded-tl-md bg-white text-slate-800 px-4 py-2.5 text-[13.5px] leading-snug ring-1 ring-slate-200 shadow-sm">
+                ¡Hola! Te muestro el menú de <strong>La Cafetera</strong>:<br>
+                ☕ Latte — $45<br>
+                ☕ Americano — $35<br>
+                🥐 Croissant — $30
+              </div>
+            </div>
+            <div class="bubble flex justify-end" style="animation-delay:1.6s">
+              <div class="max-w-[78%] rounded-2xl rounded-tr-md bg-slate-900 text-white px-4 py-2.5 text-[13.5px] leading-snug shadow-sm">
+                Un latte y un croissant para Daniel
+              </div>
+            </div>
+            <div class="bubble flex justify-start" style="animation-delay:2.4s">
+              <div class="max-w-[82%] rounded-2xl rounded-tl-md bg-white text-slate-800 px-4 py-2.5 text-[13.5px] leading-snug ring-1 ring-slate-200 shadow-sm">
+                Listo. Pedido <strong>#127</strong> creado a nombre de Daniel.<br>
+                Total: <strong>$75 MXN</strong> · Estado: <em>recibido</em><br>
+                <span class="text-[11.5px] text-slate-500">Lo verás en la pantalla de la barra.</span>
+              </div>
+            </div>
+            <div class="bubble flex justify-start items-center gap-2" style="animation-delay:3.2s">
+              <div class="flex gap-1 px-3 py-2 rounded-full bg-white ring-1 ring-slate-200">
+                <span class="h-1.5 w-1.5 rounded-full bg-slate-400 animate-bounce"></span>
+                <span class="h-1.5 w-1.5 rounded-full bg-slate-400 animate-bounce" style="animation-delay:.15s"></span>
+                <span class="h-1.5 w-1.5 rounded-full bg-slate-400 animate-bounce" style="animation-delay:.3s"></span>
+              </div>
+            </div>
+          </div>
+          <div class="border-t border-slate-100 px-5 py-3 bg-white flex items-center gap-3">
+            <input type="text" placeholder="Escribe tu pedido…" class="flex-1 text-[13px] text-slate-500 bg-transparent outline-none" disabled>
+            <button class="h-8 w-8 rounded-full bg-coffee-800 text-white grid place-items-center hover:bg-coffee-900 transition">→</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ============ ¿QUÉ SOLUCIONA? ============ -->
+<section id="problema" class="relative py-28 sm:py-32 bg-white">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-3xl mb-16 reveal">
+      <div class="inline-flex items-center gap-2 mb-4 rounded-full bg-slate-50 px-3 py-1 ring-1 ring-slate-200">
+        <span class="text-[10px] font-bold tracking-[.2em] uppercase text-coffee-700">02 · ¿Qué soluciona?</span>
+      </div>
+      <h2 class="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tighter leading-[1.02] text-slate-900">
+        Las filas de la cafetería <span class="bg-gradient-to-r from-coffee-700 to-coffee-900 bg-clip-text text-transparent">no son problema de café</span>. Son problema de orden.
+      </h2>
+      <p class="mt-6 text-lg text-slate-600 leading-relaxed max-w-2xl">
+        En cafeterías escolares y de oficina, los 15 minutos de descanso se gastan formado. El alumno no quiere descargar otra app ni registrarse. El cafetero no quiere otra tablet con otra interfaz.
+      </p>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-5">
+      <!-- ANTES -->
+      <div class="rounded-3xl bg-gradient-to-br from-slate-50 to-white ring-1 ring-slate-200 p-8 reveal">
+        <div class="inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 ring-1 ring-red-100 mb-6">
+          <span class="h-1.5 w-1.5 rounded-full bg-red-500"></span>
+          <span class="text-[10.5px] font-bold tracking-[.18em] uppercase text-red-700">Sin Coffee Nezzi</span>
+        </div>
+        <h3 class="text-2xl font-bold tracking-tight text-slate-900 mb-5">El día a día actual</h3>
+        <ul class="space-y-3 text-[14.5px] text-slate-700">
+          <li class="flex items-start gap-3"><span class="mt-1 h-4 w-4 rounded-md bg-red-50 text-red-600 grid place-items-center text-[11px] font-bold ring-1 ring-red-100">×</span>Filas de 10–15 minutos en cada receso</li>
+          <li class="flex items-start gap-3"><span class="mt-1 h-4 w-4 rounded-md bg-red-50 text-red-600 grid place-items-center text-[11px] font-bold ring-1 ring-red-100">×</span>Confusiones de nombres en la barra ("¿quién pidió el americano?")</li>
+          <li class="flex items-start gap-3"><span class="mt-1 h-4 w-4 rounded-md bg-red-50 text-red-600 grid place-items-center text-[11px] font-bold ring-1 ring-red-100">×</span>Sin registro de qué se vendió ni cuándo</li>
+          <li class="flex items-start gap-3"><span class="mt-1 h-4 w-4 rounded-md bg-red-50 text-red-600 grid place-items-center text-[11px] font-bold ring-1 ring-red-100">×</span>Stock controlado a ojo, sin datos para reabastecer</li>
+          <li class="flex items-start gap-3"><span class="mt-1 h-4 w-4 rounded-md bg-red-50 text-red-600 grid place-items-center text-[11px] font-bold ring-1 ring-red-100">×</span>Apps caras o suscripciones SaaS para algo simple</li>
+        </ul>
+      </div>
+
+      <!-- DESPUÉS -->
+      <div class="relative rounded-3xl bg-gradient-to-br from-coffee-900 to-coffee-800 text-white p-8 overflow-hidden reveal reveal-delay-1">
+        <div class="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-coffee-700/40 blur-3xl"></div>
+        <div class="relative">
+          <div class="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur px-3 py-1 ring-1 ring-white/20 mb-6">
+            <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+            <span class="text-[10.5px] font-bold tracking-[.18em] uppercase text-coffee-100">Con Coffee Nezzi</span>
+          </div>
+          <h3 class="text-2xl font-bold tracking-tight mb-5">Lo que cambia</h3>
+          <ul class="space-y-3 text-[14.5px] text-coffee-100">
+            <li class="flex items-start gap-3"><span class="mt-1 h-4 w-4 rounded-md bg-emerald-500/20 text-emerald-300 grid place-items-center text-[11px] font-bold ring-1 ring-emerald-400/30">✓</span>El alumno pide por chat antes de salir del aula</li>
+            <li class="flex items-start gap-3"><span class="mt-1 h-4 w-4 rounded-md bg-emerald-500/20 text-emerald-300 grid place-items-center text-[11px] font-bold ring-1 ring-emerald-400/30">✓</span>El pedido aparece con número y nombre en la pantalla de la barra</li>
+            <li class="flex items-start gap-3"><span class="mt-1 h-4 w-4 rounded-md bg-emerald-500/20 text-emerald-300 grid place-items-center text-[11px] font-bold ring-1 ring-emerald-400/30">✓</span>Cada venta queda en MySQL — datos reales para el dueño</li>
+            <li class="flex items-start gap-3"><span class="mt-1 h-4 w-4 rounded-md bg-emerald-500/20 text-emerald-300 grid place-items-center text-[11px] font-bold ring-1 ring-emerald-400/30">✓</span>Stock se decrementa solo cuando se agrega producto</li>
+            <li class="flex items-start gap-3"><span class="mt-1 h-4 w-4 rounded-md bg-emerald-500/20 text-emerald-300 grid place-items-center text-[11px] font-bold ring-1 ring-emerald-400/30">✓</span>Cero apps. Cero suscripciones premium. Cero fricción.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- IMPACT NUMBERS -->
+    <div class="mt-16 grid sm:grid-cols-3 gap-5 reveal">
+      <div class="rounded-2xl bg-slate-50 p-6 ring-1 ring-slate-200">
+        <div class="text-5xl font-bold tracking-tighter text-coffee-900">15<span class="text-2xl text-slate-400">→0</span></div>
+        <div class="mt-2 text-[13px] text-slate-600 leading-snug">Minutos en fila eliminados. El pedido ya está listo cuando llegas.</div>
+      </div>
+      <div class="rounded-2xl bg-slate-50 p-6 ring-1 ring-slate-200">
+        <div class="text-5xl font-bold tracking-tighter text-coffee-900">100<span class="text-2xl text-slate-400">%</span></div>
+        <div class="mt-2 text-[13px] text-slate-600 leading-snug">De ventas registradas en MySQL. Datos para decidir qué pedir al proveedor.</div>
+      </div>
+      <div class="rounded-2xl bg-slate-50 p-6 ring-1 ring-slate-200">
+        <div class="text-5xl font-bold tracking-tighter text-coffee-900">$0</div>
+        <div class="mt-2 text-[13px] text-slate-600 leading-snug">En licencias premium. Tenant educativo La Salle, sin Custom Connectors.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ ARQUITECTURA ============ -->
+<section id="arquitectura" class="relative py-28 sm:py-32 bg-slate-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-3xl mb-16 reveal">
+      <div class="inline-flex items-center gap-2 mb-4 rounded-full bg-white px-3 py-1 ring-1 ring-slate-200">
+        <span class="text-[10px] font-bold tracking-[.2em] uppercase text-coffee-700">03 · Arquitectura</span>
+      </div>
+      <h2 class="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tighter leading-[1.02] text-slate-900">
+        Cuatro capas. <span class="bg-gradient-to-r from-coffee-700 to-coffee-900 bg-clip-text text-transparent">Una sola conversación</span>.
+      </h2>
+      <p class="mt-6 text-lg text-slate-600 leading-relaxed max-w-2xl">
+        El usuario habla con el bot. El bot decide. La API traduce. La base persiste. Cada capa hace una sola cosa bien.
+      </p>
+    </div>
+
+    <!-- ARCH DIAGRAM -->
+    <div class="rounded-3xl bg-white ring-1 ring-slate-200 p-6 sm:p-10 shadow-xl shadow-slate-900/5 reveal">
+      <div class="grid lg:grid-cols-9 gap-5 items-stretch">
+
+        <!-- 1. Usuario -->
+        <div class="lg:col-span-2 lift rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 text-white p-5 ring-1 ring-slate-900/20">
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-[10px] font-bold tracking-[.2em] uppercase text-slate-400">Capa 1</span>
+            <span class="text-2xl">💬</span>
+          </div>
+          <div class="text-xl font-bold tracking-tight">Usuario</div>
+          <div class="mt-1 text-[12.5px] text-slate-300 leading-snug">Chatea en lenguaje natural desde Teams, web o móvil.</div>
+          <div class="mt-4 flex flex-wrap gap-1.5">
+            <span class="px-2 py-0.5 rounded bg-white/10 text-[10px] font-medium ring-1 ring-white/15">Texto</span>
+            <span class="px-2 py-0.5 rounded bg-white/10 text-[10px] font-medium ring-1 ring-white/15">Voz</span>
+          </div>
+        </div>
+
+        <!-- Arrow -->
+        <div class="hidden lg:flex lg:col-span-1 items-center justify-center">
+          <svg width="100%" height="40" viewBox="0 0 80 40" fill="none" class="text-coffee-700">
+            <path d="M5 20 L70 20" stroke="currentColor" stroke-width="2" class="flow-line" stroke-linecap="round"/>
+            <path d="M65 14 L75 20 L65 26" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+
+        <!-- 2. Copilot Studio -->
+        <div class="lg:col-span-2 lift rounded-2xl bg-gradient-to-br from-coffee-50 to-white p-5 ring-1 ring-coffee-200/60">
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-[10px] font-bold tracking-[.2em] uppercase text-coffee-700">Capa 2</span>
+            <span class="text-2xl">🤖</span>
+          </div>
+          <div class="text-xl font-bold tracking-tight text-coffee-900">Copilot Studio</div>
+          <div class="mt-1 text-[12.5px] text-slate-600 leading-snug">LLM generativo decide qué herramienta llamar y con qué parámetros.</div>
+          <div class="mt-4 flex flex-wrap gap-1.5">
+            <span class="px-2 py-0.5 rounded bg-coffee-100/60 text-[10px] font-medium text-coffee-800 ring-1 ring-coffee-200/60">Microsoft</span>
+            <span class="px-2 py-0.5 rounded bg-coffee-100/60 text-[10px] font-medium text-coffee-800 ring-1 ring-coffee-200/60">OpenAPI</span>
+          </div>
+        </div>
+
+        <!-- Arrow -->
+        <div class="hidden lg:flex lg:col-span-1 items-center justify-center">
+          <svg width="100%" height="40" viewBox="0 0 80 40" fill="none" class="text-coffee-700">
+            <path d="M5 20 L70 20" stroke="currentColor" stroke-width="2" class="flow-line" stroke-linecap="round" style="animation-delay:.3s"/>
+            <path d="M65 14 L75 20 L65 26" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+
+        <!-- 3. API Node/Express -->
+        <div class="lg:col-span-2 lift rounded-2xl bg-gradient-to-br from-emerald-50 to-white p-5 ring-1 ring-emerald-200/60">
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-[10px] font-bold tracking-[.2em] uppercase text-emerald-700">Capa 3</span>
+            <span class="text-2xl">⚙️</span>
+          </div>
+          <div class="text-xl font-bold tracking-tight text-emerald-900">API Node.js</div>
+          <div class="mt-1 text-[12.5px] text-slate-600 leading-snug">Express expone 6 endpoints REST. Valida, transforma, persiste.</div>
+          <div class="mt-4 flex flex-wrap gap-1.5">
+            <span class="px-2 py-0.5 rounded bg-emerald-100/60 text-[10px] font-medium text-emerald-800 ring-1 ring-emerald-200/60">Node</span>
+            <span class="px-2 py-0.5 rounded bg-emerald-100/60 text-[10px] font-medium text-emerald-800 ring-1 ring-emerald-200/60">Express</span>
+            <span class="px-2 py-0.5 rounded bg-emerald-100/60 text-[10px] font-medium text-emerald-800 ring-1 ring-emerald-200/60">Socket.IO</span>
+          </div>
+        </div>
+
+        <!-- 4. MySQL standalone (segunda fila en mobile) -->
+        <div class="lg:col-span-9 mt-2 grid lg:grid-cols-9 gap-5 items-stretch">
+          <div class="hidden lg:block lg:col-span-7"></div>
+          <div class="lg:col-span-2 lift rounded-2xl bg-gradient-to-br from-sky-50 to-white p-5 ring-1 ring-sky-200/60">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-[10px] font-bold tracking-[.2em] uppercase text-sky-700">Capa 4</span>
+              <span class="text-2xl">🗄️</span>
+            </div>
+            <div class="text-xl font-bold tracking-tight text-sky-900">MySQL</div>
+            <div class="mt-1 text-[12.5px] text-slate-600 leading-snug">5 tablas. TLS local obligatorio. Stock decremental por trigger.</div>
+            <div class="mt-4 flex flex-wrap gap-1.5">
+              <span class="px-2 py-0.5 rounded bg-sky-100/60 text-[10px] font-medium text-sky-800 ring-1 ring-sky-200/60">mysql2</span>
+              <span class="px-2 py-0.5 rounded bg-sky-100/60 text-[10px] font-medium text-sky-800 ring-1 ring-sky-200/60">TLS</span>
+              <span class="px-2 py-0.5 rounded bg-sky-100/60 text-[10px] font-medium text-sky-800 ring-1 ring-sky-200/60">5 tablas</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- DB Schema mini -->
+      <div class="mt-10 pt-8 border-t border-slate-100">
+        <div class="text-[10.5px] font-bold tracking-[.2em] uppercase text-slate-500 mb-4">Schema · base de datos <span class="font-mono">cafeterias_bd</span></div>
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-3 font-mono text-[11.5px]">
+          <div class="rounded-lg bg-slate-50 ring-1 ring-slate-200 p-3">
+            <div class="text-coffee-900 font-bold text-[12px] mb-1.5">📋 cafeterias</div>
+            <div class="text-slate-600">id, nombre, password, rol</div>
+          </div>
+          <div class="rounded-lg bg-slate-50 ring-1 ring-slate-200 p-3">
+            <div class="text-coffee-900 font-bold text-[12px] mb-1.5">📋 menus</div>
+            <div class="text-slate-600">id, cafeteria_id, categoria, nombre, precio, cantidad</div>
+          </div>
+          <div class="rounded-lg bg-slate-50 ring-1 ring-slate-200 p-3">
+            <div class="text-coffee-900 font-bold text-[12px] mb-1.5">📋 pedidos</div>
+            <div class="text-slate-600">id, cafeteria_id, nombre_persona, total, estado, created_at</div>
+          </div>
+          <div class="rounded-lg bg-slate-50 ring-1 ring-slate-200 p-3">
+            <div class="text-coffee-900 font-bold text-[12px] mb-1.5">📋 detalle_pedido</div>
+            <div class="text-slate-600">id, pedido_id, menu_id, cantidad, precio_unitario</div>
+          </div>
+          <div class="rounded-lg bg-slate-50 ring-1 ring-slate-200 p-3">
+            <div class="text-coffee-900 font-bold text-[12px] mb-1.5">📋 notas_pedido</div>
+            <div class="text-slate-600">id, pedido_id, nota, alergia</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Code preview -->
+      <div class="mt-8 rounded-xl bg-slate-950 text-slate-200 overflow-hidden ring-1 ring-slate-900/10">
+        <div class="px-4 py-2.5 bg-slate-900 border-b border-slate-800 flex items-center gap-2">
+          <span class="h-2.5 w-2.5 rounded-full bg-red-500"></span>
+          <span class="h-2.5 w-2.5 rounded-full bg-yellow-500"></span>
+          <span class="h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
+          <span class="ml-2 text-[11px] font-mono text-slate-400">server.js · http://localhost:3000</span>
+        </div>
+        <pre class="font-mono text-[12.5px] leading-relaxed p-5 overflow-x-auto"><code><span class="text-purple-400">const</span> <span class="text-sky-300">express</span> = <span class="text-emerald-300">require</span>(<span class="text-amber-300">'express'</span>);
+<span class="text-purple-400">const</span> <span class="text-sky-300">{ Server }</span> = <span class="text-emerald-300">require</span>(<span class="text-amber-300">'socket.io'</span>);
+
+<span class="text-slate-500">// 6 herramientas REST montadas en /api</span>
+app.use(<span class="text-amber-300">'/admin'</span>, adminRoutes);
+app.use(<span class="text-amber-300">'/api'</span>, rutasUsuario);     <span class="text-slate-500">// bot Copilot</span>
+app.use(<span class="text-amber-300">'/cafetero'</span>, cafeteroRoutes);
+
+<span class="text-slate-500">// Spec OpenAPI servida directo a Copilot Studio</span>
+app.get(<span class="text-amber-300">'/openapi.yaml'</span>, (req, res) =&gt; res.sendFile(...));
+
+server.listen(<span class="text-orange-300">3000</span>, () =&gt; <span class="text-emerald-300">testConexion</span>());</code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ PROCESOS / 6 HERRAMIENTAS REST ============ -->
+<section id="procesos" class="relative py-28 sm:py-32 bg-white">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-3xl mb-16 reveal">
+      <div class="inline-flex items-center gap-2 mb-4 rounded-full bg-slate-50 px-3 py-1 ring-1 ring-slate-200">
+        <span class="text-[10px] font-bold tracking-[.2em] uppercase text-coffee-700">04 · Procesos</span>
+      </div>
+      <h2 class="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tighter leading-[1.02] text-slate-900">
+        Seis verbos. <span class="bg-gradient-to-r from-coffee-700 to-coffee-900 bg-clip-text text-transparent">Una orden completa</span>.
+      </h2>
+      <p class="mt-6 text-lg text-slate-600 leading-relaxed max-w-2xl">
+        El bot tiene seis herramientas para cubrir el flujo end-to-end. Cada una con descripción explícita para que el LLM sepa cuándo invocarla.
+      </p>
+    </div>
+
+    <!-- Flow timeline -->
+    <div class="space-y-4">
+
+      <!-- Step 1 -->
+      <div class="lift group rounded-2xl bg-slate-50 hover:bg-white ring-1 ring-slate-200 hover:ring-slate-900/20 hover:shadow-lg p-6 grid md:grid-cols-12 gap-5 items-center reveal">
+        <div class="md:col-span-1">
+          <div class="h-12 w-12 rounded-xl bg-gradient-to-br from-coffee-700 to-coffee-900 text-white font-bold grid place-items-center text-lg ring-4 ring-white shadow-sm">01</div>
+        </div>
+        <div class="md:col-span-4">
+          <div class="font-mono text-[11px] text-emerald-700 font-bold mb-1">GET /api/cafeterias</div>
+          <h3 class="text-xl font-bold tracking-tight text-slate-900">Listar cafeterías</h3>
+          <div class="mt-1 text-[13.5px] text-slate-600">El bot descubre dónde puede ordenar el usuario.</div>
+        </div>
+        <div class="md:col-span-7">
+          <div class="rounded-xl bg-slate-900 text-slate-100 p-4 font-mono text-[12px] leading-relaxed">
+            <span class="text-slate-500">// Salida</span><br>
+            [{ <span class="text-sky-300">id</span>: <span class="text-orange-300">1</span>, <span class="text-sky-300">nombre</span>: <span class="text-amber-300">"La Cafetera"</span> },<br>
+            &nbsp;{ <span class="text-sky-300">id</span>: <span class="text-orange-300">2</span>, <span class="text-sky-300">nombre</span>: <span class="text-amber-300">"Café del Patio"</span> }]
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="lift group rounded-2xl bg-slate-50 hover:bg-white ring-1 ring-slate-200 hover:ring-slate-900/20 hover:shadow-lg p-6 grid md:grid-cols-12 gap-5 items-center reveal">
+        <div class="md:col-span-1">
+          <div class="h-12 w-12 rounded-xl bg-gradient-to-br from-coffee-700 to-coffee-900 text-white font-bold grid place-items-center text-lg ring-4 ring-white shadow-sm">02</div>
+        </div>
+        <div class="md:col-span-4">
+          <div class="font-mono text-[11px] text-emerald-700 font-bold mb-1">GET /api/menus/{cafeteria_id}</div>
+          <h3 class="text-xl font-bold tracking-tight text-slate-900">Obtener menú</h3>
+          <div class="mt-1 text-[13.5px] text-slate-600">Productos disponibles agrupados por categoría con stock vigente.</div>
+        </div>
+        <div class="md:col-span-7">
+          <div class="rounded-xl bg-slate-900 text-slate-100 p-4 font-mono text-[12px] leading-relaxed">
+            <span class="text-slate-500">// Entrada · Salida</span><br>
+            cafeteria_id: <span class="text-orange-300">1</span> → [{ <span class="text-sky-300">nombre</span>: <span class="text-amber-300">"Latte"</span>, <span class="text-sky-300">precio</span>: <span class="text-orange-300">45.00</span>, <span class="text-sky-300">cantidad</span>: <span class="text-orange-300">12</span> }, ...]
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="lift group rounded-2xl bg-slate-50 hover:bg-white ring-1 ring-slate-200 hover:ring-slate-900/20 hover:shadow-lg p-6 grid md:grid-cols-12 gap-5 items-center reveal">
+        <div class="md:col-span-1">
+          <div class="h-12 w-12 rounded-xl bg-gradient-to-br from-coffee-700 to-coffee-900 text-white font-bold grid place-items-center text-lg ring-4 ring-white shadow-sm">03</div>
+        </div>
+        <div class="md:col-span-4">
+          <div class="font-mono text-[11px] text-blue-700 font-bold mb-1">POST /api/pedidos</div>
+          <h3 class="text-xl font-bold tracking-tight text-slate-900">Crear pedido</h3>
+          <div class="mt-1 text-[13.5px] text-slate-600">Inicia una orden a nombre de una persona. Acepta notas/alergias.</div>
+        </div>
+        <div class="md:col-span-7">
+          <div class="rounded-xl bg-slate-900 text-slate-100 p-4 font-mono text-[12px] leading-relaxed">
+            <span class="text-slate-500">// Body</span><br>
+            { <span class="text-sky-300">cafeteria_id</span>: <span class="text-orange-300">1</span>, <span class="text-sky-300">nombre_persona</span>: <span class="text-amber-300">"Daniel"</span>, <span class="text-sky-300">notas</span>: <span class="text-amber-300">"sin azúcar"</span> }<br>
+            <span class="text-slate-500">→ { pedido_id: 127 }</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 4 -->
+      <div class="lift group rounded-2xl bg-slate-50 hover:bg-white ring-1 ring-slate-200 hover:ring-slate-900/20 hover:shadow-lg p-6 grid md:grid-cols-12 gap-5 items-center reveal">
+        <div class="md:col-span-1">
+          <div class="h-12 w-12 rounded-xl bg-gradient-to-br from-coffee-700 to-coffee-900 text-white font-bold grid place-items-center text-lg ring-4 ring-white shadow-sm">04</div>
+        </div>
+        <div class="md:col-span-4">
+          <div class="font-mono text-[11px] text-blue-700 font-bold mb-1">POST /api/pedidos/{id}/productos</div>
+          <h3 class="text-xl font-bold tracking-tight text-slate-900">Agregar producto</h3>
+          <div class="mt-1 text-[13.5px] text-slate-600">Suma items al pedido. Valida stock, calcula subtotal, decrementa cantidad.</div>
+        </div>
+        <div class="md:col-span-7">
+          <div class="rounded-xl bg-slate-900 text-slate-100 p-4 font-mono text-[12px] leading-relaxed">
+            <span class="text-slate-500">// Body · validaciones</span><br>
+            { <span class="text-sky-300">menu_id</span>: <span class="text-orange-300">5</span>, <span class="text-sky-300">cantidad</span>: <span class="text-orange-300">2</span> }<br>
+            <span class="text-red-300">✗ "Stock insuficiente"</span> · <span class="text-red-300">✗ "Producto no existe"</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 5 -->
+      <div class="lift group rounded-2xl bg-slate-50 hover:bg-white ring-1 ring-slate-200 hover:ring-slate-900/20 hover:shadow-lg p-6 grid md:grid-cols-12 gap-5 items-center reveal">
+        <div class="md:col-span-1">
+          <div class="h-12 w-12 rounded-xl bg-gradient-to-br from-coffee-700 to-coffee-900 text-white font-bold grid place-items-center text-lg ring-4 ring-white shadow-sm">05</div>
+        </div>
+        <div class="md:col-span-4">
+          <div class="font-mono text-[11px] text-emerald-700 font-bold mb-1">GET /api/pedidos/{id}</div>
+          <h3 class="text-xl font-bold tracking-tight text-slate-900">Consultar estado</h3>
+          <div class="mt-1 text-[13.5px] text-slate-600">Devuelve estado actual: recibido → preparación → listo → entregado.</div>
+        </div>
+        <div class="md:col-span-7">
+          <div class="rounded-xl bg-slate-900 text-slate-100 p-4 font-mono text-[12px] leading-relaxed">
+            <span class="text-slate-500">// Salida</span><br>
+            { <span class="text-sky-300">id</span>: <span class="text-orange-300">127</span>, <span class="text-sky-300">total</span>: <span class="text-orange-300">75.00</span>, <span class="text-sky-300">estado</span>: <span class="text-amber-300">"preparacion"</span> }
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 6 -->
+      <div class="lift group rounded-2xl bg-slate-50 hover:bg-white ring-1 ring-slate-200 hover:ring-slate-900/20 hover:shadow-lg p-6 grid md:grid-cols-12 gap-5 items-center reveal">
+        <div class="md:col-span-1">
+          <div class="h-12 w-12 rounded-xl bg-gradient-to-br from-coffee-700 to-coffee-900 text-white font-bold grid place-items-center text-lg ring-4 ring-white shadow-sm">06</div>
+        </div>
+        <div class="md:col-span-4">
+          <div class="font-mono text-[11px] text-amber-700 font-bold mb-1">PUT /api/pedidos/{id}/cancelar</div>
+          <h3 class="text-xl font-bold tracking-tight text-slate-900">Cancelar pedido</h3>
+          <div class="mt-1 text-[13.5px] text-slate-600">Marca el pedido como cancelado. Stock se restaura por trigger.</div>
+        </div>
+        <div class="md:col-span-7">
+          <div class="rounded-xl bg-slate-900 text-slate-100 p-4 font-mono text-[12px] leading-relaxed">
+            <span class="text-slate-500">// Acción reversible</span><br>
+            estado: <span class="text-amber-300">"recibido"</span> → <span class="text-amber-300">"cancelado"</span><br>
+            <span class="text-slate-500">// Devuelve el stock al inventario</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Roles del sistema -->
+    <div class="mt-20">
+      <h3 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 mb-2 reveal">Tres roles, tres vistas.</h3>
+      <p class="text-slate-600 mb-8 max-w-2xl reveal">Además del bot, el backend sirve dos paneles EJS para el equipo operativo.</p>
+      <div class="grid md:grid-cols-3 gap-4">
+
+        <div class="lift rounded-2xl bg-white ring-1 ring-slate-200 hover:ring-slate-900/20 p-6 reveal">
+          <div class="flex items-center justify-between mb-4">
+            <div class="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-coffee-50 text-coffee-800 ring-1 ring-coffee-100">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg>
+            </div>
+            <span class="font-mono text-[10px] text-slate-400 uppercase tracking-wider">/admin</span>
+          </div>
+          <div class="font-bold text-slate-900">Admin</div>
+          <div class="mt-1 text-[13px] text-slate-600 leading-snug">Da de alta cafeterías, asigna roles, ve métricas globales.</div>
+        </div>
+
+        <div class="lift rounded-2xl bg-white ring-1 ring-slate-200 hover:ring-slate-900/20 p-6 reveal reveal-delay-1">
+          <div class="flex items-center justify-between mb-4">
+            <div class="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-coffee-50 text-coffee-800 ring-1 ring-coffee-100">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 8h1a4 4 0 0 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+            </div>
+            <span class="font-mono text-[10px] text-slate-400 uppercase tracking-wider">/cafetero</span>
+          </div>
+          <div class="font-bold text-slate-900">Cafetero</div>
+          <div class="mt-1 text-[13px] text-slate-600 leading-snug">Gestiona menú y stock, actualiza estado de pedidos en su barra.</div>
+        </div>
+
+        <div class="lift rounded-2xl bg-white ring-1 ring-slate-200 hover:ring-slate-900/20 p-6 reveal reveal-delay-2">
+          <div class="flex items-center justify-between mb-4">
+            <div class="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-coffee-50 text-coffee-800 ring-1 ring-coffee-100">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            </div>
+            <span class="font-mono text-[10px] text-slate-400 uppercase tracking-wider">display.ejs</span>
+          </div>
+          <div class="font-bold text-slate-900">Display público</div>
+          <div class="mt-1 text-[13px] text-slate-600 leading-snug">Pantalla con cola de pedidos en vivo, vía Socket.IO. Se cuelga en la barra.</div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ============ STACK ============ -->
+<section id="stack" class="relative py-28 sm:py-32 bg-gradient-to-b from-slate-50 to-white">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-3xl mb-16 reveal">
+      <div class="inline-flex items-center gap-2 mb-4 rounded-full bg-white px-3 py-1 ring-1 ring-slate-200">
+        <span class="text-[10px] font-bold tracking-[.2em] uppercase text-coffee-700">05 · Stack tecnológico</span>
+      </div>
+      <h2 class="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tighter leading-[1.02] text-slate-900">
+        Tecnologías <span class="bg-gradient-to-r from-coffee-700 to-coffee-900 bg-clip-text text-transparent">cuidadosamente elegidas</span>.
+      </h2>
+    </div>
+
+    <div class="overflow-hidden relative reveal">
+      <div class="flex marquee-track w-max gap-3">
+        <!-- duplicado para loop -->
+        <div class="flex gap-3">
+          <div class="rounded-xl bg-white ring-1 ring-slate-200 px-5 py-3 flex items-center gap-3 whitespace-nowrap"><span class="text-xl">⚡</span><div><div class="font-bold text-slate-900 text-[14px]">Node.js + Express 5</div><div class="text-[11px] text-slate-500">Runtime + framework HTTP</div></div></div>
+          <div class="rounded-xl bg-white ring-1 ring-slate-200 px-5 py-3 flex items-center gap-3 whitespace-nowrap"><span class="text-xl">🐬</span><div><div class="font-bold text-slate-900 text-[14px]">MySQL 8 + mysql2</div><div class="text-[11px] text-slate-500">Persistencia con TLS</div></div></div>
+          <div class="rounded-xl bg-white ring-1 ring-slate-200 px-5 py-3 flex items-center gap-3 whitespace-nowrap"><span class="text-xl">🤖</span><div><div class="font-bold text-slate-900 text-[14px]">Copilot Studio</div><div class="text-[11px] text-slate-500">Agente LLM moderno</div></div></div>
+          <div class="rounded-xl bg-white ring-1 ring-slate-200 px-5 py-3 flex items-center gap-3 whitespace-nowrap"><span class="text-xl">📡</span><div><div class="font-bold text-slate-900 text-[14px]">Socket.IO</div><div class="text-[11px] text-slate-500">Display en tiempo real</div></div></div>
+          <div class="rounded-xl bg-white ring-1 ring-slate-200 px-5 py-3 flex items-center gap-3 whitespace-nowrap"><span class="text-xl">🔐</span><div><div class="font-bold text-slate-900 text-[14px]">bcrypt + JWT</div><div class="text-[11px] text-slate-500">Auth de admins</div></div></div>
+          <div class="rounded-xl bg-white ring-1 ring-slate-200 px-5 py-3 flex items-center gap-3 whitespace-nowrap"><span class="text-xl">📝</span><div><div class="font-bold text-slate-900 text-[14px]">OpenAPI 2.0</div><div class="text-[11px] text-slate-500">Contrato del bot</div></div></div>
+          <div class="rounded-xl bg-white ring-1 ring-slate-200 px-5 py-3 flex items-center gap-3 whitespace-nowrap"><span class="text-xl">🌐</span><div><div class="font-bold text-slate-900 text-[14px]">ngrok</div><div class="text-[11px] text-slate-500">Túnel HTTPS público</div></div></div>
+          <div class="rounded-xl bg-white ring-1 ring-slate-200 px-5 py-3 flex items-center gap-3 whitespace-nowrap"><span class="text-xl">🎨</span><div><div class="font-bold text-slate-900 text-[14px]">EJS</div><div class="text-[11px] text-slate-500">Vistas admin/display</div></div></div>
+        </div>
+        <div class="flex gap-3" aria-hidden="true">
+          <div class="rounded-xl bg-white ring-1 ring-slate-200 px-5 py-3 flex items-center gap-3 whitespace-nowrap"><span class="text-xl">⚡</span><div><div class="font-bold text-slate-900 text-[14px]">Node.js + Express 5</div><div class="text-[11px] text-slate-500">Runtime + framework HTTP</div></div></div>
+          <div class="rounded-xl bg-white ring-1 ring-slate-200 px-5 py-3 flex items-center gap-3 whitespace-nowrap"><span class="text-xl">🐬</span><div><div class="font-bold text-slate-900 text-[14px]">MySQL 8 + mysql2</div><div class="text-[11px] text-slate-500">Persistencia con TLS</div></div></div>
+          <div class="rounded-xl bg-white ring-1 ring-slate-200 px-5 py-3 flex items-center gap-3 whitespace-nowrap"><span class="text-xl">🤖</span><div><div class="font-bold text-slate-900 text-[14px]">Copilot Studio</div><div class="text-[11px] text-slate-500">Agente LLM moderno</div></div></div>
+          <div class="rounded-xl bg-white ring-1 ring-slate-200 px-5 py-3 flex items-center gap-3 whitespace-nowrap"><span class="text-xl">📡</span><div><div class="font-bold text-slate-900 text-[14px]">Socket.IO</div><div class="text-[11px] text-slate-500">Display en tiempo real</div></div></div>
+          <div class="rounded-xl bg-white ring-1 ring-slate-200 px-5 py-3 flex items-center gap-3 whitespace-nowrap"><span class="text-xl">🔐</span><div><div class="font-bold text-slate-900 text-[14px]">bcrypt + JWT</div><div class="text-[11px] text-slate-500">Auth de admins</div></div></div>
+          <div class="rounded-xl bg-white ring-1 ring-slate-200 px-5 py-3 flex items-center gap-3 whitespace-nowrap"><span class="text-xl">📝</span><div><div class="font-bold text-slate-900 text-[14px]">OpenAPI 2.0</div><div class="text-[11px] text-slate-500">Contrato del bot</div></div></div>
+          <div class="rounded-xl bg-white ring-1 ring-slate-200 px-5 py-3 flex items-center gap-3 whitespace-nowrap"><span class="text-xl">🌐</span><div><div class="font-bold text-slate-900 text-[14px]">ngrok</div><div class="text-[11px] text-slate-500">Túnel HTTPS público</div></div></div>
+          <div class="rounded-xl bg-white ring-1 ring-slate-200 px-5 py-3 flex items-center gap-3 whitespace-nowrap"><span class="text-xl">🎨</span><div><div class="font-bold text-slate-900 text-[14px]">EJS</div><div class="text-[11px] text-slate-500">Vistas admin/display</div></div></div>
+        </div>
+      </div>
+      <div class="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-slate-50 to-transparent pointer-events-none"></div>
+      <div class="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-white to-transparent pointer-events-none"></div>
+    </div>
+
+    <!-- Architecture decisions -->
+    <div class="mt-20 grid md:grid-cols-2 gap-4">
+      <div class="lift rounded-2xl bg-white ring-1 ring-slate-200 hover:ring-slate-900/20 p-7 reveal">
+        <div class="inline-flex items-center gap-2 mb-3 rounded-full bg-amber-50 px-2.5 py-1 ring-1 ring-amber-100">
+          <span class="text-[10px] font-bold tracking-[.18em] uppercase text-amber-800">Decisión</span>
+        </div>
+        <h3 class="font-bold text-slate-900 text-lg">OpenAPI directo → no Custom Connector</h3>
+        <p class="mt-2 text-[14px] text-slate-600 leading-relaxed">
+          El tenant educativo de La Salle no expone Custom Connectors premium. Se importa el <span class="font-mono text-[12px] bg-slate-100 px-1.5 py-0.5 rounded">openapi.yaml</span> directamente en Copilot Studio como API de REST. Cero licencias premium.
+        </p>
+      </div>
+      <div class="lift rounded-2xl bg-white ring-1 ring-slate-200 hover:ring-slate-900/20 p-7 reveal reveal-delay-1">
+        <div class="inline-flex items-center gap-2 mb-3 rounded-full bg-amber-50 px-2.5 py-1 ring-1 ring-amber-100">
+          <span class="text-[10px] font-bold tracking-[.18em] uppercase text-amber-800">Decisión</span>
+        </div>
+        <h3 class="font-bold text-slate-900 text-lg">mysql2 con decimalNumbers: true</h3>
+        <p class="mt-2 text-[14px] text-slate-600 leading-relaxed">
+          Sin esa flag, Power Fx (motor de Copilot Studio) rompe con <span class="font-mono text-[12px] bg-slate-100 px-1.5 py-0.5 rounded">PowerFxJsonException</span> al recibir DECIMAL. Pool configurado para devolver números nativos.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ CIERRE ============ -->
+<section class="relative py-32 sm:py-40 bg-slate-950 text-white overflow-hidden">
+  <!-- Subtle paths del cierre -->
+  <div class="bg-paths-wrap opacity-30">
+    <svg class="bg-paths-svg text-white" viewBox="0 0 696 316" fill="none" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <g id="paths-3"></g>
+    </svg>
+  </div>
+  <div class="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_50%_50%,transparent_30%,#020617_85%)]"></div>
+
+  <div class="relative max-w-4xl mx-auto px-4 sm:px-6 text-center">
+    <h2 class="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tighter leading-[.95] reveal">
+      <span class="bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">Tu café.</span><br>
+      <span class="bg-gradient-to-r from-coffee-300 to-coffee-500 bg-clip-text text-transparent">Sin filas.</span>
+    </h2>
+    <p class="mt-8 text-lg text-slate-400 max-w-xl mx-auto reveal reveal-delay-1">
+      Coffee Nezzi es un proyecto integrador que demuestra cómo construir un agente conversacional real sobre Microsoft Copilot Studio, conectado a un backend Node.js y MySQL.
+    </p>
+
+    <div class="mt-12 flex flex-wrap justify-center gap-3 reveal reveal-delay-2">
+      <span class="px-3 py-1.5 rounded-full bg-white/5 ring-1 ring-white/10 text-[12px] font-medium text-slate-300">Universidad La Salle</span>
+      <span class="px-3 py-1.5 rounded-full bg-white/5 ring-1 ring-white/10 text-[12px] font-medium text-slate-300">Proyecto integrador 2026</span>
+      <span class="px-3 py-1.5 rounded-full bg-white/5 ring-1 ring-white/10 text-[12px] font-medium text-slate-300">Node · MySQL · Copilot Studio</span>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ FOOTER ============ -->
+<footer class="bg-slate-950 border-t border-white/5 py-10 text-slate-500 text-[13px]">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+    <div class="flex items-center gap-2">
+      <span class="relative inline-flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-br from-coffee-700 to-coffee-900 text-white text-[10px]">☕</span>
+      <span>Coffee Nezzi · 2026</span>
+    </div>
+    <div class="flex items-center gap-5">
+      <a href="#hero" class="hover:text-white transition">Inicio</a>
+      <a href="#arquitectura" class="hover:text-white transition">Arquitectura</a>
+      <a href="#procesos" class="hover:text-white transition">API</a>
+      <span class="text-slate-700">·</span>
+      <span class="inline-flex items-center gap-1.5">
+        <span class="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400 text-emerald-400 live-pulse"></span>
+        localhost:3000
+      </span>
+    </div>
+  </div>
+</footer>
+
+
+<script>
+  // ============ Background Paths — fluye continuo (réplica del FloatingPaths) ============
+  // 36 paths por grupo, igual que el original.
+  // Cada path lleva su --dur y --delay deterministas según índice, así no parpadea al recargar
+  // y los paths arrancan desfasados de forma uniforme (efecto orgánico, sin Math.random).
+  function buildPathsHTML(position, count=36){
+    let html = '';
+    for(let i=0;i<count;i++){
+      const k = i*5*position;
+      const d = `M-${380-k} -${189+i*6}C-${380-k} -${189+i*6} -${312-k} ${216-i*6} ${152-k} ${343-i*6}C${616-k} ${470-i*6} ${684-k} ${875-i*6} ${684-k} ${875-i*6}`;
+      const width   = (0.5 + i*0.03).toFixed(3);
+      const opacity = (0.1 + i*0.03).toFixed(3);
+      // Duración 20–30s (como 20 + Math.random()*10 del original, pero determinista)
+      const dur   = (20 + ((i * 7) % 10) + ((i * 3) % 10) / 10).toFixed(2);
+      // Delay negativo escalonado: cada path arranca en una fase distinta del ciclo
+      const delay = (-((i * 13) % (dur * 100)) / 100).toFixed(2);
+      html += `<path d="${d}" pathLength="1" stroke="currentColor" stroke-width="${width}" stroke-opacity="${opacity}" fill="none" style="--dur:${dur}s;--delay:${delay}s"/>`;
+    }
+    return html;
+  }
+  // Render diferido: deja que el primer paint termine antes de inyectar los paths
+  requestAnimationFrame(()=>{
+    const g1 = document.getElementById('paths-1');
+    const g2 = document.getElementById('paths-2');
+    if(g1) g1.innerHTML = buildPathsHTML(1);
+    if(g2) g2.innerHTML = buildPathsHTML(-1);
+  });
+  // Cierre dark — inyección perezosa al acercarse a la sección
+  const darkSvg = document.getElementById('paths-3');
+  if(darkSvg && 'IntersectionObserver' in window){
+    const ioDark = new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting && !darkSvg.dataset.loaded){
+          darkSvg.innerHTML = buildPathsHTML(1, 24);
+          darkSvg.dataset.loaded = '1';
+          ioDark.disconnect();
+        }
+      });
+    }, { rootMargin: '400px 0px' });
+    ioDark.observe(darkSvg.closest('section'));
+  }
+
+  // ============ Hero animated title (letter by letter) ============
+  (function animateTitle(){
+    const target = document.getElementById('hero-title');
+    if(!target) return;
+    const words = ['Coffee', 'Nezzi'];
+    let html = '';
+    words.forEach((word, wi)=>{
+      html += `<span class="inline-block mr-3 last:mr-0">`;
+      for(let li=0;li<word.length;li++){
+        const ch = word[li];
+        const delay = (wi*0.08 + li*0.04).toFixed(2);
+        html += `<span class="letter" style="animation-delay:${delay}s">${ch}</span>`;
+      }
+      html += `</span>`;
+    });
+    target.innerHTML = html;
+  })();
+
+  // ============ Reveal on scroll — observer único, threshold bajo, no rootMargin negativo ============
+  if('IntersectionObserver' in window){
+    const io = new IntersectionObserver((entries)=>{
+      for(const e of entries){
+        if(e.isIntersecting){
+          e.target.classList.add('in');
+          io.unobserve(e.target);
+        }
+      }
+    }, { threshold: 0.08, rootMargin: '0px 0px 60px 0px' });
+    document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+  }else{
+    // Fallback: muestra todo si no hay soporte
+    document.querySelectorAll('.reveal').forEach(el=>el.classList.add('in'));
+  }
+
+  // Hero reveals — disparan en cascada después del primer paint, sin esperar 1.1s
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+      document.querySelectorAll('#hero .reveal').forEach(el=>el.classList.add('in'));
+    });
+  });
+</script>
+
+</body>
+</html>

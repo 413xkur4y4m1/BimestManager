@@ -1,0 +1,1620 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coffee Nezzi — VII CITIS 2026 · La Salle Nezahualcóyotl</title>
+  <link rel="icon" type="image/jpeg" href="https://413xkur4y4m1.github.io/BimestManager/salleR.jpg">
+  <link href="https://fonts.googleapis.com/css2?family=Calibri:wght@400;700&family=Arial:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: Calibri, Arial, "Segoe UI", sans-serif;
+      background: #111;
+      color: #000;
+      overflow: hidden;
+    }
+
+    .deck {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* 4:3 slide — same aspect as the pptx (10in x 7.5in = 540pt tall).
+       Setting font-size = slideHeight/54 makes 1em = 10pt regardless of zoom. */
+    .slide {
+      position: absolute;
+      width: min(96vw, calc(96vh * 4 / 3));
+      height: min(96vh, calc(96vw * 3 / 4));
+      font-size: min(calc(96vh / 54), calc(96vw * 3 / 4 / 54));
+      background: #ffffff;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+      overflow: hidden;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .35s ease;
+    }
+    .slide.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Logos in corners (same positions as the pptx for slides 3-14) */
+    .slide .citis-tl {
+      position: absolute;
+      left: 3.81%;
+      top: 3.15%;
+      width: 15.06%;
+      height: 13.89%;
+      object-fit: contain;
+    }
+    .slide .uaem-bl {
+      position: absolute;
+      left: 5.20%;
+      top: 79.18%;
+      width: 12.80%;
+      height: 13.89%;
+      object-fit: contain;
+    }
+    /* La Salle logo — top-right of every regular slide.
+       mix-blend-mode:multiply makes the white JPG background disappear
+       against the white slide so the logo doesn't look like a pasted square. */
+    .slide .salle-tr {
+      position: absolute;
+      right: 3.00%;
+      top: 3.50%;
+      height: 11.00%;
+      width: 22.00%;
+      object-fit: contain;
+      object-position: right center;
+      mix-blend-mode: multiply;
+    }
+
+    /* Main text block for slides 3-14 */
+    .body-block {
+      position: absolute;
+      color: #000;
+      line-height: 1.22;
+    }
+    .body-block .t-title {
+      font-weight: 700;
+      color: #20419B;
+      margin-bottom: .45em;
+    }
+    .body-block p { margin-bottom: .45em; }
+    .body-block .empty { height: .8em; }
+    .body-block b { color: #20419B; }
+    .body-block .red { color: #C5172E; font-weight: 700; }
+
+    /* ---------- SLIDE 1 (cover) ---------- */
+    .cover { background: #ffffff; }
+    .cover .vii {
+      position: absolute;
+      left: 6.14%;
+      top: 15.18%;
+      width: 13.00%;
+      height: 17.17%;
+      color: #00723E;
+      font-weight: 700;
+      font-size: 7.2em;
+      line-height: 1;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-shadow: 1px 1px 2px rgba(0,0,0,.4);
+    }
+    .cover .colo {
+      position: absolute;
+      left: 19.14%;
+      top: 12.31%;
+      width: 50.00%;
+      color: #20419B;
+      font-size: 2em;
+      line-height: 1.2;
+    }
+    .cover .colo div + div { margin-top: .15em; }
+    .cover .fecha {
+      position: absolute;
+      left: 19.14%;
+      top: 27.29%;
+      width: 50.00%;
+      color: #20419B;
+      font-size: 1.8em;
+      font-weight: 700;
+    }
+    .cover .yellow {
+      position: absolute;
+      left: 32.10%;
+      top: 44.75%;
+      width: 40.20%;
+      height: 16.53%;
+      background: #FFC000;
+      color: #C5172E;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 1em;
+      font-size: 1.6em;
+      line-height: 1.2;
+      font-weight: 700;
+    }
+    .cover .yellow .sub {
+      font-weight: 400;
+      font-size: .75em;
+      color: #20419B;
+      margin-top: .4em;
+    }
+    .cover .recodast {
+      position: absolute;
+      left: 3.50%;
+      top: 56.13%;
+      width: 28.60%;
+      height: 38.13%;
+      object-fit: contain;
+    }
+    .cover .citis-tr {
+      position: absolute;
+      left: 70.72%;
+      top: 8.09%;
+      width: 21.06%;
+      height: 23.25%;
+      object-fit: contain;
+    }
+    .cover .uaem-br {
+      position: absolute;
+      left: 69.12%;
+      top: 66.15%;
+      width: 25.21%;
+      height: 23.25%;
+      object-fit: contain;
+    }
+    .cover .salle-cover {
+      position: absolute;
+      left: 36.00%;
+      top: 64.50%;
+      width: 28.00%;
+      height: 11.00%;
+      object-fit: contain;
+      mix-blend-mode: multiply;
+    }
+
+    /* ---------- SLIDE 2 (datos) ---------- */
+    .datos .titulo {
+      position: absolute;
+      left: 11.60%;
+      top: 26.89%;
+      width: 75.82%;
+      height: 18.11%;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      text-align: center;
+      font-size: 2.6em;
+      font-weight: 700;
+      color: #20419B;
+      line-height: 1.15;
+    }
+    .datos .ponente {
+      position: absolute;
+      left: 13.00%;
+      top: 49.50%;
+      width: 74.00%;
+      text-align: center;
+      font-size: 1.5em;
+      color: #000;
+      line-height: 1.35;
+    }
+    .datos .ponente .lbl {
+      display: block;
+      font-size: .65em;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: #C5172E;
+      font-weight: 700;
+      margin-bottom: .35em;
+    }
+    .datos .inst {
+      position: absolute;
+      left: 29.66%;
+      top: 67.82%;
+      width: 62.57%;
+      text-align: right;
+      color: #20419B;
+      font-size: 1.8em;
+      font-weight: 700;
+    }
+    .datos .fac {
+      position: absolute;
+      left: 48.51%;
+      top: 73.72%;
+      width: 45.97%;
+      text-align: right;
+      color: #20419B;
+      font-size: 1.5em;
+    }
+
+    /* Navigation overlay */
+    .nav {
+      position: fixed;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      background: rgba(15,23,42,.85);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,.1);
+      padding: 8px 14px;
+      border-radius: 999px;
+      z-index: 100;
+      font-family: Arial, sans-serif;
+    }
+    .nav button {
+      background: rgba(255,255,255,.1);
+      color: white;
+      border: none;
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: background .2s;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+    }
+    .nav button:hover { background: rgba(255,255,255,.25); }
+    .nav .counter {
+      color: white;
+      font-weight: 500;
+      padding: 0 8px;
+      font-variant-numeric: tabular-nums;
+      font-size: 14px;
+    }
+
+    .fullscreen-btn {
+      position: fixed;
+      top: 18px; right: 18px;
+      background: rgba(15,23,42,.85);
+      backdrop-filter: blur(10px);
+      color: white;
+      border: 1px solid rgba(255,255,255,.1);
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      z-index: 100;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+    }
+    .fullscreen-btn:hover { background: rgba(255,255,255,.15); }
+
+    /* =========================================================
+       Tarjetas interactivas en el slide 10 (Resultados)
+       ========================================================= */
+    .result-cards {
+      position: absolute;
+      left: 22.00%;
+      top: 50.00%;
+      width: 55.00%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.4em;
+      font-size: 1em;
+    }
+    .result-card {
+      background: linear-gradient(135deg, #1a2a6c 0%, #0a154a 100%);
+      color: white;
+      border: none;
+      border-radius: 1em;
+      padding: 1.2em 1.4em;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 1em;
+      box-shadow: 0 .8em 1.8em rgba(26,42,108,.32);
+      transition: transform .25s, box-shadow .25s;
+      text-align: left;
+      font-family: inherit;
+    }
+    .result-card:hover {
+      transform: translateY(-.25em);
+      box-shadow: 0 1.2em 2.4em rgba(26,42,108,.45);
+    }
+    .result-card:nth-child(2) {
+      background: linear-gradient(135deg, #C5172E 0%, #7a0a1c 100%);
+      box-shadow: 0 .8em 1.8em rgba(197,23,46,.32);
+    }
+    .result-card:nth-child(2):hover { box-shadow: 0 1.2em 2.4em rgba(197,23,46,.45); }
+    .result-card .rc-icon {
+      font-size: 2.4em;
+      flex-shrink: 0;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,.3));
+    }
+    .result-card .rc-text { flex: 1; }
+    .result-card .rc-title {
+      font-size: 1.5em;
+      font-weight: 700;
+      line-height: 1.1;
+    }
+    .result-card .rc-sub {
+      font-size: .9em;
+      opacity: .85;
+      margin-top: .2em;
+    }
+    .result-card .rc-play {
+      width: 2.4em; height: 2.4em;
+      border-radius: 50%;
+      background: rgba(255,255,255,.18);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1em;
+      flex-shrink: 0;
+      transition: background .25s, transform .25s;
+    }
+    .result-card:hover .rc-play {
+      background: rgba(255,255,255,.32);
+      transform: scale(1.08);
+    }
+
+    /* =========================================================
+       Modal (Lottie-like screenshot slideshow)
+       ========================================================= */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.78);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity .3s ease;
+      padding: 24px;
+    }
+    .modal-overlay.open {
+      display: flex;
+      opacity: 1;
+    }
+    .modal-box {
+      background: #fff;
+      border-radius: 18px;
+      width: min(900px, 95vw);
+      max-height: 92vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 40px 80px rgba(0,0,0,.5);
+      transform: scale(.92);
+      transition: transform .35s cubic-bezier(.18,.89,.32,1.28);
+    }
+    .modal-overlay.open .modal-box { transform: scale(1); }
+    .modal-head {
+      padding: 16px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #e2e8f0;
+      background: linear-gradient(180deg, #f7f9fc, #fff);
+    }
+    .modal-head h3 {
+      margin: 0;
+      font-size: 1.15rem;
+      color: #1a2a6c;
+      font-weight: 700;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .modal-head .sub {
+      font-size: 12px;
+      color: #6b7691;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      margin-top: 2px;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .modal-close {
+      width: 36px; height: 36px;
+      border: none;
+      border-radius: 50%;
+      background: #f1f5f9;
+      cursor: pointer;
+      font-size: 18px;
+      color: #475569;
+      transition: background .2s;
+    }
+    .modal-close:hover { background: #e2e8f0; }
+
+    .modal-box.wide { width: min(1100px, 96vw); }
+
+    .sim-stage {
+      position: relative;
+      width: 100%;
+      flex: 1;
+      min-height: 460px;
+      background: #f5f7fb;
+      overflow: hidden;
+    }
+    #chat-modal .sim-stage { min-height: 580px; }
+    #dash-modal .sim-stage { min-height: 640px; }
+    .modal-foot {
+      padding: 12px 22px;
+      border-top: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #fafbfd;
+    }
+    .modal-foot .pace {
+      font-size: 12px;
+      color: #6b7691;
+      font-family: 'Segoe UI', sans-serif;
+      letter-spacing: .08em;
+    }
+
+    /* =========================================================
+       SIMULACIÓN: Chat Microsoft Teams (recreado en HTML/CSS)
+       Ciclo: 14s, infinito
+       ========================================================= */
+    .chat-sim {
+      position: absolute;
+      inset: 0;
+      background: #fff;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      color: #1a1a1a;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .chat-feed {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 36px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .chat-input {
+      border-top: 1px solid #e5e5e5;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #fafafa;
+    }
+    .chat-input-ph {
+      flex: 1;
+      color: #aaa;
+      font-size: 13px;
+      padding: 8px 12px;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 22px;
+    }
+    .chat-input-ico {
+      color: #888;
+      font-size: 16px;
+      padding: 0 12px;
+    }
+
+    .cm {
+      opacity: 0;
+      animation-duration: 26s;
+      animation-iteration-count: infinite;
+      animation-fill-mode: both;
+      animation-timing-function: ease-out;
+    }
+    .cm.ts {
+      font-size: 11px;
+      color: #888;
+      align-self: center;
+      margin: 8px 0 2px;
+    }
+    .cm.user {
+      align-self: flex-end;
+      background: #E5F0FE;
+      color: #1a1a1a;
+      padding: 9px 14px;
+      border-radius: 16px;
+      font-size: 14px;
+      max-width: 70%;
+      box-shadow: 0 1px 2px rgba(0,0,0,.05);
+    }
+    .cm.bot {
+      align-self: flex-start;
+      color: #1a1a1a;
+      font-size: 14px;
+      max-width: 90%;
+      line-height: 1.45;
+      padding: 6px 0;
+    }
+    .cm.bot p { margin: 0 0 6px; }
+    .cm.bot ul { padding-left: 24px; margin: 4px 0; }
+    .cm.bot li { font-size: 14px; margin-bottom: 2px; }
+
+    .cm.typing-row {
+      align-self: flex-start;
+      max-height: 0;
+      overflow: hidden;
+    }
+    .typing {
+      display: flex;
+      gap: 5px;
+      padding: 10px 14px;
+      background: #f0f0f0;
+      border-radius: 16px;
+      width: fit-content;
+    }
+    .typing span {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: #999;
+      animation: typingBounce 1.2s infinite;
+    }
+    .typing span:nth-child(2) { animation-delay: .18s; }
+    .typing span:nth-child(3) { animation-delay: .36s; }
+    @keyframes typingBounce {
+      0%, 70%, 100% { opacity: .35; transform: translateY(0); }
+      35% { opacity: 1; transform: translateY(-4px); }
+    }
+
+    /* Ciclo 26s — flujo completo del bot
+       ts → user1 → bot1 cafeterías → user2 mimbrecin → bot2 menú →
+       user3 sandwich → bot3 anotado → user4 no eso es todo → bot4 resumen →
+       user5 ya listo? → bot5 ENTREGADO → fade */
+    .a0 { animation-name: chatA0; }
+    .a1 { animation-name: chatA1; }
+    .a2 { animation-name: chatType1; }
+    .a3 { animation-name: chatA3; }
+    .a4 { animation-name: chatA4; }
+    .a5 { animation-name: chatType2; }
+    .a6 { animation-name: chatA6; }
+    .a7 { animation-name: chatA7; }
+    .a8 { animation-name: chatType3; }
+    .a9 { animation-name: chatA9; }
+    .a10 { animation-name: chatA10; }
+    .a11 { animation-name: chatType4; }
+    .a12 { animation-name: chatA12; }
+    .a13 { animation-name: chatA13; }
+    .a14 { animation-name: chatA14; }
+    .a15 { animation-name: chatType5; }
+    .a16 { animation-name: chatA16; }
+
+    /* Cada elemento "permanece visible" desde su aparición hasta 94%
+       luego se desvanece y reinicia el bucle */
+    @keyframes chatA0  { 0%,1%{opacity:0;transform:translateY(6px)} 3%,94%{opacity:1;transform:translateY(0)} 97%,100%{opacity:0} }
+    @keyframes chatA1  { 0%,4%{opacity:0;transform:translateY(6px) scale(.95)} 6%,94%{opacity:1;transform:translateY(0) scale(1)} 97%,100%{opacity:0} }
+    @keyframes chatType1{0%,7%{max-height:0;opacity:0;margin:0} 9%,12%{max-height:44px;opacity:1;margin:4px 0} 14%,100%{max-height:0;opacity:0;margin:0} }
+    @keyframes chatA3  { 0%,12%{opacity:0;transform:translateY(6px);max-height:0} 14%,94%{opacity:1;transform:translateY(0);max-height:300px} 97%,100%{opacity:0} }
+    @keyframes chatA4  { 0%,21%{opacity:0;transform:translateY(6px) scale(.95)} 23%,94%{opacity:1;transform:translateY(0) scale(1)} 97%,100%{opacity:0} }
+    @keyframes chatType2{0%,24%{max-height:0;opacity:0;margin:0} 26%,29%{max-height:44px;opacity:1;margin:4px 0} 31%,100%{max-height:0;opacity:0;margin:0} }
+    @keyframes chatA6  { 0%,29%{opacity:0;transform:translateY(6px);max-height:0} 31%,94%{opacity:1;transform:translateY(0);max-height:260px} 97%,100%{opacity:0} }
+    @keyframes chatA7  { 0%,37%{opacity:0;transform:translateY(6px) scale(.95)} 40%,94%{opacity:1;transform:translateY(0) scale(1)} 97%,100%{opacity:0} }
+    @keyframes chatType3{0%,41%{max-height:0;opacity:0;margin:0} 43%,46%{max-height:44px;opacity:1;margin:4px 0} 48%,100%{max-height:0;opacity:0;margin:0} }
+    @keyframes chatA9  { 0%,46%{opacity:0;transform:translateY(6px);max-height:0} 48%,94%{opacity:1;transform:translateY(0);max-height:160px} 97%,100%{opacity:0} }
+    @keyframes chatA10 { 0%,54%{opacity:0;transform:translateY(6px) scale(.95)} 57%,94%{opacity:1;transform:translateY(0) scale(1)} 97%,100%{opacity:0} }
+    @keyframes chatType4{0%,58%{max-height:0;opacity:0;margin:0} 60%,63%{max-height:44px;opacity:1;margin:4px 0} 65%,100%{max-height:0;opacity:0;margin:0} }
+    @keyframes chatA12 { 0%,63%{opacity:0;transform:translateY(6px);max-height:0} 65%,94%{opacity:1;transform:translateY(0);max-height:240px} 97%,100%{opacity:0} }
+    @keyframes chatA13 { 0%,71%{opacity:0;transform:translateY(6px)} 73%,94%{opacity:1;transform:translateY(0)} 97%,100%{opacity:0} }
+    @keyframes chatA14 { 0%,73%{opacity:0;transform:translateY(6px) scale(.95)} 76%,94%{opacity:1;transform:translateY(0) scale(1)} 97%,100%{opacity:0} }
+    @keyframes chatType5{0%,77%{max-height:0;opacity:0;margin:0} 79%,82%{max-height:44px;opacity:1;margin:4px 0} 84%,100%{max-height:0;opacity:0;margin:0} }
+    @keyframes chatA16 { 0%,82%{opacity:0;transform:translateY(6px);max-height:0} 85%,94%{opacity:1;transform:translateY(0);max-height:200px} 97%,100%{opacity:0} }
+
+    /* =========================================================
+       SIMULACIÓN: Dashboard cafetero (recreado en HTML/CSS)
+       Ciclo: 12s, infinito
+       ========================================================= */
+    .dash-sim {
+      position: absolute;
+      inset: 0;
+      background: #FDF8EC;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      color: #4a2c2a;
+      display: flex;
+      flex-direction: column;
+      padding: 18px 24px 22px;
+      overflow: hidden;
+    }
+    .dash-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 14px;
+      border-bottom: 1px solid rgba(135,107,69,.18);
+      margin-bottom: 16px;
+    }
+    .dh-brand { display: flex; align-items: center; gap: 12px; }
+    .dh-logo {
+      width: 38px; height: 38px;
+      border-radius: 9px;
+      background: linear-gradient(135deg, #5a3825, #382016);
+      color: #fcf3e0;
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: -.02em;
+    }
+    .dh-name { font-weight: 700; font-size: 15px; color: #3a2018; }
+    .dh-sub {
+      font-size: 11px;
+      color: #876B45;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+    .dh-clock {
+      font-family: 'JetBrains Mono', Consolas, monospace;
+      font-weight: 700;
+      font-size: 22px;
+      color: #3a2018;
+    }
+
+    .dash-cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 14px;
+      flex: 1;
+      min-height: 0;
+    }
+    .dash-col {
+      background: #F6EDD9;
+      border-radius: 10px;
+      border-top: 4px solid;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 0;
+    }
+    .col-rec    { border-top-color: #DEB75D; }
+    .col-prep   { border-top-color: #876B45; }
+    .col-listo  { border-top-color: #4A7B5C; }
+
+    .col-head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 14px;
+    }
+    .col-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .dot-yellow { background: #DEB75D; box-shadow: 0 0 0 4px rgba(222,183,93,.15); }
+    .dot-brown  { background: #876B45; box-shadow: 0 0 0 4px rgba(135,107,69,.15); }
+    .dot-green  { background: #4A7B5C; box-shadow: 0 0 0 4px rgba(74,123,92,.15); }
+    .col-title { flex: 1; color: #3a2018; }
+    .col-count {
+      position: relative;
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.7);
+      color: #3a2018;
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      font-size: 13px;
+    }
+    .col-count .cn-1, .col-count .cn-0 {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      opacity: 0;
+      animation-duration: 12s;
+      animation-iteration-count: infinite;
+      animation-fill-mode: both;
+    }
+    .col-body { flex: 1; position: relative; }
+    .empty {
+      background: rgba(255,255,255,.55);
+      border: 1px dashed rgba(135,107,69,.35);
+      border-radius: 8px;
+      padding: 22px 12px;
+      text-align: center;
+      font-size: 12.5px;
+      color: #876B45;
+      animation-duration: 12s;
+      animation-iteration-count: infinite;
+      animation-fill-mode: both;
+    }
+
+    .ped-card {
+      background: #fdfaf2;
+      border: 1px solid rgba(135,107,69,.20);
+      border-radius: 9px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      box-shadow: 0 2px 6px rgba(80,50,20,.06);
+      opacity: 0;
+      transform: translateY(6px) scale(.96);
+      animation-duration: 12s;
+      animation-iteration-count: infinite;
+      animation-fill-mode: both;
+    }
+    .pc-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11.5px;
+      color: #876B45;
+      letter-spacing: .12em;
+    }
+    .pc-id { font-weight: 700; }
+    .pc-badge {
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 10.5px;
+      font-weight: 600;
+      letter-spacing: .04em;
+    }
+    .bg-yellow { background: #fbecc3; color: #8a5a18; }
+    .bg-brown  { background: #ddc8ab; color: #4a2c14; }
+    .bg-green  { background: #cfe8d6; color: #2c5b39; }
+    .pc-name {
+      font-weight: 700;
+      font-size: 13px;
+      color: #3a2018;
+      line-height: 1.25;
+    }
+    .pc-total { font-size: 13px; color: #5a3825; }
+    .pc-total b { color: #3a2018; }
+    .pc-actions { display: flex; gap: 10px; align-items: center; margin-top: 2px; }
+    .btn {
+      padding: 5px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #fff;
+      background: #5a3825;
+    }
+    .btn-listo { background: #876B45; }
+    .btn-entregar { background: #4A7B5C; }
+    .btn-link {
+      font-size: 12px;
+      color: #876B45;
+      cursor: pointer;
+    }
+
+    /* Toast final */
+    .dash-toast {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: #2c5b39;
+      color: white;
+      padding: 12px 26px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 600;
+      box-shadow: 0 12px 30px rgba(44,91,57,.4);
+      opacity: 0;
+      animation: toastFinal 12s infinite both;
+    }
+
+    /* Timeline 12s ciclo:
+       0-3s:    pedido en Recibidos (#15 visible, count rec=1)
+       3-5s:    transición → Preparación
+       5-7s:    pedido en Preparación (count prep=1)
+       7-8.5s:  transición → Listos
+       8.5-10s: pedido en Listos (count listo=1)
+       10-11.5s: pedido se desvanece, toast "Entregado"
+       11.5-12s: reset
+    */
+    .pc-rec    { animation-name: pcRec; }
+    .pc-prep   { animation-name: pcPrep; }
+    .pc-listo  { animation-name: pcListo; }
+
+    @keyframes pcRec {
+      0%, 2% { opacity: 0; transform: translateY(6px) scale(.96); }
+      6%, 22% { opacity: 1; transform: translateY(0) scale(1); }
+      26%, 100% { opacity: 0; transform: translateY(-8px) scale(.94); }
+    }
+    @keyframes pcPrep {
+      0%, 24% { opacity: 0; transform: translateX(-14px) scale(.96); }
+      30%, 53% { opacity: 1; transform: translateX(0) scale(1); }
+      58%, 100% { opacity: 0; transform: translateX(14px) scale(.94); }
+    }
+    @keyframes pcListo {
+      0%, 56% { opacity: 0; transform: translateX(-14px) scale(.96); }
+      62%, 78% { opacity: 1; transform: translateX(0) scale(1); }
+      82%, 100% { opacity: 0; transform: translateY(-10px) scale(.92); }
+    }
+
+    /* Empty placeholders inverso */
+    .empty-rec    { animation-name: emptyRec; }
+    .empty-prep   { animation-name: emptyPrep; }
+    .empty-listo  { animation-name: emptyListo; }
+
+    @keyframes emptyRec {
+      0%, 4% { opacity: 1; }
+      6%, 22% { opacity: 0; visibility: hidden; }
+      26%, 100% { opacity: 1; visibility: visible; }
+    }
+    @keyframes emptyPrep {
+      0%, 28% { opacity: 1; }
+      30%, 53% { opacity: 0; visibility: hidden; }
+      58%, 100% { opacity: 1; visibility: visible; }
+    }
+    @keyframes emptyListo {
+      0%, 60% { opacity: 1; }
+      62%, 78% { opacity: 0; visibility: hidden; }
+      82%, 100% { opacity: 1; visibility: visible; }
+    }
+
+    /* Posicionar ped-card y empty en el mismo lugar (apilados) */
+    .ped-card { position: absolute; top: 0; left: 0; right: 0; }
+    .empty { position: absolute; top: 0; left: 0; right: 0; }
+
+    /* Contadores: cn-1 visible cuando hay card, cn-0 cuando no */
+    .count-rec .cn-1   { animation-name: cntRec1; }
+    .count-rec .cn-0   { animation-name: cntRec0; }
+    .count-prep .cn-1  { animation-name: cntPrep1; }
+    .count-prep .cn-0  { animation-name: cntPrep0; }
+    .count-listo .cn-1 { animation-name: cntListo1; }
+    .count-listo .cn-0 { animation-name: cntListo0; }
+
+    @keyframes cntRec1   { 0%,4%{opacity:0} 6%,22%{opacity:1} 26%,100%{opacity:0} }
+    @keyframes cntRec0   { 0%,4%{opacity:1} 6%,22%{opacity:0} 26%,100%{opacity:1} }
+    @keyframes cntPrep1  { 0%,28%{opacity:0} 30%,53%{opacity:1} 58%,100%{opacity:0} }
+    @keyframes cntPrep0  { 0%,28%{opacity:1} 30%,53%{opacity:0} 58%,100%{opacity:1} }
+    @keyframes cntListo1 { 0%,60%{opacity:0} 62%,78%{opacity:1} 82%,100%{opacity:0} }
+    @keyframes cntListo0 { 0%,60%{opacity:1} 62%,78%{opacity:0} 82%,100%{opacity:1} }
+
+    @keyframes toastFinal {
+      0%, 82% { opacity: 0; transform: translateX(-50%) translateY(20px); }
+      86%, 94% { opacity: 1; transform: translateX(-50%) translateY(0); }
+      97%, 100% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+    }
+
+    /* =========================================================
+       Pantalla PÚBLICA (display que ve el cliente)
+       Sincronizada al ciclo 12s del kanban
+       ========================================================= */
+    .public-display {
+      margin-top: 14px;
+      padding: 14px 16px 16px;
+      background: linear-gradient(180deg, #2e1e15 0%, #1f1610 100%);
+      border-radius: 12px;
+      color: #f5ecd3;
+      position: relative;
+      box-shadow: 0 8px 24px rgba(0,0,0,.18) inset;
+    }
+    .pd-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 10px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid rgba(245,236,211,.1);
+    }
+    .pd-brand { display: flex; align-items: center; gap: 10px; }
+    .pd-logo {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: linear-gradient(135deg, #DEB75D, #b58e3e);
+      color: #2c1d14;
+      display: grid; place-items: center;
+      font-weight: 700; font-size: 12px;
+    }
+    .pd-eyebrow {
+      font-size: 9px; letter-spacing: .22em;
+      color: #DEB75D; text-transform: uppercase;
+      font-weight: 600;
+    }
+    .pd-name { font-size: 14px; font-weight: 700; color: #f5ecd3; }
+    .pd-clock {
+      font-family: 'JetBrains Mono', Consolas, monospace;
+      font-size: 22px; font-weight: 700;
+      color: #f5ecd3;
+      letter-spacing: -.02em;
+    }
+    .pd-cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .pd-col {
+      background: rgba(0,0,0,.35);
+      border-top: 3px solid;
+      border-radius: 8px;
+      padding: 12px;
+      min-height: 96px;
+    }
+    .pd-col.pd-prep      { border-top-color: #DEB75D; }
+    .pd-col.pd-listo-col { border-top-color: #4A7B5C; }
+    .pd-col-head {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 13px; font-weight: 700;
+      margin-bottom: 8px;
+      color: #f5ecd3;
+    }
+    .pd-title { flex: 1; }
+    .pd-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .pd-count {
+      position: relative; width: 24px; height: 24px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.08);
+      display: grid; place-items: center;
+      font-size: 11px; color: #f5ecd3;
+    }
+    .pd-count .cn-1, .pd-count .cn-0 {
+      position: absolute; inset: 0;
+      display: grid; place-items: center;
+      opacity: 0;
+      animation-duration: 12s;
+      animation-iteration-count: infinite;
+      animation-fill-mode: both;
+    }
+    .pd-body { position: relative; min-height: 60px; }
+    .pd-ped {
+      position: absolute; inset: 0;
+      background: rgba(222,183,93,.18);
+      border-radius: 8px;
+      padding: 10px 12px;
+      opacity: 0;
+      animation-duration: 12s;
+      animation-iteration-count: infinite;
+      animation-fill-mode: both;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .pd-ped-listo {
+      background: rgba(74,123,92,.22);
+    }
+    .pd-id { font-size: 19px; font-weight: 700; color: #f5ecd3; line-height: 1; }
+    .pd-cliente {
+      font-size: 10.5px;
+      line-height: 1.25;
+      margin-top: 4px;
+      letter-spacing: .04em;
+      color: rgba(245,236,211,.85);
+    }
+    .pd-empty {
+      position: absolute; inset: 0;
+      display: grid; place-items: center;
+      font-size: 11px;
+      color: rgba(245,236,211,.4);
+      animation-duration: 12s;
+      animation-iteration-count: infinite;
+      animation-fill-mode: both;
+    }
+    .pd-tag {
+      position: absolute;
+      top: -10px; right: 16px;
+      background: #DEB75D;
+      color: #2c1d14;
+      padding: 3px 12px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    /* Mapeo a animations — sincronizado al cycle 12s del kanban del cafetero:
+       - pcPrep visible 24-58%  → display "En preparación" 28-58%
+       - pcListo visible 56-82% → display "Listos para recoger" 60-82% */
+    .pd-ped-prep    { animation-name: pdPrep; }
+    .pd-ped-listo   { animation-name: pdListo; }
+    .pd-empty-prep  { animation-name: pdEmptyPrep; }
+    .pd-empty-listo { animation-name: pdEmptyListo; }
+    .pd-prep .pd-count .cn-1      { animation-name: pdCntPrep1; }
+    .pd-prep .pd-count .cn-0      { animation-name: pdCntPrep0; }
+    .pd-listo-col .pd-count .cn-1 { animation-name: pdCntListo1; }
+    .pd-listo-col .pd-count .cn-0 { animation-name: pdCntListo0; }
+
+    @keyframes pdPrep {
+      0%, 26% { opacity: 0; transform: scale(.94); }
+      30%, 55% { opacity: 1; transform: scale(1); }
+      59%, 100% { opacity: 0; transform: scale(.94); }
+    }
+    @keyframes pdListo {
+      0%, 58% { opacity: 0; transform: scale(.94); }
+      62%, 80% { opacity: 1; transform: scale(1); }
+      84%, 100% { opacity: 0; transform: scale(.94); }
+    }
+    @keyframes pdEmptyPrep {
+      0%, 28% { opacity: 1; }
+      30%, 55% { opacity: 0; visibility: hidden; }
+      59%, 100% { opacity: 1; visibility: visible; }
+    }
+    @keyframes pdEmptyListo {
+      0%, 60% { opacity: 1; }
+      62%, 80% { opacity: 0; visibility: hidden; }
+      84%, 100% { opacity: 1; visibility: visible; }
+    }
+    @keyframes pdCntPrep1   { 0%,28%{opacity:0} 30%,55%{opacity:1} 59%,100%{opacity:0} }
+    @keyframes pdCntPrep0   { 0%,28%{opacity:1} 30%,55%{opacity:0} 59%,100%{opacity:1} }
+    @keyframes pdCntListo1  { 0%,60%{opacity:0} 62%,80%{opacity:1} 84%,100%{opacity:0} }
+    @keyframes pdCntListo0  { 0%,60%{opacity:1} 62%,80%{opacity:0} 84%,100%{opacity:1} }
+  </style>
+</head>
+<body>
+
+  <div class="deck">
+
+    <!-- SLIDE 1 — Portada -->
+    <section class="slide cover active" data-slide="1">
+      <img class="citis-tr" src="https://413xkur4y4m1.github.io/BimestManager/image2.png" alt="">
+      <img class="recodast" src="https://413xkur4y4m1.github.io/BimestManager/image1.png" alt="">
+      <img class="uaem-br" src="https://413xkur4y4m1.github.io/BimestManager/image3.png" alt="">
+      <img class="salle-cover" src="https://413xkur4y4m1.github.io/BimestManager/salle.jpg" alt="La Salle Nezahualcóyotl">
+      <div class="vii">VII</div>
+      <div class="colo">
+        <div>Coloquio Internacional</div>
+        <div>Transdisciplinario de Ingeniería y Sistemas Inteligentes</div>
+      </div>
+      <div class="fecha"><b>27</b> de Mayo 2026</div>
+      <div class="yellow">
+        Coffee Nezzi
+        <div class="sub">Agente especializado en pre-pedidos para cafetería universitaria con Microsoft Copilot Studio y backend REST</div>
+      </div>
+    </section>
+
+    <!-- SLIDE 2 — Datos -->
+    <section class="slide datos" data-slide="2">
+      <img class="citis-tl" src="https://413xkur4y4m1.github.io/BimestManager/image2.png" alt="" style="left:9.24%; top:11.69%; width:15.06%; height:13.89%;">
+      <img class="uaem-bl" src="https://413xkur4y4m1.github.io/BimestManager/image3.png" alt="">
+      <img class="salle-tr" src="https://413xkur4y4m1.github.io/BimestManager/salle.jpg" alt="La Salle">
+      <div class="titulo">Coffee Nezzi: agente especializado en pre-pedidos para cafetería universitaria con Microsoft Copilot Studio y backend REST</div>
+      <div class="ponente">
+        <span class="lbl">Ponentes</span>
+        Daniel Mea Sánchez · Juan Pablo Flores Varela<br>
+        Daniel Alejandro Pérez Esquivel
+      </div>
+      <div class="inst">UNIVERSIDAD LA SALLE NEZAHUALCÓYOTL</div>
+      <div class="fac">Ingeniería en Sistemas Computacionales y de Software</div>
+    </section>
+
+    <!-- SLIDE 3 — Contexto del problema -->
+    <section class="slide" data-slide="3">
+      <img class="citis-tl" src="https://413xkur4y4m1.github.io/BimestManager/image2.png" alt="">
+      <img class="uaem-bl" src="https://413xkur4y4m1.github.io/BimestManager/image3.png" alt="">
+      <img class="salle-tr" src="https://413xkur4y4m1.github.io/BimestManager/salle.jpg" alt="La Salle">
+      <div class="body-block" style="left:20.07%; top:22.00%; width:55.00%; font-size:1.6em;">
+        <p class="t-title">Contexto del problema</p>
+        <p>Las cafeterías universitarias concentran picos de demanda en ventanas muy cortas (entrada, recesos, salida), lo que genera filas, esperas de <b>8 a 15 minutos</b> en hora pico y errores de comunicación — sobre todo cuando el cliente tiene <span class="red">alergias o restricciones alimentarias</span>.</p>
+        <p>En paralelo, los modelos de lenguaje (LLM) y las plataformas low-code de agentes permiten construir interfaces conversacionales que reemplazan formularios y apps móviles dedicadas.</p>
+        <p>Área: <b>IA conversacional · Sistemas inteligentes · Hospitalidad universitaria · Low-code</b>.</p>
+        <div class="empty"></div>
+        <p>Aquí conviene responder: <b>¿Qué problema existe en la realidad?</b> Filas largas, alergias mal comunicadas y cero canales digitales de pre-pedido en la cafetería del campus.</p>
+      </div>
+    </section>
+
+    <!-- SLIDE 4 — Planteamiento del problema -->
+    <section class="slide" data-slide="4">
+      <img class="citis-tl" src="https://413xkur4y4m1.github.io/BimestManager/image2.png" alt="">
+      <img class="uaem-bl" src="https://413xkur4y4m1.github.io/BimestManager/image3.png" alt="">
+      <img class="salle-tr" src="https://413xkur4y4m1.github.io/BimestManager/salle.jpg" alt="La Salle">
+      <div class="body-block" style="left:22.00%; top:22.00%; width:55.00%; font-size:1.6em;">
+        <p class="t-title">Planteamiento del problema</p>
+        <p>¿Cómo ofrecer un canal de pre-pedido conversacional a la comunidad universitaria, integrado a un backend transaccional y desplegable <span class="red">sin licencias Power Platform premium</span>?</p>
+        <p><b>Problema específico:</b> ausencia de un canal digital que permita ordenar antes de llegar a la barra y registrar alergias de manera estructurada.</p>
+        <p><b>A quién afecta:</b> estudiantes y personal de La Salle Nezahualcóyotl, en especial personas con restricciones alimentarias.</p>
+        <p><b>Limitaciones actuales:</b> apps nativas (Starbucks, Tim Hortons) requieren equipo iOS/Android y presupuesto sostenido — inviables a escala universitaria. Custom Connectors de Power Platform no están habilitados en el tenant educativo.</p>
+        <p><b>Justificación:</b> se requiere una arquitectura reproducible basada en OpenAPI estándar y un agente generativo que corra sobre el tenant existente.</p>
+      </div>
+    </section>
+
+    <!-- SLIDE 5 — Objetivos -->
+    <section class="slide" data-slide="5">
+      <img class="citis-tl" src="https://413xkur4y4m1.github.io/BimestManager/image2.png" alt="">
+      <img class="uaem-bl" src="https://413xkur4y4m1.github.io/BimestManager/image3.png" alt="">
+      <img class="salle-tr" src="https://413xkur4y4m1.github.io/BimestManager/salle.jpg" alt="La Salle">
+      <div class="body-block" style="left:22.00%; top:22.00%; width:55.00%; font-size:1.55em;">
+        <p class="t-title">Objetivo general y objetivos específicos</p>
+        <p><b>Objetivo general:</b> diseñar e implementar un agente especializado en pedidos de cafetería universitaria, integrado a un backend Node.js/Express/MySQL mediante OpenAPI directo en Microsoft Copilot Studio, que gestione el ciclo completo del pedido sin requerir licencias premium.</p>
+        <p><b>Objetivos específicos:</b></p>
+        <p><b>OE 01 · Diseñar</b> el esquema relacional y los 6 endpoints REST (cafeterías, menús, creación, edición, consulta y cancelación de pedidos).<br>
+           <b>OE 02 · Modelar</b> el contrato OpenAPI 2.0 con descripciones semánticas para que el LLM decida cuándo invocar cada herramienta.<br>
+           <b>OE 03 · Configurar</b> el agente en Copilot Studio en modo generativo con prompt de sistema y herramientas API REST publicadas vía OpenAPI.<br>
+           <b>OE 04 · Evaluar</b> el flujo end-to-end: listar → ordenar → agregar varios → consultar → cancelar, registrando alergias en notas.</p>
+      </div>
+    </section>
+
+    <!-- SLIDE 6 — Marco teórico -->
+    <section class="slide" data-slide="6">
+      <img class="citis-tl" src="https://413xkur4y4m1.github.io/BimestManager/image2.png" alt="">
+      <img class="uaem-bl" src="https://413xkur4y4m1.github.io/BimestManager/image3.png" alt="">
+      <img class="salle-tr" src="https://413xkur4y4m1.github.io/BimestManager/salle.jpg" alt="La Salle">
+      <div class="body-block" style="left:22.00%; top:22.00%; width:56.00%; font-size:1.4em;">
+        <p class="t-title">Marco teórico o fundamentos</p>
+        <p>Conceptos necesarios para entender el trabajo:</p>
+        <p><b>LLM + tool calling:</b> modelos de lenguaje a gran escala que invocan funciones externas mediante descripciones en lenguaje natural. Base de los agentes modernos (Copilot Studio, ChatGPT Actions, Claude tools).<br>
+           <b>OpenAPI 2.0 / Swagger:</b> especificación neutral que describe rutas, parámetros y respuestas — permite que un agente generativo descubra las capacidades del backend sin acoplamiento manual.<br>
+           <b>REST · Node/Express · MySQL:</b> patrón cliente-servidor con recursos uniformes, arquitectura MVC y persistencia relacional. Estándar de facto en backends transaccionales.<br>
+           <b>Microsoft Copilot Studio:</b> plataforma SaaS para agentes generativos con tópicos, herramientas REST y canales (Teams, web).<br>
+           <b>Tunneling HTTPS · ngrok:</b> dominio reservado <span style="font-family:Consolas,monospace;color:#C5172E;font-size:.85em">desecrate-untwist-smoky.ngrok-free.dev</span> que expone el backend local con TLS sin abrir puertos.<br>
+           <b>Hospitalidad inteligente:</b> aplicación de sistemas inteligentes al consumo cotidiano — gestión de filas, personalización y accesibilidad alimentaria.</p>
+        <p>Metodología base: <b>CRISP-DM</b> adaptada al desarrollo de agentes conversacionales.</p>
+      </div>
+    </section>
+
+    <!-- SLIDE 7 — Trabajos relacionados -->
+    <section class="slide" data-slide="7">
+      <img class="citis-tl" src="https://413xkur4y4m1.github.io/BimestManager/image2.png" alt="">
+      <img class="uaem-bl" src="https://413xkur4y4m1.github.io/BimestManager/image3.png" alt="">
+      <img class="salle-tr" src="https://413xkur4y4m1.github.io/BimestManager/salle.jpg" alt="La Salle">
+      <div class="body-block" style="left:22.00%; top:22.00%; width:55.00%; font-size:1.55em;">
+        <p class="t-title">Trabajos relacionados o antecedentes</p>
+        <p><b>Starbucks "My Starbucks Barista" (2017):</b> asistente conversacional dentro de la app nativa. Requiere SDK propietario y equipo iOS/Android. Validó el patrón conversacional para pedidos.</p>
+        <p><b>Domino's "Dom":</b> chatbot multicanal (Facebook, Alexa, web) sobre pizza tracker. Demostró que la conversación puede sustituir la UI tradicional en pedidos repetitivos.</p>
+        <p><b>Chatbots educativos UNAM/IPN:</b> bots informativos sobre Dialogflow y Rasa para admisiones y horarios. Centrados en consultas, no en operaciones transaccionales.</p>
+        <div class="empty"></div>
+        <p>La idea es justificar que nuestro trabajo <b>aporta algo diferente o necesario</b>: sin app nativa (conversación en Teams), sin licencia premium (OpenAPI directo) y transaccional, no informativo (CRUD completo contra MySQL).</p>
+      </div>
+    </section>
+
+    <!-- SLIDE 8 — Metodología -->
+    <section class="slide" data-slide="8">
+      <img class="citis-tl" src="https://413xkur4y4m1.github.io/BimestManager/image2.png" alt="">
+      <img class="uaem-bl" src="https://413xkur4y4m1.github.io/BimestManager/image3.png" alt="">
+      <img class="salle-tr" src="https://413xkur4y4m1.github.io/BimestManager/salle.jpg" alt="La Salle">
+      <div class="body-block" style="left:22.00%; top:22.00%; width:55.00%; font-size:1.55em;">
+        <p class="t-title">Metodología</p>
+        <p>Enfoque iterativo en seis fases — adaptación de CRISP-DM al desarrollo de agentes conversacionales:</p>
+        <p><b>Fase 01 · Modelado de dominio:</b> entidades cafetería, menú, producto y pedido. Esquema MySQL y relaciones.<br>
+           <b>Fase 02 · API REST:</b> implementación MVC en Express (rutas, controladores, modelos) con <span style="font-family:Consolas,monospace;color:#C5172E;font-size:.85em">mysql2</span> pool.<br>
+           <b>Fase 03 · Contrato OpenAPI:</b> YAML con 6 operaciones y descripciones orientadas al LLM (cuándo llamar cada una).<br>
+           <b>Fase 04 · Exposición segura:</b> túnel ngrok con dominio reservado HTTPS, sin abrir puertos institucionales.<br>
+           <b>Fase 05 · Agente Copilot Studio:</b> modo generativo, 6 herramientas API REST, prompt de sistema con reglas de negocio.<br>
+           <b>Fase 06 · Pruebas E2E:</b> descubrir → pedir → agregar → consultar → cancelar.</p>
+        <p>Herramientas: <b>Node.js 18+ · Express 5 · MySQL 8 · mysql2 · OpenAPI 2.0 · Copilot Studio · ngrok · Microsoft Teams</b>.</p>
+      </div>
+    </section>
+
+    <!-- SLIDE 9 — Desarrollo de la propuesta -->
+    <section class="slide" data-slide="9">
+      <img class="citis-tl" src="https://413xkur4y4m1.github.io/BimestManager/image2.png" alt="">
+      <img class="uaem-bl" src="https://413xkur4y4m1.github.io/BimestManager/image3.png" alt="">
+      <img class="salle-tr" src="https://413xkur4y4m1.github.io/BimestManager/salle.jpg" alt="La Salle">
+      <div class="body-block" style="left:21.00%; top:17.00%; width:60.00%; font-size:1.28em; line-height:1.28;">
+        <p class="t-title">Desarrollo de la propuesta o modelo</p>
+        <p><b>Arquitectura:</b> Usuario (Teams) → Copilot Studio (LLM generativo) → ngrok HTTPS → Express API (Node.js · MVC) → MySQL. El contrato OpenAPI es compartido entre el agente y el backend.</p>
+        <p><b>Entradas:</b> mensajes en lenguaje natural; el LLM extrae intención y entidades (cafetería, productos, cantidades, alergias).</p>
+        <p><b>Procesamiento:</b> tool calling generativo — el agente decide cuándo invocar cada endpoint según el contexto; el prompt de sistema codifica reglas (un pedido a la vez, notas obligatorias si hay alergia).</p>
+        <p><b>Salidas:</b> confirmaciones en lenguaje natural + persistencia en MySQL (pedido creado, productos agregados, estado consultado, cancelado).</p>
+        <p><b>Algoritmos aplicados:</b> tool calling sobre LLM generativo · pool mysql2 con TLS local · validación JSON Schema desde OpenAPI.</p>
+        <p><b>¿Qué hicimos?</b> Diseñamos el esquema, codificamos la API en Express, escribimos el OpenAPI con descripciones que el LLM entiende, configuramos el agente y validamos el flujo completo.</p>
+      </div>
+    </section>
+
+    <!-- SLIDE 10 — Resultados -->
+    <section class="slide" data-slide="10">
+      <img class="citis-tl" src="https://413xkur4y4m1.github.io/BimestManager/image2.png" alt="">
+      <img class="uaem-bl" src="https://413xkur4y4m1.github.io/BimestManager/image3.png" alt="">
+      <img class="salle-tr" src="https://413xkur4y4m1.github.io/BimestManager/salle.jpg" alt="La Salle">
+
+      <div class="body-block" style="left:22.00%; top:18.50%; width:55.00%; font-size:1.45em;">
+        <p class="t-title">Resultados principales</p>
+        <p><b>6 / 6</b> endpoints REST · <b>100 %</b> flujo E2E · <b>0 USD</b> licencias · <b>&lt; 2 s</b> latencia. Tiempo de pedido conversacional ≈ <b>15 s</b> frente a <b>8-15 min</b> en fila.</p>
+        <p style="margin-top:.4em; font-size:.85em; color:#475569;">Da click en una tarjeta para ver la animación en vivo del sistema.</p>
+      </div>
+
+      <!-- Tarjetas interactivas -->
+      <div class="result-cards">
+        <button class="result-card" data-modal="chat-modal">
+          <div class="rc-icon">💬</div>
+          <div class="rc-text">
+            <div class="rc-title">Chat conversacional</div>
+            <div class="rc-sub">Bot en Microsoft Teams</div>
+          </div>
+          <div class="rc-play">▶</div>
+        </button>
+        <button class="result-card" data-modal="dash-modal">
+          <div class="rc-icon">☕</div>
+          <div class="rc-text">
+            <div class="rc-title">Dashboard cafetero</div>
+            <div class="rc-sub">Ciclo del pedido en vivo</div>
+          </div>
+          <div class="rc-play">▶</div>
+        </button>
+      </div>
+    </section>
+
+    <!-- SLIDE 11 — Análisis e interpretación -->
+    <section class="slide" data-slide="11">
+      <img class="citis-tl" src="https://413xkur4y4m1.github.io/BimestManager/image2.png" alt="">
+      <img class="uaem-bl" src="https://413xkur4y4m1.github.io/BimestManager/image3.png" alt="">
+      <img class="salle-tr" src="https://413xkur4y4m1.github.io/BimestManager/salle.jpg" alt="La Salle">
+      <div class="body-block" style="left:22.00%; top:30.00%; width:55.00%; font-size:1.7em;">
+        <p class="t-title">Análisis e interpretación</p>
+        <p>El bot <b>responde correctamente</b> a las consultas del usuario y los resultados <b>concuerdan con los hallazgos esperados</b>: lista cafeterías, muestra el menú, crea el pedido con sus notas/alergias y refleja en tiempo real cada cambio de estado en el dashboard del cafetero.</p>
+        <div style="margin-top:1.2em; padding:.9em 1.1em; background:#ecfdf5; border-left:4px solid #10b981; border-radius:8px;">
+          <p style="margin:0; font-size:.85em; color:#065f46;"><b>✓</b> Comportamiento conforme a lo planeado en cada fase del flujo end-to-end.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 12 — Conclusiones -->
+    <section class="slide" data-slide="12">
+      <img class="citis-tl" src="https://413xkur4y4m1.github.io/BimestManager/image2.png" alt="">
+      <img class="uaem-bl" src="https://413xkur4y4m1.github.io/BimestManager/image3.png" alt="">
+      <img class="salle-tr" src="https://413xkur4y4m1.github.io/BimestManager/salle.jpg" alt="La Salle">
+      <div class="body-block" style="left:22.00%; top:22.00%; width:55.00%; font-size:1.55em;">
+        <p class="t-title">Conclusiones</p>
+        <p><b>01.</b> Se cumplió el objetivo general: el agente Coffee Nezzi gestiona el ciclo completo de pedido en cafetería universitaria mediante conversación natural.</p>
+        <p><b>02.</b> La integración OpenAPI → Copilot Studio es una ruta viable para tenants educativos sin licencias premium, eliminando la dependencia de Custom Connectors.</p>
+        <p><b>03.</b> El <i>tool calling</i> generativo permitió eliminar tópicos rígidos: las descripciones semánticas del contrato bastaron para que el LLM orquestara las llamadas.</p>
+        <p><b>04.</b> El patrón es <span class="red">escalable y reproducible</span>: aplica a bibliotecas, laboratorios químicos, agenda de citas y cualquier backend REST documentado.</p>
+        <p><b>05.</b> La conversación reduce la fricción para capturar información sensible (alergias) que un formulario tradicional rara vez registra.</p>
+      </div>
+    </section>
+
+    <!-- SLIDE 13 — Aportaciones, limitaciones y trabajo futuro -->
+    <section class="slide" data-slide="13">
+      <img class="citis-tl" src="https://413xkur4y4m1.github.io/BimestManager/image2.png" alt="">
+      <img class="uaem-bl" src="https://413xkur4y4m1.github.io/BimestManager/image3.png" alt="">
+      <img class="salle-tr" src="https://413xkur4y4m1.github.io/BimestManager/salle.jpg" alt="La Salle">
+      <div class="body-block" style="left:22.00%; top:22.00%; width:55.00%; font-size:1.5em;">
+        <p class="t-title">Aportaciones, limitaciones y trabajo futuro</p>
+        <p><b style="color:#2f8a78">Aportaciones:</b> patrón reproducible OpenAPI → Copilot Studio sin premium · manejo estructurado de alergias por conversación · documentación operativa replicable a otras facultades.</p>
+        <p><b style="color:#C5172E">Limitaciones:</b> dependencia de <b>ngrok-free</b> — un único túnel HTTPS reservado expone el backend local; sin alta disponibilidad ni dominio institucional propio.</p>
+        <p><b>Trabajo futuro:</b> que el <b>chatbot envíe una notificación al usuario en cuanto su pedido cambie a estado "listo"</b>, cerrando el ciclo conversacional sin que el usuario tenga que volver a preguntar.</p>
+      </div>
+    </section>
+
+    <!-- SLIDE 14 — Referencias -->
+    <section class="slide" data-slide="14">
+      <img class="citis-tl" src="https://413xkur4y4m1.github.io/BimestManager/image2.png" alt="">
+      <img class="uaem-bl" src="https://413xkur4y4m1.github.io/BimestManager/image3.png" alt="">
+      <img class="salle-tr" src="https://413xkur4y4m1.github.io/BimestManager/salle.jpg" alt="La Salle">
+      <div class="body-block" style="left:22.00%; top:18.00%; width:56.00%; font-size:1.3em;">
+        <p class="t-title">Referencias</p>
+        <p>[01] Microsoft. <i>Microsoft Copilot Studio documentation — Generative agents and REST API tools.</i> learn.microsoft.com, 2025.</p>
+        <p>[02] OpenAPI Initiative. <i>OpenAPI Specification v2.0 (Swagger).</i> spec.openapis.org, 2014.</p>
+        <p>[03] Brown, T. et al. <i>Language Models are Few-Shot Learners.</i> NeurIPS, 2020.</p>
+        <p>[04] Schick, T. et al. <i>Toolformer: Language Models Can Teach Themselves to Use Tools.</i> arXiv:2302.04761, 2023.</p>
+        <p>[05] Fielding, R. <i>Architectural Styles and the Design of Network-based Software Architectures.</i> PhD Dissertation, UC Irvine, 2000.</p>
+        <p>[06] Node.js Foundation. <i>Express.js Reference Guide.</i> expressjs.com, 2025.</p>
+        <p>[07] Oracle. <i>MySQL 8.0 Reference Manual — Connector/Node.js (mysql2).</i> dev.mysql.com, 2025.</p>
+        <p>[08] ngrok Inc. <i>Secure tunnels to localhost — Reserved Domains.</i> ngrok.com/docs, 2025.</p>
+        <p>[09] Adamopoulou, E. &amp; Moussiades, L. <i>An Overview of Chatbot Technology.</i> IFIP AICT, vol. 584, 2020.</p>
+        <p>[10] Chapman, P. et al. <i>CRISP-DM 1.0 Step-by-step Data Mining Guide.</i> SPSS Inc., 2000.</p>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Modal: Chat conversacional (animación HTML/CSS) -->
+  <div class="modal-overlay" id="chat-modal">
+    <div class="modal-box">
+      <div class="modal-head">
+        <div>
+          <h3>Chat conversacional · Microsoft Teams</h3>
+          <div class="sub">Animación en vivo · loop infinito</div>
+        </div>
+        <button class="modal-close" data-close>✕</button>
+      </div>
+      <div class="sim-stage">
+        <div class="chat-sim">
+          <div class="chat-feed">
+            <div class="cm ts a0">Ahora mismo</div>
+            <div class="cm user a1">hola quiero pedir comida</div>
+            <div class="cm typing-row a2"><div class="typing"><span></span><span></span><span></span></div></div>
+            <div class="cm bot a3">
+              <p>¡Hola Daniel! Genial, vamos a preparar tu pedido. Antes que nada, ¿tienes alguna alergia o restricción alimentaria (lactosa, gluten, maní, mariscos, etc.)?</p>
+              <p>Estas son las cafeterías disponibles:</p>
+              <ul>
+                <li><b>9</b>: DonjpCafeteria</li>
+                <li><b>8</b>: mimbre2</li>
+                <li><b>10</b>: mimbrecin</li>
+              </ul>
+              <p>Dime cuál eliges para mostrarte el menú.</p>
+            </div>
+            <div class="cm user a4">mimbrecin</div>
+            <div class="cm typing-row a5"><div class="typing"><span></span><span></span><span></span></div></div>
+            <div class="cm bot a6">
+              <p>Perfecto, Daniel. Tu pedido está listo para recibir productos. Aquí está el menú de <b>mimbrecin</b>:</p>
+              <ul>
+                <li><b>Sandwich</b> – $30 (ID: 8)</li>
+                <li><b>Café Express</b> – $25 (ID: 9)</li>
+                <li><b>Flan</b> – $50 (ID: 10)</li>
+              </ul>
+              <p>Dime qué te gustaría y en qué cantidad.</p>
+            </div>
+
+            <div class="cm user a7">quiero un sandwich</div>
+            <div class="cm typing-row a8"><div class="typing"><span></span><span></span><span></span></div></div>
+            <div class="cm bot a9">
+              <p>¡Anotado! Agregué <b>1 Sandwich</b> a tu pedido. ¿Quieres algo más o ya terminamos?</p>
+            </div>
+
+            <div class="cm user a10">no, eso es todo</div>
+            <div class="cm typing-row a11"><div class="typing"><span></span><span></span><span></span></div></div>
+            <div class="cm bot a12">
+              <p>¡Genial! Aquí está el resumen de tu pedido:</p>
+              <ul>
+                <li>🥪 <b>1 Sandwich</b> – $30</li>
+              </ul>
+              <p><b>Total estimado:</b> $30</p>
+              <p>¡Gracias por tu compra, Daniel! Que disfrutes tu comida. 😊</p>
+            </div>
+
+            <div class="cm ts a13">Hace un momento</div>
+            <div class="cm user a14">ya esta listo mi pedido?</div>
+            <div class="cm typing-row a15"><div class="typing"><span></span><span></span><span></span></div></div>
+            <div class="cm bot a16">
+              <p>Tu pedido (ID: <b>15</b>) ya está <b style="color:#2c5b39">ENTREGADO</b> ✅</p>
+              <p>Total: <b>$30</b></p>
+              <p>¡Listo para disfrutar, Daniel! 🤩</p>
+            </div>
+          </div>
+          <div class="chat-input">
+            <span class="chat-input-ph">Formular una pregunta o describir lo que necesita</span>
+            <span class="chat-input-ico">➤</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <div class="pace">▶ Loop infinito · ESC para cerrar</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Dashboard cafetero (animación HTML/CSS) -->
+  <div class="modal-overlay" id="dash-modal">
+    <div class="modal-box wide">
+      <div class="modal-head">
+        <div>
+          <h3>Dashboard del cafetero · Ciclo de un pedido</h3>
+          <div class="sub">Recibido → Preparación → Listo → Entregado</div>
+        </div>
+        <button class="modal-close" data-close>✕</button>
+      </div>
+      <div class="sim-stage">
+        <div class="dash-sim">
+          <div class="dash-header">
+            <div class="dh-brand">
+              <span class="dh-logo">CN</span>
+              <div>
+                <div class="dh-name">Coffee Nezzi · Dashboard</div>
+                <div class="dh-sub">mimbrecin</div>
+              </div>
+            </div>
+            <div class="dh-clock">20:24</div>
+          </div>
+
+          <div class="dash-cols">
+            <!-- Recibidos -->
+            <div class="dash-col col-rec">
+              <div class="col-head">
+                <span class="col-dot dot-yellow"></span>
+                <span class="col-title">Recibidos</span>
+                <span class="col-count count-rec">
+                  <span class="cn-1">1</span><span class="cn-0">0</span>
+                </span>
+              </div>
+              <div class="col-body">
+                <div class="ped-card pc-rec">
+                  <div class="pc-head">
+                    <span class="pc-id">PEDIDO #15</span>
+                    <span class="pc-badge bg-yellow">Recibido</span>
+                  </div>
+                  <div class="pc-name">DANIEL ALEJANDRO PEREZ ESQUIVEL</div>
+                  <div class="pc-total">Total <b>$30</b></div>
+                  <div class="pc-actions">
+                    <span class="btn btn-prep">Preparar</span>
+                    <span class="btn-link">Cancelar</span>
+                  </div>
+                </div>
+                <div class="empty empty-rec">Sin pedidos nuevos.</div>
+              </div>
+            </div>
+
+            <!-- En preparación -->
+            <div class="dash-col col-prep">
+              <div class="col-head">
+                <span class="col-dot dot-brown"></span>
+                <span class="col-title">En preparación</span>
+                <span class="col-count count-prep">
+                  <span class="cn-1">1</span><span class="cn-0">0</span>
+                </span>
+              </div>
+              <div class="col-body">
+                <div class="ped-card pc-prep">
+                  <div class="pc-head">
+                    <span class="pc-id">PEDIDO #15</span>
+                    <span class="pc-badge bg-brown">Preparando</span>
+                  </div>
+                  <div class="pc-name">DANIEL ALEJANDRO PEREZ ESQUIVEL</div>
+                  <div class="pc-total">Total <b>$30</b></div>
+                  <div class="pc-actions">
+                    <span class="btn btn-listo">Marcar listo</span>
+                  </div>
+                </div>
+                <div class="empty empty-prep">Nada en preparación.</div>
+              </div>
+            </div>
+
+            <!-- Listos -->
+            <div class="dash-col col-listo">
+              <div class="col-head">
+                <span class="col-dot dot-green"></span>
+                <span class="col-title">Listos</span>
+                <span class="col-count count-listo">
+                  <span class="cn-1">1</span><span class="cn-0">0</span>
+                </span>
+              </div>
+              <div class="col-body">
+                <div class="ped-card pc-listo">
+                  <div class="pc-head">
+                    <span class="pc-id">PEDIDO #15</span>
+                    <span class="pc-badge bg-green">Listo</span>
+                  </div>
+                  <div class="pc-name">DANIEL ALEJANDRO PEREZ ESQUIVEL</div>
+                  <div class="pc-total">Total <b>$30</b></div>
+                  <div class="pc-actions">
+                    <span class="btn btn-entregar">Entregar</span>
+                  </div>
+                </div>
+                <div class="empty empty-listo">Sin pedidos listos para entregar.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pantalla pública (display que ve el cliente) -->
+          <div class="public-display">
+            <div class="pd-header">
+              <div class="pd-brand">
+                <span class="pd-logo">CN</span>
+                <div>
+                  <div class="pd-eyebrow">COFFEE NEZZI</div>
+                  <div class="pd-name">mimbrecin</div>
+                </div>
+              </div>
+              <div class="pd-clock">20:24</div>
+            </div>
+            <div class="pd-cols">
+              <div class="pd-col pd-prep">
+                <div class="pd-col-head">
+                  <span class="pd-dot dot-yellow"></span>
+                  <span class="pd-title">En preparación</span>
+                  <span class="pd-count">
+                    <span class="cn-1">1</span><span class="cn-0">0</span>
+                  </span>
+                </div>
+                <div class="pd-body">
+                  <div class="pd-ped pd-ped-prep">
+                    <div class="pd-id">#15</div>
+                    <div class="pd-cliente">DANIEL ALEJANDRO PEREZ ESQUIVEL</div>
+                  </div>
+                  <div class="pd-empty pd-empty-prep">Sin pedidos en preparación</div>
+                </div>
+              </div>
+              <div class="pd-col pd-listo-col">
+                <div class="pd-col-head">
+                  <span class="pd-dot dot-green"></span>
+                  <span class="pd-title">Listos para recoger</span>
+                  <span class="pd-count">
+                    <span class="cn-1">1</span><span class="cn-0">0</span>
+                  </span>
+                </div>
+                <div class="pd-body">
+                  <div class="pd-ped pd-ped-listo">
+                    <div class="pd-id">#15</div>
+                    <div class="pd-cliente">DANIEL ALEJANDRO PEREZ ESQUIVEL</div>
+                  </div>
+                  <div class="pd-empty pd-empty-listo">Sin pedidos listos</div>
+                </div>
+              </div>
+            </div>
+            <div class="pd-tag">Pantalla pública · lo que ve el cliente</div>
+          </div>
+
+          <div class="dash-toast">✓ Pedido #15 entregado — total $30</div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <div class="pace">▶ Loop infinito · ESC para cerrar</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controles -->
+  <button class="fullscreen-btn" id="fsBtn" title="Pantalla completa (F)">⛶</button>
+
+  <div class="nav">
+    <button id="prev" title="Anterior (←)">◀</button>
+    <div class="counter"><span id="cur">1</span> / <span id="total">14</span></div>
+    <button id="next" title="Siguiente (→)">▶</button>
+  </div>
+
+  <script>
+    const slides = document.querySelectorAll('.slide');
+    const total = slides.length;
+    let idx = 0;
+    const cur = document.getElementById('cur');
+    document.getElementById('total').textContent = total;
+
+    function show(i) {
+      idx = (i + total) % total;
+      slides.forEach((s, k) => s.classList.toggle('active', k === idx));
+      cur.textContent = idx + 1;
+    }
+    document.getElementById('prev').addEventListener('click', () => show(idx - 1));
+    document.getElementById('next').addEventListener('click', () => show(idx + 1));
+    document.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); show(idx + 1); }
+      else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); show(idx - 1); }
+      else if (e.key === 'Home') { show(0); }
+      else if (e.key === 'End') { show(total - 1); }
+      else if (e.key.toLowerCase() === 'f') { toggleFs(); }
+    });
+
+    const fsBtn = document.getElementById('fsBtn');
+    function toggleFs() {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+    fsBtn.addEventListener('click', toggleFs);
+
+    /* ===== Modales con animación HTML/CSS infinita ===== */
+    const scrollIntervals = new Map();
+    function openModal(id) {
+      const modal = document.getElementById(id);
+      if (!modal) return;
+      modal.classList.add('open');
+      // Reinicia las animaciones forzando un reflow
+      const stage = modal.querySelector('.sim-stage');
+      if (stage) {
+        stage.style.animation = 'none';
+        void stage.offsetWidth;
+        stage.style.animation = '';
+        stage.querySelectorAll('[class*="cm "], .ped-card, .empty, .col-count .cn-1, .col-count .cn-0, .dash-toast, .pd-ped, .pd-empty, .pd-count .cn-1, .pd-count .cn-0').forEach(el => {
+          const prev = el.style.animationName || '';
+          el.style.animationName = 'none';
+          void el.offsetWidth;
+          el.style.animationName = prev;
+        });
+      }
+      // Auto-scroll del feed de chat al fondo mientras aparecen mensajes
+      const feed = modal.querySelector('.chat-feed');
+      if (feed) {
+        feed.scrollTop = 0;
+        const t = setInterval(() => {
+          feed.scrollTo({ top: feed.scrollHeight, behavior: 'smooth' });
+        }, 600);
+        scrollIntervals.set(modal, t);
+      }
+    }
+    function closeModal(modal) {
+      modal.classList.remove('open');
+      if (scrollIntervals.has(modal)) {
+        clearInterval(scrollIntervals.get(modal));
+        scrollIntervals.delete(modal);
+      }
+    }
+
+    document.querySelectorAll('.result-card').forEach(card => {
+      card.addEventListener('click', () => openModal(card.dataset.modal));
+    });
+    document.querySelectorAll('.modal-overlay').forEach(modal => {
+      modal.addEventListener('click', e => {
+        if (e.target === modal) closeModal(modal);
+      });
+      modal.querySelectorAll('[data-close]').forEach(b =>
+        b.addEventListener('click', () => closeModal(modal)));
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.modal-overlay.open').forEach(closeModal);
+      }
+    });
+  </script>
+
+</body>
+</html>
