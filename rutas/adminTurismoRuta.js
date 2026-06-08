@@ -18,6 +18,7 @@ router.get('/materiales', adminTurismoControlador.listarMateriales);
 router.post('/materiales', adminTurismoControlador.crearMaterial);
 router.patch('/materiales/:id/stock', adminTurismoControlador.ajustarStockMaterial);
 router.patch('/materiales/:id/estado', adminTurismoControlador.cambiarEstadoMaterial);
+router.patch('/materiales/:id', adminTurismoControlador.editarMaterial);
 router.delete('/materiales/:id', adminTurismoControlador.desactivarMaterial);
 
 router.get('/practicas', adminTurismoControlador.listarPracticas);

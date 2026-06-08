@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="Documentación técnica de BimestManager — instalación, configuración, endpoints, seguridad y despliegue." />
+<meta name="theme-color" content="#050507" />
+<title>Documentación · BimestManager</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" />
+
+<link rel="stylesheet" href="styles.css" />
+<link rel="icon" type="image/svg+xml" href="favicon.svg" />
+</head>
+<body>
+
+<!-- =========== LOADER =========== -->
+<div class="loader" id="loader" aria-hidden="true">
+  <div class="loader-logo">
+    <div class="ring ring-1"></div>
+    <div class="ring ring-2"></div>
+  </div>
+  <div class="loader-text">BimestManager</div>
+</div>
+
+<!-- =========== CUSTOM CURSOR =========== -->
+<div class="cursor-blob" id="cursor" aria-hidden="true"></div>
+
+<!-- =========== NAV =========== -->
+<nav class="nav" id="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="brand">
+      <span class="brand-mark">
+        <span class="c c-1"></span>
+        <span class="c c-2"></span>
+      </span>
+      <span>BimestManager <small>v1.0</small></span>
+    </a>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html#caracteristicas">Características</a>
+      <a href="index.html#modulos">Módulos</a>
+      <a href="index.html#arquitectura">Arquitectura</a>
+      <a href="index.html#equipo">Equipo</a>
+      <a href="index.html" class="cta magnetic">← Volver</a>
+    </div>
+    <button class="nav-toggle" id="navToggle" aria-label="Menú">☰</button>
+  </div>
+</nav>
+
+<!-- =========== DOCS LAYOUT =========== -->
+<div class="docs">
+
+  <aside class="docs-sidebar" aria-label="Índice de documentación">
+    <h4>Documentación</h4>
+    <ul>
+      <li><a href="#descripcion" class="active">Descripción</a></li>
+      <li><a href="#stack">Stack tecnológico</a></li>
+      <li><a href="#requisitos">Requisitos previos</a></li>
+      <li><a href="#instalacion">Instalación</a></li>
+      <li><a href="#configuracion">Configuración</a></li>
+      <li><a href="#uso">Uso</a></li>
+    </ul>
+
+    <h4>Referencia</h4>
+    <ul>
+      <li><a href="#endpoints">Endpoints clave</a></li>
+      <li><a href="#estructura">Estructura del proyecto</a></li>
+      <li><a href="#roles">Roles y permisos</a></li>
+    </ul>
+
+    <h4>Operación</h4>
+    <ul>
+      <li><a href="#seguridad">Seguridad</a></li>
+      <li><a href="#monitoreo">Monitoreo y logs</a></li>
+      <li><a href="#despliegue">Despliegue</a></li>
+      <li><a href="#troubleshooting">Troubleshooting</a></li>
+    </ul>
+
+    <h4>Equipo</h4>
+    <ul>
+      <li><a href="#creditos">Créditos</a></li>
+      <li><a href="#licencia">Licencia</a></li>
+    </ul>
+  </aside>
+
+  <main class="docs-content">
+
+    <span class="eyebrow">Documentación técnica</span>
+    <h1 style="font-size: clamp(2.2rem, 5vw, 3.2rem); margin: 1rem 0 0.5rem;">BimestManager</h1>
+    <p style="font-size:1.1rem; max-width:none;">Plataforma web para la gestión integral de laboratorios escolares — módulos de Química y Turismo — con control de inventario, préstamos, adeudos, incidencias y monitoreo en tiempo real.</p>
+
+    <div class="stack-row" style="justify-content:flex-start; margin: 1.5rem 0 3rem;">
+      <span class="chip">Node 20</span>
+      <span class="chip">Express 5</span>
+      <span class="chip">MySQL 8</span>
+      <span class="chip">EJS</span>
+      <span class="chip">JWT</span>
+      <span class="chip">Helmet</span>
+      <span class="chip">Winston</span>
+      <span class="chip">HTTPS</span>
+    </div>
+
+    <h2 id="descripcion">Descripción</h2>
+    <p><strong>BimestManager</strong> es una aplicación web tipo SaaS desarrollada en Node.js que digitaliza por completo la gestión administrativa de los laboratorios escolares. Atiende dos áreas:</p>
+    <ul>
+      <li><strong>Química</strong> — control de prácticas, kits de reactivos, equipos, responsivas firmadas digitalmente, adeudos e incidencias.</li>
+      <li><strong>Turismo</strong> — gestión de prácticas de campo, préstamos de material y sugerencias.</li>
+    </ul>
+    <p>El sistema reemplaza las libretas físicas y hojas de cálculo dispersas por una plataforma centralizada, segura y accesible desde cualquier dispositivo. Reduce de <strong>horas a segundos</strong> el control diario de un laboratorio escolar.</p>
+
+    <h3>Características principales</h3>
+    <ul>
+      <li><strong>Tres roles diferenciados:</strong> Administrador, Maestro y Alumno con permisos granulares por módulo (RBAC).</li>
+      <li><strong>Doble módulo</strong> Química + Turismo en una sola plataforma.</li>
+      <li><strong>Autenticación JWT</strong> con cookies httpOnly y refresh tokens.</li>
+      <li><strong>Comunicación cifrada</strong> HTTPS (TLS) con certificados autofirmados generados automáticamente.</li>
+      <li><strong>Conexión MySQL con TLS obligatorio</strong> compatible con <code>require_secure_transport=ON</code>.</li>
+      <li><strong>Logs persistentes</strong> con rotación diaria (Winston + winston-daily-rotate-file).</li>
+      <li><strong>Dashboard de monitoreo</strong> en <code>/monitor</code> con CPU, RAM, disco, red y salud de la base de datos.</li>
+      <li><strong>Healthcheck</strong> público en <code>/salud</code> para sondas externas.</li>
+      <li><strong>Arquitectura MVC</strong> clara y mantenible.</li>
+      <li><strong>Vistas EJS responsivas</strong> que funcionan en escritorio, tablet y móvil.</li>
+    </ul>
+
+    <h2 id="stack">Stack tecnológico</h2>
+    <table>
+      <thead>
+        <tr><th>Capa</th><th>Tecnologías</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Runtime</td><td>Node.js 20+ (CommonJS)</td></tr>
+        <tr><td>Servidor web</td><td>Express 5</td></tr>
+        <tr><td>Base de datos</td><td>MySQL 8 con <code>mysql2/promise</code></td></tr>
+        <tr><td>Plantillas</td><td>EJS + express-ejs-layouts</td></tr>
+        <tr><td>Autenticación</td><td>jsonwebtoken (JWT) + bcrypt + cookie-parser</td></tr>
+        <tr><td>Seguridad HTTP</td><td>helmet, cors, HTTPS con <code>selfsigned</code></td></tr>
+        <tr><td>Logging</td><td>winston + winston-daily-rotate-file + morgan</td></tr>
+        <tr><td>Monitoreo</td><td>systeminformation</td></tr>
+        <tr><td>Tooling dev</td><td>nodemon, dotenv</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="requisitos">Requisitos previos</h2>
+    <ul>
+      <li><strong>Node.js</strong> 20.x o superior</li>
+      <li><strong>MySQL</strong> 8.x corriendo localmente o en un servidor accesible</li>
+      <li><strong>npm</strong> 10+</li>
+      <li>(Opcional) <strong>Git</strong> para clonar el repositorio</li>
+    </ul>
+
+    <h2 id="instalacion">Instalación</h2>
+    <pre data-lang="bash"><code># 1. Clonar el repositorio
+git clone https://github.com/413xkur4y4m1/BimestManager.git
+cd BimestManager
+
+# 2. Instalar dependencias
+npm install
+
+# 3. Crear archivo .env desde la plantilla
+cp .env.example .env
+# Windows PowerShell:
+# Copy-Item .env.example .env
+
+# 4. Editar .env con tus credenciales reales</code></pre>
+
+    <h3>Cargar la base de datos</h3>
+    <p>Ejecuta los scripts SQL en este orden contra tu MySQL local:</p>
+    <pre data-lang="sql"><code>SOURCE creacionTabs.sql;        -- crea el schema labs y todas las tablas
+SOURCE labs_usuarios.sql;       -- seed de usuarios
+SOURCE labs_grupos.sql;
+SOURCE labs_materiales.sql;
+SOURCE labs_practicas.sql;
+-- ...y los demás labs_*.sql
+SOURCE turismoDatos.sql;        -- seed del módulo Turismo</code></pre>
+
+    <p>(Opcional — para producción) Crear el usuario MySQL con permisos mínimos:</p>
+    <pre data-lang="sql"><code>SOURCE sql/usuario_app.sql;</code></pre>
+
+    <h2 id="configuracion">Configuración</h2>
+    <p>Variables de entorno principales (archivo <code>.env</code>):</p>
+    <table>
+      <thead>
+        <tr><th>Variable</th><th>Valor típico</th><th>Descripción</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>PORT</code></td><td><code>4000</code></td><td>Puerto HTTP</td></tr>
+        <tr><td><code>HTTPS_PORT</code></td><td><code>4443</code></td><td>Puerto HTTPS</td></tr>
+        <tr><td><code>HTTPS_ENABLED</code></td><td><code>true</code></td><td>Habilita HTTPS con certificado autofirmado</td></tr>
+        <tr><td><code>HTTPS_CN</code></td><td><code>localhost</code></td><td>Common Name del certificado</td></tr>
+        <tr><td><code>NODE_ENV</code></td><td><code>development</code> / <code>production</code></td><td>Entorno</td></tr>
+        <tr><td><code>LOG_LEVEL</code></td><td><code>info</code></td><td>Nivel de winston (<code>error</code>, <code>warn</code>, <code>info</code>, <code>debug</code>)</td></tr>
+        <tr><td><code>DB_HOST</code></td><td><code>localhost</code></td><td>Host de MySQL</td></tr>
+        <tr><td><code>DB_PORT</code></td><td><code>3306</code></td><td>Puerto MySQL</td></tr>
+        <tr><td><code>DB_USER</code></td><td><code>root</code> / <code>bimest_app</code></td><td>Usuario MySQL</td></tr>
+        <tr><td><code>DB_PASSWORD</code></td><td><em>(tu password)</em></td><td>Password MySQL</td></tr>
+        <tr><td><code>DB_NAME</code></td><td><code>labs</code></td><td>Schema de la base de datos</td></tr>
+        <tr><td><code>DB_SSL</code></td><td><code>true</code></td><td>TLS obligatorio si MySQL tiene <code>require_secure_transport=ON</code></td></tr>
+        <tr><td><code>DB_SSL_REJECT_UNAUTHORIZED</code></td><td><code>false</code> / <code>true</code></td><td>Validación de cert MySQL</td></tr>
+        <tr><td><code>JWT_SECRET</code></td><td><em>(string aleatorio largo)</em></td><td>Secret para firmar tokens de acceso</td></tr>
+        <tr><td><code>JWT_REFRESH_SECRET</code></td><td><em>(string aleatorio largo)</em></td><td>Secret para refresh tokens</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout warn">
+      <strong>Advertencia.</strong> Nunca subas el archivo <code>.env</code> al repositorio. Ya está incluido en <code>.gitignore</code>.
+    </div>
+
+    <h2 id="uso">Uso</h2>
+    <pre data-lang="bash"><code># Modo producción
+npm start
+
+# Modo desarrollo (auto-reload con nodemon)
+npm run dev</code></pre>
+    <p>En el primer arranque se generan automáticamente los certificados autofirmados en <code>certs/server.key</code> y <code>certs/server.crt</code>.</p>
+    <p>La aplicación queda disponible en:</p>
+    <ul>
+      <li><strong>HTTP:</strong> <code>http://localhost:4000</code></li>
+      <li><strong>HTTPS:</strong> <code>https://localhost:4443</code> (acepta la advertencia del navegador por cert autofirmado)</li>
+    </ul>
+
+    <h2 id="endpoints">Endpoints clave</h2>
+
+    <h3>Salud y monitoreo</h3>
+    <ul>
+      <li><code>GET /salud</code> — Healthcheck JSON: <code>{"ok": true}</code></li>
+      <li><code>GET /monitor</code> — Dashboard web de monitoreo</li>
+      <li><code>GET /monitor/metricas</code> — Métricas JSON (CPU, RAM, disco, red, DB)</li>
+    </ul>
+
+    <h3>Autenticación</h3>
+    <ul>
+      <li><code>POST /auth/login</code> — Inicio de sesión</li>
+      <li><code>POST /auth/registro-alumno</code> — Registro de alumno (Química)</li>
+      <li><code>POST /auth/registro-alumno-turismo</code> — Registro de alumno (Turismo)</li>
+      <li><code>POST /auth/logout</code> — Cierre de sesión</li>
+      <li><code>GET /auth/yo</code> — Información del usuario autenticado</li>
+    </ul>
+
+    <h3>Vistas (requieren rol)</h3>
+    <ul>
+      <li><code>GET /admin</code> — Panel administrador (Química)</li>
+      <li><code>GET /maestro</code> — Panel maestro (Química)</li>
+      <li><code>GET /estudiante</code> — Panel alumno (Química)</li>
+      <li><code>GET /turismo/admin</code> — Panel administrador (Turismo)</li>
+      <li><code>GET /turismo/estudiante</code> — Panel alumno (Turismo)</li>
+    </ul>
+
+    <h2 id="estructura">Estructura del proyecto</h2>
+    <pre data-lang="text"><code>BimestManager/
+├── server.js                  ← Arranque HTTP + HTTPS
+├── BDconex.js                 ← Pool MySQL con TLS opt-in
+├── package.json
+├── .env.example               ← Plantilla de variables
+├── .gitignore
+│
+├── Middlewares/
+│   ├── auth.js                ← JWT + RBAC (soloAdmin, soloMaestro...)
+│   ├── logger.js              ← Winston con rotación diaria
+│   └── certificados.js        ← Genera cert autofirmado
+│
+├── controlador/               ← Lógica HTTP (un archivo por área)
+├── modelo/                    ← Acceso a base de datos
+├── rutas/                     ← Routers de Express
+│
+├── vista/                     ← Plantillas EJS
+│   ├── auth/                  ← Login / Registro
+│   ├── partials/              ← Header, nav, head, logo
+│   ├── turismo/               ← Vistas del módulo Turismo
+│   └── monitor.ejs            ← Dashboard de monitoreo
+│
+├── public/                    ← Assets estáticos (CSS, JS, img)
+├── certs/                     ← Certificados HTTPS (autogenerados)
+├── logs/                      ← Logs rotados diariamente
+│
+├── sql/
+│   ├── usuario_app.sql        ← Usuario MySQL con permisos mínimos
+│   └── verificacion_evidencia.sql
+│
+├── docs/                      ← Documentación operativa
+│   ├── DESPLIEGUE.md
+│   ├── BITACORA_INCIDENTE.md
+│   ├── OPERACION.md
+│   └── CAMBIOS_PARCIAL2.md
+│
+├── creacionTabs.sql           ← Schema completo
+└── labs_*.sql, turismoDatos.sql   ← Seeds</code></pre>
+
+    <h2 id="roles">Roles y permisos</h2>
+    <table>
+      <thead>
+        <tr><th>Rol</th><th>Química</th><th>Turismo</th><th>Capacidades clave</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Administrador</strong></td>
+          <td>✓</td><td>✓</td>
+          <td>Altas de usuarios, gestión total de inventario, kits, prácticas, reportes globales.</td>
+        </tr>
+        <tr>
+          <td><strong>Maestro</strong></td>
+          <td>✓</td><td>—</td>
+          <td>Registro de prácticas, firmas de responsivas, gestión de adeudos del grupo.</td>
+        </tr>
+        <tr>
+          <td><strong>Alumno</strong></td>
+          <td>✓</td><td>✓</td>
+          <td>Solicita material, firma responsivas, consulta su historial y adeudos.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2 id="seguridad">Seguridad</h2>
+    <p>BimestManager implementa <strong>defensa en profundidad</strong> con varias capas:</p>
+    <table>
+      <thead>
+        <tr><th>Capa</th><th>Implementación</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Transporte</td><td>HTTPS con TLS, certificados autofirmados o CA real en producción</td></tr>
+        <tr><td>DB</td><td>Conexión MySQL forzada con TLS (<code>require_secure_transport=ON</code>)</td></tr>
+        <tr><td>Autenticación</td><td>JWT firmados con HS256, expiración 2h, refresh tokens</td></tr>
+        <tr><td>Cookies</td><td><code>httpOnly</code>, <code>sameSite=lax</code>, <code>secure: true</code> en producción</td></tr>
+        <tr><td>Contraseñas</td><td>Hash con bcrypt (cost factor 10+)</td></tr>
+        <tr><td>Headers HTTP</td><td>helmet con CSP, HSTS, X-Frame-Options</td></tr>
+        <tr><td>RBAC</td><td>Middlewares por rol: <code>soloAdmin</code>, <code>soloMaestro</code>, <code>soloAlumno</code>, <code>adminOMaestro</code></td></tr>
+        <tr><td>DB User</td><td><code>bimest_app</code> con permisos DML mínimos (SELECT/INSERT/UPDATE/DELETE)</td></tr>
+        <tr><td>Logs de auditoría</td><td>Acciones registradas con timestamp, usuario e IP</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="monitoreo">Monitoreo y logs</h2>
+
+    <h3>Logs</h3>
+    <p>Los logs se escriben en <code>logs/</code> con rotación diaria automática:</p>
+    <ul>
+      <li><code>logs/app-YYYY-MM-DD.log</code> — Logs de aplicación (info/warn/error)</li>
+      <li><code>logs/error-YYYY-MM-DD.log</code> — Solo errores</li>
+      <li><code>logs/access-YYYY-MM-DD.log</code> — Logs de acceso HTTP (morgan)</li>
+    </ul>
+
+    <h3>Monitoreo</h3>
+    <p>El endpoint <code>/monitor</code> ofrece un dashboard web en vivo con:</p>
+    <ul>
+      <li><strong>CPU</strong> — uso global y por núcleo</li>
+      <li><strong>Memoria</strong> — RAM total, usada y disponible</li>
+      <li><strong>Disco</strong> — espacio total, usado y libre</li>
+      <li><strong>Red</strong> — RX/TX por interfaz</li>
+      <li><strong>Base de datos</strong> — latencia de ping y estado de conexiones</li>
+    </ul>
+    <p>El endpoint <code>/monitor/metricas</code> devuelve el mismo dato en JSON, listo para Prometheus, Grafana o cualquier sistema externo de observabilidad.</p>
+
+    <h2 id="despliegue">Despliegue</h2>
+    <p>El proyecto está diseñado para una topología de <strong>cuatro servidores</strong>:</p>
+    <table>
+      <thead>
+        <tr><th>Servidor</th><th>IP típica</th><th>Servicios</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>DC</strong></td><td><code>192.168.10.10</code></td><td>Active Directory, DNS, GPO</td></tr>
+        <tr><td><strong>WEB</strong></td><td><code>192.168.10.20</code></td><td>Node.js + IIS (reverse proxy ARR)</td></tr>
+        <tr><td><strong>DB</strong></td><td><code>192.168.10.30</code></td><td>MySQL 8 con TLS</td></tr>
+        <tr><td><strong>MON</strong></td><td><code>192.168.10.40</code></td><td>Prometheus + Grafana</td></tr>
+      </tbody>
+    </table>
+    <p>Ver <code>docs/DESPLIEGUE.md</code> en el repositorio para la guía completa paso a paso.</p>
+
+    <h2 id="troubleshooting">Troubleshooting</h2>
+
+    <h3>Error de TLS al conectar a MySQL</h3>
+    <p>Si MySQL tiene <code>require_secure_transport=ON</code>, verificá que <code>DB_SSL=true</code> en tu <code>.env</code>. En desarrollo local, también necesitás <code>DB_SSL_REJECT_UNAUTHORIZED=false</code> porque el cert local no está firmado por una CA.</p>
+
+    <h3>El navegador rechaza el certificado HTTPS</h3>
+    <p>Es esperado en desarrollo. El certificado es autofirmado. Aceptá la advertencia o instalá el cert raíz en el almacén de confianza local.</p>
+
+    <h3>Los logs no se generan</h3>
+    <p>Verificá que la carpeta <code>logs/</code> existe y tiene permisos de escritura. winston no la crea automáticamente en algunos sistemas.</p>
+
+    <h2 id="creditos">Créditos</h2>
+
+    <h3>Desarrollo</h3>
+    <ul>
+      <li><strong>Daniel Meza Sánchez</strong> — Backend, base de datos, integración</li>
+      <li><strong>Daniel Alejandro Pérez Esquivel</strong> — Backend, seguridad, despliegue</li>
+    </ul>
+
+    <h3>Diseño</h3>
+    <ul>
+      <li><strong>Said Díaz Loya</strong> — Diseño de interfaz y experiencia de usuario</li>
+      <li><strong>Kevin Sandoval Nieves</strong> — Diseño visual, prototipado, despliegue de servidor BD</li>
+    </ul>
+
+    <h3>Infraestructura</h3>
+    <ul>
+      <li><strong>Juan Pablo Flores Varela</strong> — Product Owner, Sysadmin e infraestructura</li>
+      <li><strong>Pérez Arzate Carlos Daniel</strong> — Diseñador BD e infraestructura</li>
+    </ul>
+
+    <h2 id="licencia">Licencia</h2>
+    <p>Distribuido bajo licencia <strong>ISC</strong>. Ver <code>package.json</code> para más detalles.</p>
+
+    <div class="callout" style="margin-top:3rem;">
+      <strong>BimestManager</strong> — La gestión de laboratorios, como debería ser.
+    </div>
+
+  </main>
+</div>
+
+<footer>
+  <div class="container footer-inner">
+    <p>© 2026 BimestManager · Proyecto académico · Licencia ISC</p>
+    <div class="footer-links">
+      <a href="index.html">Inicio</a>
+      <a href="documentacion.html">Documentación</a>
+      <a href="index.html#equipo">Equipo</a>
+      <a href="https://github.com/413xkur4y4m1/BimestManager" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </div>
+</footer>
+
+<script src="animations.js" defer></script>
+</body>
+</html>

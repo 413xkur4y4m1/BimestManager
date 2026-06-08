@@ -24,6 +24,7 @@
       <div class="btn-row">
         <a class="btn btn-secondary" href="#users">Ver usuarios</a>
         <a class="btn btn-secondary" href="#resps">Responsivas</a>
+        <a class="btn btn-secondary" href="#sesiones">Sesiones</a>
         <a class="btn btn-primary" href="#practs">Prácticas</a>
       </div>
     </article>
@@ -210,6 +211,34 @@
     </div>
   </section>
 
+  <!-- ============== TAB: Sesiones ============== -->
+  <section data-tab="sesiones">
+    <h1 class="section-title">Sesiones de laboratorio</h1>
+    <p class="section-subtitle">Todas las sesiones que los maestros han programado, con fecha y materiales requeridos.</p>
+
+    <article class="card" id="sesionesBox">
+      <h3>Sesiones programadas</h3>
+      <p class="muted" style="font-size:12px;margin:0 0 8px">Total: <span data-total>0</span> · Mostrando <span data-shown>0</span></p>
+      <div class="field" style="margin-bottom:8px">
+        <input data-search type="search" placeholder="Buscar por practica, grupo o maestro..." autocomplete="off">
+      </div>
+      <div data-filters style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+        <select data-filter="estado" style="padding:6px 10px;border-radius:10px;border:1px solid var(--c-line);font-size:13px">
+          <option value="">Todos los estados</option>
+          <option value="PROGRAMADA">Programadas</option>
+          <option value="EN_CURSO">En curso</option>
+          <option value="FINALIZADA">Finalizadas</option>
+        </select>
+      </div>
+      <ul class="list" data-list><li class="empty-state">Cargando...</li></ul>
+      <div class="btn-row" data-pagination style="justify-content:center;margin-top:10px" hidden>
+        <button type="button" class="btn btn-mini btn-ghost" data-prev>« Anterior</button>
+        <span class="muted" data-info style="font-size:12px;align-self:center">Página 1 / 1</span>
+        <button type="button" class="btn btn-mini btn-ghost" data-next>Siguiente »</button>
+      </div>
+    </article>
+  </section>
+
   <!-- ============== TAB: Prácticas ============== -->
   <section data-tab="practs">
     <h1 class="section-title">Prácticas</h1>
@@ -244,6 +273,25 @@
   </section>
 </main>
 
+<!-- Modal: editar material -->
+<div id="editarMaterialModal" class="bm-modal" hidden>
+  <div class="bm-modal__panel">
+    <h3 class="bm-modal__title">Editar material</h3>
+    <div class="bm-modal__field">
+      <label for="editarMaterialNombre">Nombre</label>
+      <input id="editarMaterialNombre" type="text" autocomplete="off" maxlength="100">
+    </div>
+    <div class="bm-modal__field">
+      <label for="editarMaterialStock">Stock</label>
+      <input id="editarMaterialStock" type="number" min="0" step="1">
+    </div>
+    <div class="bm-modal__actions">
+      <button type="button" class="btn btn-mini btn-ghost" id="editarMaterialCancel">Cancelar</button>
+      <button type="button" class="btn btn-mini btn-primary" id="editarMaterialSave">Guardar</button>
+    </div>
+  </div>
+</div>
+
 <%- include('partials/bottom-nav', {
   active: 'home',
   navItems: [
@@ -255,6 +303,8 @@
       icon: '<svg viewBox="0 0 200 120"><g fill="none" stroke-width="14" stroke-linecap="round"><circle cx="60" cy="60" r="38" stroke="#1d5e6e"/><circle cx="140" cy="60" r="38" stroke="#e07338"/></g></svg>' },
     { key: 'mats', label: 'Materiales', href: '#mats',
       icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>' },
+    { key: 'sesiones', label: 'Sesiones', href: '#sesiones',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>' },
     { key: 'practs', label: 'Prácticas', href: '#practs',
       icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>' }
   ]

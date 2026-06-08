@@ -140,6 +140,10 @@ const arrancarServidor = async () => {
   } catch (error) {
     logger.error('No se pudo verificar la conexión con la base de datos', { error: error.message });
   }
+
+  // Si MONITOR_URL + MONITOR_TOKEN están en el .env, empieza a empujar
+  // métricas al servidor proy (en la red Tailscale)
+  monitoreoControlador.iniciarEnvioRemoto();
 };
 
 if (require.main === module) {

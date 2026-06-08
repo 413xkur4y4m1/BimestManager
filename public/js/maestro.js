@@ -66,6 +66,7 @@
       .join('');
     const fechaCorta = eq.fecha ? formatFecha(eq.fecha) : '';
     const estadoClass = eq.sesion_estado === 'EN_CURSO' ? 'ok' : eq.sesion_estado === 'FINALIZADA' ? 'neutral' : 'info';
+    const puedeBorrar = eq.sesion_estado !== 'FINALIZADA';
     return `
       <article class="card">
         <h3 style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start">
@@ -76,6 +77,7 @@
           ${esc(eq.practica)} · ${esc(eq.grupo)} · ${esc(fechaCorta)}${eq.hora_inicio ? ' ' + esc(eq.hora_inicio) : ''}
         </div>
         ${eq.incidencias_total ? `<div class="card-row__sub" style="margin-bottom:6px"><span class="badge badge--danger">${eq.incidencias_total} incidencia${eq.incidencias_total === 1 ? '' : 's'}</span></div>` : ''}
+        ${puedeBorrar ? `<div class="btn-row" style="margin-bottom:8px"><button class="btn btn-mini btn-danger" data-borrar-global="${eq.id}">Eliminar equipo</button></div>` : ''}
 
         <ul class="list" style="margin-bottom:6px">
           ${(eq.integrantes || []).map((i) => `
@@ -130,6 +132,9 @@
         const equipoId = Number(f.dataset.incidenciaGlobal);
         submitIncidenciaGlobal(ev, sesionId, equipoId);
       });
+    });
+    listEl.querySelectorAll('button[data-borrar-global]').forEach((b) => {
+      b.addEventListener('click', () => borrarEquipo(Number(b.dataset.borrarGlobal)));
     });
   };
 
@@ -580,7 +585,8 @@
     const r = await api('DELETE', '/maestro/equipos/' + equipoId);
     if (!r.ok) { flash('flash', (r.data && r.data.error) || 'No se pudo eliminar', 'error'); return; }
     flash('flash', 'Equipo eliminado.', 'ok');
-    cargarAlumnosSesion(sesionEquiposActiva);
+    if (sesionEquiposActiva) cargarAlumnosSesion(sesionEquiposActiva);
+    cargarEquiposGlobal();
     cargar();
   };
 

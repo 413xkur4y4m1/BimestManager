@@ -242,6 +242,30 @@ const adminTurismoControlador = {
     }
   },
 
+  editarMaterial: async (req, res) => {
+    try {
+      const materialId = parsearIdPositivo(req.params.id);
+
+      if (!materialId) {
+        return res.status(400).json({ error: 'El id del material debe ser un numero positivo.' });
+      }
+
+      const resultado = await AdminTurismoModelo.editarMaterial({
+        materialId,
+        nombre: req.body.nombre,
+        stock: req.body.stock,
+        estado: req.body.estado
+      });
+
+      return res.json({
+        message: 'Material actualizado correctamente.',
+        material: resultado
+      });
+    } catch (error) {
+      return responderError(res, error, 'No se pudo editar el material.');
+    }
+  },
+
   desactivarMaterial: async (req, res) => {
     try {
       const materialId = parsearIdPositivo(req.params.id);

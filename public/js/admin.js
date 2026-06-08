@@ -1,7 +1,7 @@
 // Dashboard Admin Quimica
 (function () {
   'use strict';
-  const { api, flash, clearFlash, requireAuth, wireHeader, wireTabs, formatFecha, escapeHtml: esc, makePagedList } = window.BM;
+  const { api, flash, clearFlash, requireAuth, wireHeader, wireTabs, formatFecha, formatFechaCorta, escapeHtml: esc, makePagedList } = window.BM;
 
   let usuario = null;
   let materialesCache = [];
@@ -21,10 +21,11 @@
   let prestamosCtl = null;
   let adeudosCtl = null;
   let incidenciasCtl = null;
+  let sesionesCtl = null;
 
   const cargar = async () => {
     clearFlash('flash');
-    const [resumen, usuarios, materiales, practicas, prestamos, adeudos, incidencias, responsivas] = await Promise.all([
+    const [resumen, usuarios, materiales, practicas, prestamos, adeudos, incidencias, responsivas, sesiones] = await Promise.all([
       api('GET', '/admin/resumen'),
       api('GET', '/admin/usuarios'),
       api('GET', '/admin/materiales?incluir_inactivos=true'),
@@ -32,7 +33,8 @@
       api('GET', '/admin/prestamos'),
       api('GET', '/admin/adeudos'),
       api('GET', '/admin/incidencias'),
-      api('GET', '/admin/responsivas' + (responsivasFiltro ? '?estado=' + responsivasFiltro : ''))
+      api('GET', '/admin/responsivas' + (responsivasFiltro ? '?estado=' + responsivasFiltro : '')),
+      api('GET', '/admin/sesiones')
     ]);
 
     if (resumen.ok) renderResumen(resumen.data);
@@ -43,6 +45,7 @@
     if (adeudos.ok && adeudosCtl) adeudosCtl.setData(adeudos.data || []);
     if (incidencias.ok && incidenciasCtl) incidenciasCtl.setData(incidencias.data || []);
     if (responsivas.ok && responsivasCtl) responsivasCtl.setData(responsivas.data || []);
+    if (sesiones.ok && sesionesCtl) sesionesCtl.setData(sesiones.data || []);
 
     // Si hay una practica seleccionada, refrescar sus kits
     if (practicaSeleccionada) cargarKits(practicaSeleccionada);
@@ -175,14 +178,24 @@
           <div class="card-row__title">${esc(m.nombre)} ${m.is_active ? '' : '<span class="badge badge--neutral">INACTIVO</span>'}</div>
           <div class="card-row__sub">Stock: ${m.stock}</div>
         </div>
-        <div style="display:flex;gap:6px">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
           <button class="btn btn-mini btn-secondary" data-stock="${m.id}" data-delta="1">+1</button>
           <button class="btn btn-mini btn-secondary" data-stock="${m.id}" data-delta="-1">-1</button>
+          <button class="btn btn-mini btn-primary" data-editar="${m.id}">Editar</button>
+          <button class="btn btn-mini btn-danger" data-eliminar="${m.id}">Eliminar</button>
         </div>
       </li>`).join('');
 
     list.querySelectorAll('button[data-stock]').forEach((b) => {
       b.addEventListener('click', () => ajustarStock(Number(b.dataset.stock), Number(b.dataset.delta)));
+    });
+
+    list.querySelectorAll('button[data-editar]').forEach((b) => {
+      b.addEventListener('click', () => editarMaterial(Number(b.dataset.editar)));
+    });
+
+    list.querySelectorAll('button[data-eliminar]').forEach((b) => {
+      b.addEventListener('click', () => eliminarMaterial(Number(b.dataset.eliminar)));
     });
 
     if (pag) {
@@ -214,6 +227,78 @@
   const ajustarStock = async (id, delta) => {
     const r = await api('PATCH', '/admin/materiales/' + id + '/stock', { delta });
     if (!r.ok) { flash('flash', (r.data && r.data.error) || 'Error', 'error'); return; }
+    cargar();
+  };
+
+  let editandoMaterialId = null;
+
+  const cerrarModalEditarMaterial = () => {
+    const modal = document.getElementById('editarMaterialModal');
+    if (modal) modal.hidden = true;
+    editandoMaterialId = null;
+  };
+
+  const guardarEdicionMaterial = async () => {
+    if (editandoMaterialId === null) return;
+    const id = editandoMaterialId;
+    const nombre = String(document.getElementById('editarMaterialNombre').value || '').trim();
+    const stockStr = String(document.getElementById('editarMaterialStock').value || '').trim();
+
+    if (!nombre) { flash('flash', 'El nombre no puede estar vacio.', 'error'); return; }
+
+    const body = { nombre };
+    if (stockStr !== '') {
+      const stock = Number(stockStr);
+      if (!Number.isInteger(stock) || stock < 0) {
+        flash('flash', 'Stock invalido (entero >= 0).', 'error');
+        return;
+      }
+      body.stock = stock;
+    }
+
+    const r = await api('PATCH', '/admin/materiales/' + id, body);
+    if (!r.ok) { flash('flash', (r.data && r.data.error) || 'Error', 'error'); return; }
+    cerrarModalEditarMaterial();
+    flash('flash', 'Material actualizado.', 'ok');
+    cargar();
+  };
+
+  const editarMaterial = (id) => {
+    const material = materialesCache.find((m) => m.id === id);
+    if (!material) return;
+    const modal = document.getElementById('editarMaterialModal');
+    if (!modal) { flash('flash', 'Modal de edicion no encontrado en la pagina.', 'error'); return; }
+
+    document.getElementById('editarMaterialNombre').value = material.nombre || '';
+    document.getElementById('editarMaterialStock').value = material.stock != null ? material.stock : '';
+    editandoMaterialId = id;
+    modal.hidden = false;
+    setTimeout(() => document.getElementById('editarMaterialNombre').focus(), 30);
+  };
+
+  const wireModalEditarMaterial = () => {
+    const modal = document.getElementById('editarMaterialModal');
+    if (!modal) return;
+    const btnCancel = document.getElementById('editarMaterialCancel');
+    const btnSave = document.getElementById('editarMaterialSave');
+    if (btnCancel) btnCancel.addEventListener('click', cerrarModalEditarMaterial);
+    if (btnSave) btnSave.addEventListener('click', guardarEdicionMaterial);
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) cerrarModalEditarMaterial();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !modal.hidden) cerrarModalEditarMaterial();
+    });
+  };
+
+  const eliminarMaterial = async (id) => {
+    const material = materialesCache.find((m) => m.id === id);
+    if (!material) return;
+    if (!confirm(`¿Eliminar el material "${material.nombre}"? Quedara inactivo en el inventario.`)) return;
+
+    const r = await api('DELETE', '/admin/materiales/' + id);
+    if (!r.ok) { flash('flash', (r.data && r.data.error) || 'Error', 'error'); return; }
+    flash('flash', 'Material eliminado.', 'ok');
     cargar();
   };
 
@@ -268,12 +353,16 @@
             <div class="card-row__title">${esc(it.material)} ${it.material_activo ? '' : '<span class="badge badge--neutral">INACTIVO</span>'}</div>
             <div class="card-row__sub">Cantidad: ${it.cantidad} · Stock: ${it.stock}</div>
           </div>
+          <button class="btn btn-mini btn-danger" data-quitar-mat="${kit.id}" data-mat-id="${it.material_id}" data-mat-nombre="${esc(it.material)}">Quitar</button>
         </li>
       `).join('');
 
       return `
         <div class="kit-block">
-          <h5>${esc(kit.nombre || ('Kit #' + kit.id))}</h5>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+            <h5 style="margin:0">${esc(kit.nombre || ('Kit #' + kit.id))}</h5>
+            <button class="btn btn-mini btn-danger" data-eliminar-kit="${kit.id}" data-kit-nombre="${esc(kit.nombre || ('Kit #' + kit.id))}">Eliminar kit</button>
+          </div>
           <ul class="list">
             ${items || '<li class="empty-state">Sin materiales en este kit.</li>'}
           </ul>
@@ -289,6 +378,34 @@
     cont.querySelectorAll('form[data-kit-mat]').forEach((form) => {
       form.addEventListener('submit', (ev) => agregarMaterialAKit(ev, Number(form.dataset.kitMat)));
     });
+
+    cont.querySelectorAll('button[data-eliminar-kit]').forEach((b) => {
+      b.addEventListener('click', () => eliminarKit(Number(b.dataset.eliminarKit), b.dataset.kitNombre));
+    });
+
+    cont.querySelectorAll('button[data-quitar-mat]').forEach((b) => {
+      b.addEventListener('click', () => quitarMaterialDeKit(
+        Number(b.dataset.quitarMat),
+        Number(b.dataset.matId),
+        b.dataset.matNombre
+      ));
+    });
+  };
+
+  const eliminarKit = async (kitId, nombre) => {
+    if (!confirm(`¿Eliminar el kit "${nombre}"? Tambien se quitaran todos sus materiales asociados.`)) return;
+    const r = await api('DELETE', '/admin/kits/' + kitId);
+    if (!r.ok) { flash('flash', (r.data && r.data.error) || 'No se pudo eliminar el kit', 'error'); return; }
+    flash('flash', 'Kit eliminado.', 'ok');
+    cargarKits(practicaSeleccionada);
+  };
+
+  const quitarMaterialDeKit = async (kitId, materialId, nombre) => {
+    if (!confirm(`¿Quitar "${nombre}" de este kit?`)) return;
+    const r = await api('DELETE', '/admin/kits/' + kitId + '/materiales/' + materialId);
+    if (!r.ok) { flash('flash', (r.data && r.data.error) || 'No se pudo quitar el material', 'error'); return; }
+    flash('flash', 'Material quitado del kit.', 'ok');
+    cargarKits(practicaSeleccionada);
   };
 
   const agregarMaterialAKit = async (ev, kitId) => {
@@ -354,20 +471,78 @@
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
         <span class="badge badge--${a.estado === 'PENDIENTE' ? 'warn' : 'ok'}">${esc(a.estado)}</span>
-        ${a.estado === 'PENDIENTE' ? `<button class="btn btn-mini btn-secondary" data-resolver="${a.id}">Resolver</button>` : ''}
+        ${a.estado === 'PENDIENTE'
+          ? `<button class="btn btn-mini btn-primary" data-resolver="${a.id}" data-usuario="${esc(a.usuario)}" data-material="${esc(a.material)}">Marcar resuelto</button>`
+          : ''}
       </div>
     </li>`;
 
   const wireAdeudosBotones = (slice, listEl) => {
     listEl.querySelectorAll('button[data-resolver]').forEach((b) => {
-      b.addEventListener('click', () => resolverAdeudo(Number(b.dataset.resolver)));
+      b.addEventListener('click', () => resolverAdeudo(
+        Number(b.dataset.resolver),
+        b.dataset.usuario,
+        b.dataset.material
+      ));
     });
   };
 
-  const resolverAdeudo = async (id) => {
+  const resolverAdeudo = async (id, usuario, material) => {
+    if (!confirm(`¿Marcar como resuelto el adeudo de "${usuario}" sobre "${material}"?`)) return;
     const r = await api('PATCH', '/admin/adeudos/' + id + '/resolver');
-    if (!r.ok) { flash('flash', (r.data && r.data.error) || 'Error', 'error'); return; }
+    if (!r.ok) { flash('flash', (r.data && r.data.error) || 'No se pudo resolver el adeudo', 'error'); return; }
+    flash('flash', 'Adeudo marcado como resuelto.', 'ok');
     cargar();
+  };
+
+  const ESTADO_BADGE = {
+    PROGRAMADA: 'info',
+    EN_CURSO: 'ok',
+    FINALIZADA: 'neutral'
+  };
+
+  const renderSesionItem = (s) => {
+    const estadoBadge = `<span class="badge badge--${ESTADO_BADGE[s.estado] || 'neutral'}">${esc(s.estado)}</span>`;
+    const fechaTxt = s.fecha ? esc(formatFechaCorta(s.fecha)) : '—';
+    const horaTxt = s.hora_inicio ? ' · ' + esc(String(s.hora_inicio).slice(0, 5)) : '';
+    const duracionTxt = s.duracion_min ? ' · ' + s.duracion_min + ' min' : '';
+
+    const kits = Array.isArray(s.kits) ? s.kits : [];
+    let kitsHtml;
+    if (!kits.length) {
+      kitsHtml = '<div class="empty-state" style="font-size:12px">La practica no tiene kits registrados.</div>';
+    } else {
+      kitsHtml = kits.map((kit) => {
+        const mats = (kit.materiales || []).map((m) => `
+          <li class="card-row">
+            <div class="card-row__main">
+              <div class="card-row__title" style="font-size:13px">${esc(m.material)} ${m.material_activo ? '' : '<span class="badge badge--neutral">INACTIVO</span>'}</div>
+              <div class="card-row__sub">Cantidad requerida: <strong>${m.cantidad}</strong> · Stock actual: ${m.stock}</div>
+            </div>
+          </li>`).join('');
+        return `
+          <div class="kit-block" style="margin-top:8px">
+            <strong style="font-size:13px;color:var(--c-teal-900)">${esc(kit.nombre || ('Kit #' + kit.id))}</strong>
+            <ul class="list">
+              ${mats || '<li class="empty-state" style="font-size:12px">Kit sin materiales.</li>'}
+            </ul>
+          </div>`;
+      }).join('');
+    }
+
+    return `
+      <li class="card-row">
+        <div class="card-row__main" style="width:100%">
+          <div class="card-row__title">${esc(s.practica)} ${estadoBadge}</div>
+          <div class="card-row__sub"><strong>Fecha:</strong> ${fechaTxt}${horaTxt}${duracionTxt}</div>
+          <div class="card-row__sub"><strong>Grupo:</strong> ${esc(s.grupo)} · <strong>Maestro:</strong> ${esc(s.maestro)}</div>
+          <div class="card-row__sub">Equipos creados: ${s.equipos_creados} ${s.num_equipos ? '/ ' + s.num_equipos + ' planeados' : ''}</div>
+          <details style="margin-top:6px">
+            <summary style="cursor:pointer;font-size:13px;color:var(--c-teal-900)"><strong>Kits y materiales de la practica</strong></summary>
+            ${kitsHtml}
+          </details>
+        </div>
+      </li>`;
   };
 
   const renderIncidenciaItem = (x) => `
@@ -481,6 +656,16 @@
       filters: { tipo: (x, v) => x.tipo === v },
       emptyHtml: '<li class="empty-state">Sin incidencias.</li>'
     });
+
+    sesionesCtl = makePagedList(document.getElementById('sesionesBox'), {
+      render: renderSesionItem,
+      search: (s, q) =>
+        (s.practica || '').toLowerCase().includes(q) ||
+        (s.grupo || '').toLowerCase().includes(q) ||
+        (s.maestro || '').toLowerCase().includes(q),
+      filters: { estado: (s, v) => s.estado === v },
+      emptyHtml: '<li class="empty-state">Sin sesiones programadas.</li>'
+    });
   };
 
   document.addEventListener('DOMContentLoaded', async () => {
@@ -491,6 +676,7 @@
     wireSubtabs();
     wireResponsivasFiltros();
     wireMaterialesBuscador();
+    wireModalEditarMaterial();
     initListas();
     document.getElementById('formUsuario').addEventListener('submit', submitUsuario);
     document.getElementById('formMaterial').addEventListener('submit', submitMaterial);

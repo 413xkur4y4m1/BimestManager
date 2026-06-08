@@ -196,7 +196,8 @@
               <button class="btn btn-mini btn-secondary" data-stock="${m.id}" data-delta="1">+1</button>
               <button class="btn btn-mini btn-secondary" data-stock="${m.id}" data-delta="-1">-1</button>
               <button class="btn btn-mini btn-ghost" data-estado="${m.id}" data-target="${m.estado === 'DAÑADO' ? 'DISPONIBLE' : 'DAÑADO'}">→ ${m.estado === 'DAÑADO' ? 'DISPONIBLE' : 'DAÑADO'}</button>
-              <button class="btn btn-mini btn-danger" data-baja="${m.id}">Baja</button>
+              <button class="btn btn-mini btn-primary" data-editar="${m.id}">Editar</button>
+              <button class="btn btn-mini btn-danger" data-eliminar="${m.id}">Eliminar</button>
             </div>
           ` : ''}
         </div>
@@ -208,8 +209,11 @@
     list.querySelectorAll('button[data-estado]').forEach((b) => {
       b.addEventListener('click', () => cambiarEstadoMaterial(Number(b.dataset.estado), b.dataset.target));
     });
-    list.querySelectorAll('button[data-baja]').forEach((b) => {
-      b.addEventListener('click', () => darBajaMaterial(Number(b.dataset.baja)));
+    list.querySelectorAll('button[data-editar]').forEach((b) => {
+      b.addEventListener('click', () => editarMaterial(Number(b.dataset.editar)));
+    });
+    list.querySelectorAll('button[data-eliminar]').forEach((b) => {
+      b.addEventListener('click', () => eliminarMaterial(Number(b.dataset.eliminar)));
     });
 
     if (pag) {
@@ -251,11 +255,79 @@
     cargar();
   };
 
-  const darBajaMaterial = async (id) => {
-    if (!window.confirm('¿Dar de baja este material?')) return;
+  let editandoMaterialId = null;
+
+  const cerrarModalEditarMaterial = () => {
+    const modal = document.getElementById('editarMaterialModal');
+    if (modal) modal.hidden = true;
+    editandoMaterialId = null;
+  };
+
+  const guardarEdicionMaterial = async () => {
+    if (editandoMaterialId === null) return;
+    const id = editandoMaterialId;
+    const nombre = String(document.getElementById('editarMaterialNombre').value || '').trim();
+    const stockStr = String(document.getElementById('editarMaterialStock').value || '').trim();
+    const estado = String(document.getElementById('editarMaterialEstado').value || '').trim();
+
+    if (!nombre) { flash('flash', 'El nombre no puede estar vacio.', 'error'); return; }
+
+    const body = { nombre };
+    if (stockStr !== '') {
+      const stock = Number(stockStr);
+      if (!Number.isInteger(stock) || stock < 0) {
+        flash('flash', 'Stock invalido (entero >= 0).', 'error');
+        return;
+      }
+      body.stock = stock;
+    }
+    if (estado && ['DISPONIBLE', 'DAÑADO'].includes(estado)) {
+      body.estado = estado;
+    }
+
+    const r = await api('PATCH', '/turismo/admin/materiales/' + id, body);
+    if (!r.ok) { flash('flash', (r.data && r.data.error) || 'Error', 'error'); return; }
+    cerrarModalEditarMaterial();
+    flash('flash', 'Material actualizado.', 'ok');
+    cargar();
+  };
+
+  const editarMaterial = (id) => {
+    const material = materialesCache.find((m) => m.id === id);
+    if (!material) return;
+    const modal = document.getElementById('editarMaterialModal');
+    if (!modal) { flash('flash', 'Modal de edicion no encontrado en la pagina.', 'error'); return; }
+
+    document.getElementById('editarMaterialNombre').value = material.nombre || '';
+    document.getElementById('editarMaterialStock').value = material.stock != null ? material.stock : '';
+    document.getElementById('editarMaterialEstado').value = material.estado || 'DISPONIBLE';
+    editandoMaterialId = id;
+    modal.hidden = false;
+    setTimeout(() => document.getElementById('editarMaterialNombre').focus(), 30);
+  };
+
+  const wireModalEditarMaterial = () => {
+    const modal = document.getElementById('editarMaterialModal');
+    if (!modal) return;
+    const btnCancel = document.getElementById('editarMaterialCancel');
+    const btnSave = document.getElementById('editarMaterialSave');
+    if (btnCancel) btnCancel.addEventListener('click', cerrarModalEditarMaterial);
+    if (btnSave) btnSave.addEventListener('click', guardarEdicionMaterial);
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) cerrarModalEditarMaterial();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !modal.hidden) cerrarModalEditarMaterial();
+    });
+  };
+
+  const eliminarMaterial = async (id) => {
+    const material = materialesCache.find((m) => m.id === id);
+    if (!material) return;
+    if (!window.confirm(`¿Eliminar el material "${material.nombre}"? Quedara inactivo en el inventario.`)) return;
     const r = await api('DELETE', '/turismo/admin/materiales/' + id);
     if (!r.ok) { flash('flash', (r.data && r.data.error) || 'Error', 'error'); return; }
-    flash('flash', 'Material dado de baja.', 'ok');
+    flash('flash', 'Material eliminado.', 'ok');
     cargar();
   };
 
@@ -737,6 +809,7 @@
     wireTabs('home');
     wireSubtabs();
     wireMaterialesBuscador();
+    wireModalEditarMaterial();
     initListas();
     document.getElementById('formUsuario').addEventListener('submit', submitUsuario);
     document.getElementById('formMaterial').addEventListener('submit', submitMaterial);

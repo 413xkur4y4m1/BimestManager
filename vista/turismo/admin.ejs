@@ -327,6 +327,32 @@
   </section>
 </main>
 
+<!-- Modal: editar material -->
+<div id="editarMaterialModal" class="bm-modal" hidden>
+  <div class="bm-modal__panel">
+    <h3 class="bm-modal__title">Editar material</h3>
+    <div class="bm-modal__field">
+      <label for="editarMaterialNombre">Nombre</label>
+      <input id="editarMaterialNombre" type="text" autocomplete="off" maxlength="100">
+    </div>
+    <div class="bm-modal__field">
+      <label for="editarMaterialStock">Stock</label>
+      <input id="editarMaterialStock" type="number" min="0" step="1">
+    </div>
+    <div class="bm-modal__field">
+      <label for="editarMaterialEstado">Estado</label>
+      <select id="editarMaterialEstado">
+        <option value="DISPONIBLE">DISPONIBLE</option>
+        <option value="DAÑADO">DAÑADO</option>
+      </select>
+    </div>
+    <div class="bm-modal__actions">
+      <button type="button" class="btn btn-mini btn-ghost" id="editarMaterialCancel">Cancelar</button>
+      <button type="button" class="btn btn-mini btn-primary" id="editarMaterialSave">Guardar</button>
+    </div>
+  </div>
+</div>
+
 <%- include('../partials/bottom-nav', {
   active: 'home',
   navItems: [

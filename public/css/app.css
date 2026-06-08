@@ -843,3 +843,66 @@ img { max-width: 100%; display: block; }
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* ===== Modal generico ===== */
+.bm-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 25, 40, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 16px;
+}
+.bm-modal[hidden] { display: none !important; }
+.bm-modal__panel {
+  background: #fff;
+  border-radius: 14px;
+  padding: 20px 22px;
+  max-width: 420px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.bm-modal__title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--c-text, #122027);
+}
+.bm-modal__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.bm-modal__field label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c-text-muted, #4a5a66);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.bm-modal__field input,
+.bm-modal__field select {
+  padding: 10px 12px;
+  border: 1px solid var(--c-line, #d6dde2);
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  background: #fff;
+  color: var(--c-text, #122027);
+}
+.bm-modal__field input:focus,
+.bm-modal__field select:focus {
+  outline: 2px solid var(--c-accent, #ed8a4f);
+  outline-offset: 1px;
+}
+.bm-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
+}

@@ -165,6 +165,29 @@ const adminControlador = {
     }
   },
 
+  editarMaterial: async (req, res) => {
+    try {
+      const materialId = parsearIdPositivo(req.params.id);
+
+      if (!materialId) {
+        return res.status(400).json({ error: 'El id del material debe ser un numero positivo.' });
+      }
+
+      const resultado = await AdminModelo.editarMaterial({
+        materialId,
+        nombre: req.body.nombre,
+        stock: req.body.stock
+      });
+
+      return res.json({
+        message: 'Material actualizado correctamente.',
+        material: resultado
+      });
+    } catch (error) {
+      return responderError(res, error, 'No se pudo editar el material.');
+    }
+  },
+
   desactivarMaterial: async (req, res) => {
     try {
       const materialId = parsearIdPositivo(req.params.id);
@@ -261,6 +284,48 @@ const adminControlador = {
       });
     } catch (error) {
       return responderError(res, error, 'No se pudo crear el kit.');
+    }
+  },
+
+  eliminarKit: async (req, res) => {
+    try {
+      const kitId = parsearIdPositivo(req.params.id);
+
+      if (!kitId) {
+        return res.status(400).json({ error: 'El id del kit debe ser un numero positivo.' });
+      }
+
+      const resultado = await AdminModelo.eliminarKit(kitId);
+
+      return res.json({
+        message: 'Kit eliminado correctamente.',
+        kit: resultado
+      });
+    } catch (error) {
+      return responderError(res, error, 'No se pudo eliminar el kit.');
+    }
+  },
+
+  quitarMaterialDeKit: async (req, res) => {
+    try {
+      const kitId = parsearIdPositivo(req.params.kitId);
+      const materialId = parsearIdPositivo(req.params.materialId);
+
+      if (!kitId) {
+        return res.status(400).json({ error: 'El id del kit debe ser un numero positivo.' });
+      }
+      if (!materialId) {
+        return res.status(400).json({ error: 'El id del material debe ser un numero positivo.' });
+      }
+
+      const resultado = await AdminModelo.quitarMaterialDeKit({ kitId, materialId });
+
+      return res.json({
+        message: 'Material quitado del kit.',
+        item: resultado
+      });
+    } catch (error) {
+      return responderError(res, error, 'No se pudo quitar el material del kit.');
     }
   },
 
@@ -386,6 +451,16 @@ const adminControlador = {
       return res.json(incidencias);
     } catch (error) {
       return responderError(res, error, 'No se pudieron cargar las incidencias.');
+    }
+  },
+
+  listarSesiones: async (req, res) => {
+    try {
+      const estado = req.query.estado ? String(req.query.estado).toUpperCase() : null;
+      const sesiones = await AdminModelo.listarTodasLasSesiones({ estado });
+      return res.json(sesiones);
+    } catch (error) {
+      return responderError(res, error, 'No se pudieron cargar las sesiones.');
     }
   },
 

@@ -992,6 +992,11 @@ const MaestroModelo = {
         );
       }
 
+      await connection.query(
+        `DELETE FROM adeudos WHERE incidencia_id IN (SELECT id FROM incidencias WHERE equipo_id = ?)`,
+        [equipoId]
+      );
+      await connection.query(`DELETE FROM incidencias WHERE equipo_id = ?`, [equipoId]);
       await connection.query(`DELETE FROM responsivas WHERE equipo_id = ?`, [equipoId]);
       await connection.query(`DELETE FROM equipos WHERE id = ?`, [equipoId]);
 

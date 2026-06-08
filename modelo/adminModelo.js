@@ -7,6 +7,7 @@ const ROLES_CREABLES = ['ADMIN', 'MAESTRO'];
 const TIPOS_PRACTICA = ['QUIMICA', 'TURISMO'];
 const ESTADOS_PRESTAMO = ['ACTIVO', 'DEVUELTO'];
 const ESTADOS_ADEUDO = ['PENDIENTE', 'RESUELTO'];
+const ESTADOS_SESION = ['PROGRAMADA', 'EN_CURSO', 'FINALIZADA'];
 
 const crearErrorDominio = (status, message, code) => {
   const error = new Error(message);
@@ -21,6 +22,7 @@ const AdminModelo = {
   TIPOS_PRACTICA,
   ESTADOS_PRESTAMO,
   ESTADOS_ADEUDO,
+  ESTADOS_SESION,
 
   obtenerResumen: async () => {
     const [[usuarios]] = await pool.query(
@@ -346,6 +348,65 @@ const AdminModelo = {
     }
   },
 
+  editarMaterial: async ({ materialId, nombre, stock }) => {
+    const cambios = {};
+
+    if (nombre !== undefined) {
+      const nombreLimpio = String(nombre || '').trim();
+      if (!nombreLimpio) {
+        throw crearErrorDominio(400, 'El nombre del material no puede estar vacio.', 'MATERIAL_NAME_REQUIRED');
+      }
+      cambios.nombre = nombreLimpio;
+    }
+
+    if (stock !== undefined) {
+      const stockNum = Number(stock);
+      if (!Number.isInteger(stockNum) || stockNum < 0) {
+        throw crearErrorDominio(
+          400,
+          'El stock debe ser un entero mayor o igual a 0.',
+          'MATERIAL_STOCK_INVALID'
+        );
+      }
+      cambios.stock = stockNum;
+    }
+
+    if (!Object.keys(cambios).length) {
+      throw crearErrorDominio(400, 'No se enviaron campos para editar.', 'MATERIAL_NO_FIELDS');
+    }
+
+    const [materiales] = await pool.query(
+      `SELECT id, nombre, stock, is_active FROM materiales WHERE id = ? LIMIT 1`,
+      [materialId]
+    );
+
+    if (!materiales.length) {
+      throw crearErrorDominio(404, 'El material no existe.', 'MATERIAL_NOT_FOUND');
+    }
+
+    if (cambios.nombre && cambios.nombre.toLowerCase() !== materiales[0].nombre.toLowerCase()) {
+      const [colisiones] = await pool.query(
+        `SELECT id FROM materiales WHERE LOWER(nombre) = LOWER(?) AND id <> ? LIMIT 1`,
+        [cambios.nombre, materialId]
+      );
+      if (colisiones.length) {
+        throw crearErrorDominio(409, 'Ya existe otro material con ese nombre.', 'MATERIAL_ALREADY_EXISTS');
+      }
+    }
+
+    const sets = Object.keys(cambios).map((campo) => `${campo} = ?`).join(', ');
+    const params = [...Object.values(cambios), materialId];
+
+    await pool.query(`UPDATE materiales SET ${sets} WHERE id = ?`, params);
+
+    return {
+      id: Number(materialId),
+      nombre: cambios.nombre ?? materiales[0].nombre,
+      stock: cambios.stock ?? materiales[0].stock,
+      is_active: Boolean(materiales[0].is_active)
+    };
+  },
+
   desactivarMaterial: async (materialId) => {
     const [result] = await pool.query(
       `UPDATE materiales SET is_active = FALSE WHERE id = ? AND is_active = TRUE`,
@@ -501,6 +562,42 @@ const AdminModelo = {
     );
 
     return { id: result.insertId, practica_id: Number(practicaId), nombre: nombreLimpio };
+  },
+
+  eliminarKit: async (kitId) => {
+    const [kits] = await pool.query(
+      `SELECT id, practica_id, nombre FROM kits WHERE id = ? LIMIT 1`,
+      [kitId]
+    );
+
+    if (!kits.length) {
+      throw crearErrorDominio(404, 'El kit no existe.', 'KIT_NOT_FOUND');
+    }
+
+    await pool.query(`DELETE FROM kits WHERE id = ?`, [kitId]);
+
+    return {
+      id: Number(kitId),
+      practica_id: kits[0].practica_id,
+      nombre: kits[0].nombre
+    };
+  },
+
+  quitarMaterialDeKit: async ({ kitId, materialId }) => {
+    const [result] = await pool.query(
+      `DELETE FROM kit_materiales WHERE kit_id = ? AND material_id = ?`,
+      [kitId, materialId]
+    );
+
+    if (!result.affectedRows) {
+      throw crearErrorDominio(
+        404,
+        'Ese material no esta en el kit.',
+        'KIT_MATERIAL_NOT_FOUND'
+      );
+    }
+
+    return { kit_id: Number(kitId), material_id: Number(materialId) };
   },
 
   agregarMaterialAKit: async ({ kitId, materialId, cantidad }) => {
@@ -950,6 +1047,120 @@ const AdminModelo = {
     );
 
     return rows;
+  },
+
+  listarTodasLasSesiones: async ({ estado = null } = {}) => {
+    if (estado !== null && !ESTADOS_SESION.includes(estado)) {
+      throw crearErrorDominio(
+        400,
+        `Estado de sesion invalido. Permitidos: ${ESTADOS_SESION.join(', ')}.`,
+        'SESSION_STATE_INVALID'
+      );
+    }
+
+    const params = [];
+    let filtroEstado = '';
+
+    if (estado !== null) {
+      filtroEstado = 'WHERE s.estado = ?';
+      params.push(estado);
+    }
+
+    const [sesiones] = await pool.query(
+      `
+        SELECT
+          s.id,
+          s.practica_id,
+          p.nombre AS practica,
+          p.tipo   AS practica_tipo,
+          s.maestro_id,
+          um.nombre AS maestro,
+          um.email  AS maestro_email,
+          s.grupo_id,
+          g.nombre AS grupo,
+          s.fecha,
+          s.hora_inicio,
+          s.duracion_min,
+          s.num_equipos,
+          s.integrantes_por_equipo,
+          s.estado,
+          (
+            SELECT COUNT(*) FROM equipos e WHERE e.sesion_id = s.id
+          ) AS equipos_creados
+        FROM sesiones s
+        INNER JOIN practicas p ON p.id = s.practica_id
+        INNER JOIN grupos g    ON g.id = s.grupo_id
+        INNER JOIN usuarios um ON um.id = s.maestro_id
+        ${filtroEstado}
+        ORDER BY s.fecha DESC, s.hora_inicio DESC, s.id DESC
+      `,
+      params
+    );
+
+    if (!sesiones.length) return [];
+
+    const practicaIds = [...new Set(sesiones.map((s) => s.practica_id))];
+    const placeholders = practicaIds.map(() => '?').join(',');
+
+    const [kits] = await pool.query(
+      `
+        SELECT id, practica_id, nombre
+        FROM kits
+        WHERE practica_id IN (${placeholders})
+        ORDER BY id ASC
+      `,
+      practicaIds
+    );
+
+    let materialesPorKit = new Map();
+
+    if (kits.length) {
+      const kitIds = kits.map((k) => k.id);
+      const phKits = kitIds.map(() => '?').join(',');
+
+      const [items] = await pool.query(
+        `
+          SELECT km.kit_id, km.material_id, km.cantidad,
+                 m.nombre AS material, m.stock, m.is_active AS material_activo
+          FROM kit_materiales km
+          INNER JOIN materiales m ON m.id = km.material_id
+          WHERE km.kit_id IN (${phKits})
+          ORDER BY m.nombre ASC
+        `,
+        kitIds
+      );
+
+      for (const it of items) {
+        if (!materialesPorKit.has(it.kit_id)) {
+          materialesPorKit.set(it.kit_id, []);
+        }
+        materialesPorKit.get(it.kit_id).push({
+          material_id: it.material_id,
+          material: it.material,
+          cantidad: it.cantidad,
+          stock: it.stock,
+          material_activo: Boolean(it.material_activo)
+        });
+      }
+    }
+
+    const kitsPorPractica = new Map();
+    for (const k of kits) {
+      if (!kitsPorPractica.has(k.practica_id)) {
+        kitsPorPractica.set(k.practica_id, []);
+      }
+      kitsPorPractica.get(k.practica_id).push({
+        id: k.id,
+        nombre: k.nombre,
+        materiales: materialesPorKit.get(k.id) || []
+      });
+    }
+
+    return sesiones.map((s) => ({
+      ...s,
+      equipos_creados: Number(s.equipos_creados) || 0,
+      kits: kitsPorPractica.get(s.practica_id) || []
+    }));
   }
 };
 

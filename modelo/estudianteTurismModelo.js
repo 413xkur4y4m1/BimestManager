@@ -113,9 +113,11 @@ const EstudianteTurismModelo = {
         INNER JOIN practicas_turismo p ON p.id = s.practica_id
         WHERE s.grupo = ?
           AND s.estado <> 'FINALIZADA'
-          AND NOW() >= s.fecha_inicio
-          AND NOW() <= s.fecha_fin
-        ORDER BY s.fecha_inicio DESC, s.id DESC
+          AND (
+            s.estado = 'EN_CURSO'
+            OR (NOW() >= s.fecha_inicio AND NOW() <= s.fecha_fin)
+          )
+        ORDER BY (s.estado = 'EN_CURSO') DESC, s.fecha_inicio DESC, s.id DESC
         LIMIT 1
       `,
       [grupo]
@@ -350,13 +352,15 @@ const EstudianteTurismModelo = {
         );
       }
 
-      const ahora = new Date();
-      if (ahora < new Date(sesion.fecha_inicio) || ahora > new Date(sesion.fecha_fin)) {
-        throw crearErrorDominio(
-          403,
-          'La sesion no esta activa en este momento.',
-          'SESSION_NOT_ACTIVE'
-        );
+      if (sesion.estado !== 'EN_CURSO') {
+        const ahora = new Date();
+        if (ahora < new Date(sesion.fecha_inicio) || ahora > new Date(sesion.fecha_fin)) {
+          throw crearErrorDominio(
+            403,
+            'La sesion no esta activa en este momento.',
+            'SESSION_NOT_ACTIVE'
+          );
+        }
       }
 
       const [materiales] = await connection.query(

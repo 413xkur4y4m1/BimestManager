@@ -538,6 +538,77 @@ const AdminTurismoModelo = {
     return { id: Number(materialId), estado };
   },
 
+  editarMaterial: async ({ materialId, nombre, stock, estado }) => {
+    const cambios = {};
+
+    if (nombre !== undefined) {
+      const nombreLimpio = String(nombre || '').trim();
+      if (!nombreLimpio) {
+        throw crearErrorDominio(400, 'El nombre del material no puede estar vacio.', 'MATERIAL_NAME_REQUIRED');
+      }
+      cambios.nombre = nombreLimpio;
+    }
+
+    if (stock !== undefined) {
+      const stockNum = Number(stock);
+      if (!Number.isInteger(stockNum) || stockNum < 0) {
+        throw crearErrorDominio(
+          400,
+          'El stock debe ser un entero mayor o igual a 0.',
+          'MATERIAL_STOCK_INVALID'
+        );
+      }
+      cambios.stock = stockNum;
+    }
+
+    if (estado !== undefined) {
+      if (!ESTADOS_MATERIAL.includes(estado)) {
+        throw crearErrorDominio(
+          400,
+          `Estado invalido. Permitidos: ${ESTADOS_MATERIAL.join(', ')}.`,
+          'MATERIAL_STATE_INVALID'
+        );
+      }
+      cambios.estado = estado;
+    }
+
+    if (!Object.keys(cambios).length) {
+      throw crearErrorDominio(400, 'No se enviaron campos para editar.', 'MATERIAL_NO_FIELDS');
+    }
+
+    const [materiales] = await pool.query(
+      `SELECT id, nombre, stock, estado, is_active FROM materiales_turismo WHERE id = ? LIMIT 1`,
+      [materialId]
+    );
+
+    if (!materiales.length) {
+      throw crearErrorDominio(404, 'El material no existe.', 'MATERIAL_NOT_FOUND');
+    }
+
+    if (cambios.nombre && cambios.nombre.toLowerCase() !== materiales[0].nombre.toLowerCase()) {
+      const [colisiones] = await pool.query(
+        `SELECT id FROM materiales_turismo WHERE LOWER(nombre) = LOWER(?) AND id <> ? LIMIT 1`,
+        [cambios.nombre, materialId]
+      );
+      if (colisiones.length) {
+        throw crearErrorDominio(409, 'Ya existe otro material con ese nombre.', 'MATERIAL_ALREADY_EXISTS');
+      }
+    }
+
+    const sets = Object.keys(cambios).map((campo) => `${campo} = ?`).join(', ');
+    const params = [...Object.values(cambios), materialId];
+
+    await pool.query(`UPDATE materiales_turismo SET ${sets} WHERE id = ?`, params);
+
+    return {
+      id: Number(materialId),
+      nombre: cambios.nombre ?? materiales[0].nombre,
+      stock: cambios.stock ?? materiales[0].stock,
+      estado: cambios.estado ?? materiales[0].estado,
+      is_active: Boolean(materiales[0].is_active)
+    };
+  },
+
   desactivarMaterial: async (materialId) => {
     const [result] = await pool.query(
       `UPDATE materiales_turismo SET is_active = FALSE WHERE id = ? AND is_active = TRUE`,
