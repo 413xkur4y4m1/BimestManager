@@ -19,13 +19,13 @@ router.patch('/materiales/:id/stock', adminControlador.ajustarStockMaterial);
 router.patch('/materiales/:id', adminControlador.editarMaterial);
 router.delete('/materiales/:id', adminControlador.desactivarMaterial);
 
-router.get('/practicas', adminControlador.listarPracticas);
-router.post('/practicas', adminControlador.crearPractica);
-router.get('/practicas/:id/kits', adminControlador.listarKitsPorPractica);
-router.post('/practicas/:id/kits', adminControlador.crearKit);
-router.delete('/kits/:id', adminControlador.eliminarKit);
-router.post('/kits/:id/materiales', adminControlador.agregarMaterialAKit);
-router.delete('/kits/:kitId/materiales/:materialId', adminControlador.quitarMaterialDeKit);
+// Las prácticas y kits ahora las gestionan los MAESTROS (ver rutas/maestroRuta.js).
+// El admin administra los laboratorios físicos y consulta la hoja de ruta diaria.
+router.get('/laboratorios', adminControlador.listarLaboratorios);
+router.post('/laboratorios', adminControlador.crearLaboratorio);
+router.patch('/laboratorios/:id/estado', adminControlador.cambiarEstadoLaboratorio);
+
+router.get('/hoja-ruta', adminControlador.obtenerHojaRuta);
 
 router.get('/prestamos', adminControlador.listarPrestamos);
 router.post('/prestamos', adminControlador.registrarPrestamo);

@@ -201,6 +201,26 @@ const maestroControlador = {
         return res.status(400).json({ error: 'integrantes_por_equipo debe ser un entero entre 1 y 50.' });
       }
 
+      const laboratorioId = req.body.laboratorio_id === undefined
+        || req.body.laboratorio_id === null
+        || req.body.laboratorio_id === ''
+        ? null
+        : parsearIdPositivo(req.body.laboratorio_id);
+
+      if (req.body.laboratorio_id && !laboratorioId) {
+        return res.status(400).json({ error: 'laboratorio_id debe ser un entero positivo.' });
+      }
+
+      const kitId = req.body.kit_id === undefined
+        || req.body.kit_id === null
+        || req.body.kit_id === ''
+        ? null
+        : parsearIdPositivo(req.body.kit_id);
+
+      if (req.body.kit_id && !kitId) {
+        return res.status(400).json({ error: 'kit_id debe ser un entero positivo.' });
+      }
+
       const sesion = await MaestroModelo.crearSesion({
         maestroId: req.usuario.id,
         practicaId,
@@ -209,7 +229,9 @@ const maestroControlador = {
         horaInicio: hora.valor,
         duracionMin: duracion.valor,
         numEquipos: numEquipos.valor,
-        integrantesPorEquipo: integrantesPorEquipo.valor
+        integrantesPorEquipo: integrantesPorEquipo.valor,
+        laboratorioId,
+        kitId
       });
 
       return res.status(201).json({
@@ -374,6 +396,155 @@ const maestroControlador = {
       });
     } catch (error) {
       return responderError(res, error, 'No se pudo registrar la incidencia.');
+    }
+  },
+
+  crearPractica: async (req, res) => {
+    try {
+      const practica = await MaestroModelo.crearPractica({
+        nombre: req.body.nombre,
+        descripcion: req.body.descripcion,
+        maestroId: req.usuario.id
+      });
+
+      return res.status(201).json({
+        message: 'Practica creada correctamente.',
+        practica
+      });
+    } catch (error) {
+      return responderError(res, error, 'No se pudo crear la practica.');
+    }
+  },
+
+  listarKitsPorPractica: async (req, res) => {
+    try {
+      const practicaId = parsearIdPositivo(req.params.id);
+
+      if (!practicaId) {
+        return res.status(400).json({ error: 'El id de la practica debe ser un numero positivo.' });
+      }
+
+      const data = await MaestroModelo.listarKitsPorPractica(practicaId);
+      return res.json(data);
+    } catch (error) {
+      return responderError(res, error, 'No se pudieron cargar los kits de la practica.');
+    }
+  },
+
+  crearKit: async (req, res) => {
+    try {
+      const practicaId = parsearIdPositivo(req.params.id);
+
+      if (!practicaId) {
+        return res.status(400).json({ error: 'El id de la practica debe ser un numero positivo.' });
+      }
+
+      const kit = await MaestroModelo.crearKit({
+        practicaId,
+        nombre: req.body.nombre
+      });
+
+      return res.status(201).json({
+        message: 'Kit creado correctamente.',
+        kit
+      });
+    } catch (error) {
+      return responderError(res, error, 'No se pudo crear el kit.');
+    }
+  },
+
+  eliminarKit: async (req, res) => {
+    try {
+      const kitId = parsearIdPositivo(req.params.id);
+
+      if (!kitId) {
+        return res.status(400).json({ error: 'El id del kit debe ser un numero positivo.' });
+      }
+
+      const resultado = await MaestroModelo.eliminarKit(kitId);
+
+      return res.json({
+        message: 'Kit eliminado correctamente.',
+        kit: resultado
+      });
+    } catch (error) {
+      return responderError(res, error, 'No se pudo eliminar el kit.');
+    }
+  },
+
+  agregarMaterialAKit: async (req, res) => {
+    try {
+      const kitId = parsearIdPositivo(req.params.id);
+
+      if (!kitId) {
+        return res.status(400).json({ error: 'El id del kit debe ser un numero positivo.' });
+      }
+
+      const materialId = parsearIdPositivo(req.body.material_id);
+
+      if (!materialId) {
+        return res.status(400).json({ error: 'El id del material debe ser un numero positivo.' });
+      }
+
+      const item = await MaestroModelo.agregarMaterialAKit({
+        kitId,
+        materialId,
+        cantidad: req.body.cantidad
+      });
+
+      return res.status(201).json({
+        message: 'Material agregado al kit correctamente.',
+        item
+      });
+    } catch (error) {
+      return responderError(res, error, 'No se pudo agregar el material al kit.');
+    }
+  },
+
+  quitarMaterialDeKit: async (req, res) => {
+    try {
+      const kitId = parsearIdPositivo(req.params.kitId);
+      const materialId = parsearIdPositivo(req.params.materialId);
+
+      if (!kitId) {
+        return res.status(400).json({ error: 'El id del kit debe ser un numero positivo.' });
+      }
+      if (!materialId) {
+        return res.status(400).json({ error: 'El id del material debe ser un numero positivo.' });
+      }
+
+      const resultado = await MaestroModelo.quitarMaterialDeKit({ kitId, materialId });
+
+      return res.json({
+        message: 'Material quitado del kit.',
+        item: resultado
+      });
+    } catch (error) {
+      return responderError(res, error, 'No se pudo quitar el material del kit.');
+    }
+  },
+
+  listarLaboratorios: async (req, res) => {
+    try {
+      const laboratorios = await MaestroModelo.listarLaboratorios();
+      return res.json(laboratorios);
+    } catch (error) {
+      return responderError(res, error, 'No se pudieron cargar los laboratorios.');
+    }
+  },
+
+  obtenerAgenda: async (req, res) => {
+    try {
+      const fecha = String(req.query.fecha || '').trim();
+
+      if (!esFechaIsoValida(fecha)) {
+        return res.status(400).json({ error: 'fecha debe tener formato YYYY-MM-DD.' });
+      }
+
+      const agenda = await MaestroModelo.listarAgenda(fecha);
+      return res.json(agenda);
+    } catch (error) {
+      return responderError(res, error, 'No se pudo cargar la agenda de laboratorios.');
     }
   },
 

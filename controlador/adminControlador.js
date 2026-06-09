@@ -207,154 +207,75 @@ const adminControlador = {
     }
   },
 
-  listarPracticas: async (req, res) => {
+  listarLaboratorios: async (req, res) => {
     try {
-      const tipo = req.query.tipo ? String(req.query.tipo).toUpperCase() : null;
-      const practicas = await AdminModelo.listarPracticas(tipo);
-      return res.json(practicas);
+      const incluirInactivos = req.query.incluir_inactivos === 'true' || req.query.incluir_inactivos === '1';
+      const laboratorios = await AdminModelo.listarLaboratorios({ incluirInactivos });
+      return res.json(laboratorios);
     } catch (error) {
-      return responderError(res, error, 'No se pudieron cargar las practicas.');
+      return responderError(res, error, 'No se pudieron cargar los laboratorios.');
     }
   },
 
-  crearPractica: async (req, res) => {
+  crearLaboratorio: async (req, res) => {
     try {
-      const tipo = req.body.tipo ? String(req.body.tipo).trim().toUpperCase() : null;
-
-      if (tipo === 'TURISMO') {
-        return res.status(403).json({
-          error: 'El laboratorio de turismo aun no esta habilitado en el sistema.',
-          code: 'PRACTICE_TYPE_DISABLED'
-        });
-      }
-
-      if (tipo !== 'QUIMICA') {
-        return res.status(400).json({
-          error: 'Tipo de practica invalido. Por ahora solo se permite QUIMICA.',
-          code: 'PRACTICE_TYPE_INVALID'
-        });
-      }
-
-      const practica = await AdminModelo.crearPractica({
+      const laboratorio = await AdminModelo.crearLaboratorio({
         nombre: req.body.nombre,
-        descripcion: req.body.descripcion,
-        tipo
+        ubicacion: req.body.ubicacion,
+        capacidad: req.body.capacidad
       });
 
       return res.status(201).json({
-        message: 'Practica creada correctamente.',
-        practica
+        message: 'Laboratorio creado correctamente.',
+        laboratorio
       });
     } catch (error) {
-      return responderError(res, error, 'No se pudo crear la practica.');
+      return responderError(res, error, 'No se pudo crear el laboratorio.');
     }
   },
 
-  listarKitsPorPractica: async (req, res) => {
+  cambiarEstadoLaboratorio: async (req, res) => {
     try {
-      const practicaId = parsearIdPositivo(req.params.id);
+      const laboratorioId = parsearIdPositivo(req.params.id);
 
-      if (!practicaId) {
-        return res.status(400).json({ error: 'El id de la practica debe ser un numero positivo.' });
+      if (!laboratorioId) {
+        return res.status(400).json({ error: 'El id del laboratorio debe ser un numero positivo.' });
       }
 
-      const data = await AdminModelo.listarKitsPorPractica(practicaId);
-      return res.json(data);
-    } catch (error) {
-      return responderError(res, error, 'No se pudieron cargar los kits de la practica.');
-    }
-  },
+      const activo = parsearBooleano(req.body.activo);
 
-  crearKit: async (req, res) => {
-    try {
-      const practicaId = parsearIdPositivo(req.params.id);
-
-      if (!practicaId) {
-        return res.status(400).json({ error: 'El id de la practica debe ser un numero positivo.' });
+      if (!activo.ok) {
+        return res.status(400).json({ error: 'activo debe ser true o false.' });
       }
 
-      const kit = await AdminModelo.crearKit({
-        practicaId,
-        nombre: req.body.nombre
+      const resultado = await AdminModelo.cambiarEstadoLaboratorio({
+        laboratorioId,
+        activo: activo.valor
       });
-
-      return res.status(201).json({
-        message: 'Kit creado correctamente.',
-        kit
-      });
-    } catch (error) {
-      return responderError(res, error, 'No se pudo crear el kit.');
-    }
-  },
-
-  eliminarKit: async (req, res) => {
-    try {
-      const kitId = parsearIdPositivo(req.params.id);
-
-      if (!kitId) {
-        return res.status(400).json({ error: 'El id del kit debe ser un numero positivo.' });
-      }
-
-      const resultado = await AdminModelo.eliminarKit(kitId);
 
       return res.json({
-        message: 'Kit eliminado correctamente.',
-        kit: resultado
+        message: resultado.is_active
+          ? 'Laboratorio activado correctamente.'
+          : 'Laboratorio desactivado correctamente.',
+        laboratorio: resultado
       });
     } catch (error) {
-      return responderError(res, error, 'No se pudo eliminar el kit.');
+      return responderError(res, error, 'No se pudo cambiar el estado del laboratorio.');
     }
   },
 
-  quitarMaterialDeKit: async (req, res) => {
+  obtenerHojaRuta: async (req, res) => {
     try {
-      const kitId = parsearIdPositivo(req.params.kitId);
-      const materialId = parsearIdPositivo(req.params.materialId);
+      const fecha = String(req.query.fecha || '').trim();
 
-      if (!kitId) {
-        return res.status(400).json({ error: 'El id del kit debe ser un numero positivo.' });
-      }
-      if (!materialId) {
-        return res.status(400).json({ error: 'El id del material debe ser un numero positivo.' });
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
+        return res.status(400).json({ error: 'fecha debe tener formato YYYY-MM-DD.' });
       }
 
-      const resultado = await AdminModelo.quitarMaterialDeKit({ kitId, materialId });
-
-      return res.json({
-        message: 'Material quitado del kit.',
-        item: resultado
-      });
+      const hojaRuta = await AdminModelo.obtenerHojaRuta(fecha);
+      return res.json(hojaRuta);
     } catch (error) {
-      return responderError(res, error, 'No se pudo quitar el material del kit.');
-    }
-  },
-
-  agregarMaterialAKit: async (req, res) => {
-    try {
-      const kitId = parsearIdPositivo(req.params.id);
-
-      if (!kitId) {
-        return res.status(400).json({ error: 'El id del kit debe ser un numero positivo.' });
-      }
-
-      const materialId = parsearIdPositivo(req.body.material_id);
-
-      if (!materialId) {
-        return res.status(400).json({ error: 'El id del material debe ser un numero positivo.' });
-      }
-
-      const item = await AdminModelo.agregarMaterialAKit({
-        kitId,
-        materialId,
-        cantidad: req.body.cantidad
-      });
-
-      return res.status(201).json({
-        message: 'Material agregado al kit correctamente.',
-        item
-      });
-    } catch (error) {
-      return responderError(res, error, 'No se pudo agregar el material al kit.');
+      return responderError(res, error, 'No se pudo cargar la hoja de ruta.');
     }
   },
 

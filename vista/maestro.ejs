@@ -43,6 +43,7 @@
       <button type="button" class="is-active" data-subtab="ses-list">Mis sesiones</button>
       <button type="button" data-subtab="ses-new">Crear sesión</button>
       <button type="button" data-subtab="ses-teams">Armar equipos</button>
+      <button type="button" data-subtab="ses-agenda">Agenda</button>
     </div>
 
     <div data-subtab-panel="ses-list">
@@ -76,8 +77,15 @@
           <label class="field-label">Práctica</label>
           <div class="field"><select name="practica_id" id="practicaSel" required><option value="">Selecciona...</option></select></div>
 
+          <label class="field-label">Kit solicitado <span class="muted" style="font-weight:400">(opcional)</span></label>
+          <div class="field"><select name="kit_id" id="kitSesionSel"><option value="">Sin kit específico</option></select></div>
+
           <label class="field-label">Grupo</label>
           <div class="field"><select name="grupo_id" id="grupoSel" required><option value="">Selecciona...</option></select></div>
+
+          <label class="field-label">Laboratorio <span class="muted" style="font-weight:400">(opcional)</span></label>
+          <div class="field"><select name="laboratorio_id" id="laboratorioSel"><option value="">Sin asignar</option></select></div>
+          <p class="muted" style="font-size:12px;margin:-2px 12px 8px">Si eliges laboratorio, la hora y la duración son obligatorias. El sistema bloquea choques de horario en el mismo laboratorio.</p>
 
           <label class="field-label">Fecha</label>
           <div class="field"><input type="date" name="fecha" required></div>
@@ -123,6 +131,16 @@
             <button class="btn btn-primary" type="submit">Crear equipo con seleccionados</button>
           </form>
         </div>
+      </article>
+    </div>
+
+    <div data-subtab-panel="ses-agenda" hidden>
+      <article class="card">
+        <h3>Agenda de laboratorios</h3>
+        <p class="muted" style="font-size:13px;margin:0 0 10px">Mira qué laboratorios están ocupados antes de agendar. Reemplaza los horarios impresos.</p>
+        <label class="field-label">Fecha</label>
+        <div class="field-tight"><input type="date" id="agendaFecha"></div>
+        <div id="agendaContainer" style="margin-top:10px"><div class="empty-state">Elige una fecha para ver la ocupación.</div></div>
       </article>
     </div>
   </section>
@@ -232,6 +250,39 @@
       </article>
     </div>
   </section>
+
+  <!-- ============== TAB: Prácticas ============== -->
+  <section data-tab="practs">
+    <h1 class="section-title">Prácticas</h1>
+    <p class="section-subtitle">Crea tus prácticas y arma los kits de materiales que requieren.</p>
+
+    <article class="card">
+      <h3>Prácticas registradas</h3>
+      <ul class="list" id="practicasList"><li class="empty-state">Cargando...</li></ul>
+    </article>
+
+    <article class="card">
+      <h3>+ Crear práctica</h3>
+      <form id="formPractica" class="form-card">
+        <div class="field"><input name="nombre" placeholder="Nombre de la práctica" required></div>
+        <div class="field"><textarea name="descripcion" placeholder="Descripción (opcional)"></textarea></div>
+        <p class="muted" style="font-size:12px;margin:0 12px 8px">Tipo: <strong>QUIMICA</strong> (asignado automáticamente).</p>
+        <button class="btn btn-primary" type="submit">Crear práctica</button>
+      </form>
+    </article>
+
+    <article class="card" id="kitsCard" hidden>
+      <h3>Kits de <span id="kitsPracticaNombre">—</span></h3>
+      <p class="muted" style="font-size:12px;margin:0 0 10px" id="kitsHint">Selecciona una práctica para gestionar sus kits.</p>
+      <div id="kitsContainer"><div class="empty-state">Cargando kits...</div></div>
+
+      <h3 style="margin-top:14px">+ Nuevo kit</h3>
+      <form id="formKit" class="form-card">
+        <div class="field"><input name="nombre" placeholder="Nombre del kit (opcional)"></div>
+        <button class="btn btn-secondary" type="submit">Crear kit vacío</button>
+      </form>
+    </article>
+  </section>
 </main>
 
 <%- include('partials/bottom-nav', {
@@ -246,7 +297,9 @@
     { key: 'equipos', label: 'Equipos', href: '#equipos',
       icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/><path d="M5 21v-1a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v1"/></svg>' },
     { key: 'alumnos', label: 'Alumnos', href: '#alumnos',
-      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>' }
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>' },
+    { key: 'practs', label: 'Prácticas', href: '#practs',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>' }
   ]
 }) %>
 

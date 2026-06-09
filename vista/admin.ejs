@@ -239,37 +239,43 @@
     </article>
   </section>
 
-  <!-- ============== TAB: Prácticas ============== -->
-  <section data-tab="practs">
-    <h1 class="section-title">Prácticas</h1>
-    <p class="section-subtitle">Catálogo y kits de la práctica.</p>
+  <!-- ============== TAB: Laboratorio ============== -->
+  <section data-tab="labs">
+    <h1 class="section-title">Laboratorio</h1>
+    <p class="section-subtitle">Hoja de ruta diaria y administración de aulas. Las prácticas y kits las crean los maestros.</p>
 
-    <article class="card">
-      <h3>Prácticas registradas</h3>
-      <ul class="list" id="practicasList"><li class="empty-state">Cargando...</li></ul>
-    </article>
+    <div class="subtabs" role="tablist" aria-label="Secciones de laboratorio">
+      <button type="button" class="is-active" data-subtab="labs-ruta">Hoja de ruta</button>
+      <button type="button" data-subtab="labs-aulas">Aulas</button>
+    </div>
 
-    <article class="card">
-      <h3>+ Crear práctica</h3>
-      <form id="formPractica" class="form-card">
-        <div class="field"><input name="nombre" placeholder="Nombre de la práctica" required></div>
-        <div class="field"><textarea name="descripcion" placeholder="Descripción (opcional)"></textarea></div>
-        <p class="muted" style="font-size:12px;margin:0 12px 8px">Tipo: <strong>QUIMICA</strong> (asignado automáticamente).</p>
-        <button class="btn btn-primary" type="submit">Crear práctica</button>
-      </form>
-    </article>
+    <div data-subtab-panel="labs-ruta">
+      <article class="card">
+        <h3>Hoja de ruta del laboratorista</h3>
+        <p class="muted" style="font-size:13px;margin:0 0 10px">Materiales a preparar por hora, ordenados cronológicamente.</p>
+        <label class="field-label">Fecha</label>
+        <div class="field-tight"><input type="date" id="rutaFecha"></div>
+        <div id="rutaContainer" style="margin-top:10px"><div class="empty-state">Elige una fecha para ver la hoja de ruta.</div></div>
+      </article>
+    </div>
 
-    <article class="card" id="kitsCard" hidden>
-      <h3>Kits de <span id="kitsPracticaNombre">—</span></h3>
-      <p class="muted" style="font-size:12px;margin:0 0 10px" id="kitsHint">Selecciona una práctica para gestionar sus kits.</p>
-      <div id="kitsContainer"><div class="empty-state">Cargando kits...</div></div>
+    <div data-subtab-panel="labs-aulas" hidden>
+      <article class="card">
+        <h3>Aulas / laboratorios</h3>
+        <p class="muted" style="font-size:12px;margin:0 0 8px">Los maestros eligen estas aulas al agendar; el sistema evita choques de horario.</p>
+        <ul class="list" id="laboratoriosList"><li class="empty-state">Cargando...</li></ul>
+      </article>
 
-      <h3 style="margin-top:14px">+ Nuevo kit</h3>
-      <form id="formKit" class="form-card">
-        <div class="field"><input name="nombre" placeholder="Nombre del kit (opcional)"></div>
-        <button class="btn btn-secondary" type="submit">Crear kit vacío</button>
-      </form>
-    </article>
+      <article class="card">
+        <h3>+ Crear laboratorio</h3>
+        <form id="formLaboratorio" class="form-card">
+          <div class="field"><input name="nombre" placeholder="Nombre (ej. Laboratorio de Química C)" maxlength="100" required></div>
+          <div class="field"><input name="ubicacion" placeholder="Ubicación (opcional)" maxlength="150"></div>
+          <div class="field"><input name="capacidad" type="number" min="1" placeholder="Capacidad (opcional)"></div>
+          <button class="btn btn-primary" type="submit">Crear laboratorio</button>
+        </form>
+      </article>
+    </div>
   </section>
 </main>
 
@@ -305,8 +311,8 @@
       icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>' },
     { key: 'sesiones', label: 'Sesiones', href: '#sesiones',
       icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>' },
-    { key: 'practs', label: 'Prácticas', href: '#practs',
-      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>' }
+    { key: 'labs', label: 'Laboratorio', href: '#labs',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3v6l-5 9a1 1 0 0 0 .9 1.5h14.2A1 1 0 0 0 20 18l-5-9V3"/><path d="M8 3h8"/><path d="M7 14h10"/></svg>' }
   ]
 }) %>
 
