@@ -173,16 +173,27 @@
           <div class="card-row__title">${esc(m.nombre)} ${m.is_active ? '' : '<span class="badge badge--neutral">INACTIVO</span>'}</div>
           <div class="card-row__sub">Stock: ${m.stock}</div>
         </div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
-          <button class="btn btn-mini btn-secondary" data-stock="${m.id}" data-delta="1">+1</button>
-          <button class="btn btn-mini btn-secondary" data-stock="${m.id}" data-delta="-1">-1</button>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;align-items:center">
+          <input type="number" min="0" inputmode="numeric" value="${m.stock}" data-stock-input="${m.id}" aria-label="Stock de ${esc(m.nombre)}" title="Escribe el stock exacto y guarda" style="width:78px;padding:7px 10px;border-radius:10px;border:1px solid var(--c-line);font-size:13px;background:var(--c-cream-input);color:var(--c-teal-900)">
+          <button class="btn btn-mini btn-secondary" data-set-stock="${m.id}">Guardar</button>
           <button class="btn btn-mini btn-primary" data-editar="${m.id}">Editar</button>
           <button class="btn btn-mini btn-danger" data-eliminar="${m.id}">Eliminar</button>
         </div>
       </li>`).join('');
 
-    list.querySelectorAll('button[data-stock]').forEach((b) => {
-      b.addEventListener('click', () => ajustarStock(Number(b.dataset.stock), Number(b.dataset.delta)));
+    list.querySelectorAll('button[data-set-stock]').forEach((b) => {
+      b.addEventListener('click', () => {
+        const id = Number(b.dataset.setStock);
+        const input = list.querySelector(`input[data-stock-input="${id}"]`);
+        fijarStock(id, input ? input.value : '');
+      });
+    });
+
+    // Enter dentro del campo de stock también guarda
+    list.querySelectorAll('input[data-stock-input]').forEach((inp) => {
+      inp.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); fijarStock(Number(inp.dataset.stockInput), inp.value); }
+      });
     });
 
     list.querySelectorAll('button[data-editar]').forEach((b) => {
@@ -219,9 +230,16 @@
     if (next) next.addEventListener('click', () => { matsPagina++; renderMateriales(); });
   };
 
-  const ajustarStock = async (id, delta) => {
-    const r = await api('PATCH', '/admin/materiales/' + id + '/stock', { delta });
+  // Fija el stock al valor exacto escrito (reemplaza los antiguos +1 / -1)
+  const fijarStock = async (id, valor) => {
+    const stock = Number(valor);
+    if (!Number.isInteger(stock) || stock < 0) {
+      flash('flash', 'El stock debe ser un entero mayor o igual a 0.', 'error');
+      return;
+    }
+    const r = await api('PATCH', '/admin/materiales/' + id, { stock });
     if (!r.ok) { flash('flash', (r.data && r.data.error) || 'Error', 'error'); return; }
+    flash('flash', 'Stock actualizado.', 'ok');
     cargar();
   };
 
