@@ -50,7 +50,8 @@ tráfico DB no sale a internet y no necesita TLS (`DB_SSL=false`).
 2. Configura:
    - **Name:** `bimest-db` (o el que prefieras).
    - **Version:** MySQL 8.x.
-   - **Database / DB name:** `labs`
+   - **Database / DB name:** Coolify suele dejar `default`. Puedes dejarlo así
+     (en ese caso usa `DB_NAME=default`) o ponerle `labs` (`DB_NAME=labs`).
    - **Username:** `bimest_app`
    - **Password:** genera una fuerte y **guárdala**.
 3. **Deploy** la base.
@@ -67,22 +68,39 @@ tráfico DB no sale a internet y no necesita TLS (`DB_SSL=false`).
 
 ## Paso 2 — Cargar el esquema de la base
 
-Tienes los scripts SQL en el repo (`creacionTabs.sql` y los `labs_*.sql`).
-Carga el esquema en la base recién creada con cualquiera de estas opciones:
+> **No uses `creacionTabs.sql` tal cual en la nube.** Ese archivo trae
+> `SET PERSIST require_secure_transport = ON` (forzaría TLS y rompería la
+> conexión interna), un `use labs` que no coincide con la base `default`, y
+> `SELECT`/`UPDATE` con datos reales. En su lugar usa **`sql/schema_cloud.sql`**,
+> que es el mismo esquema pero limpio y seguro para una base nueva.
 
-**Opción A — desde tu PC (puerto público temporal activado):**
+El **hostname interno** de la base (ej. `j0kw8wskcscgw4k8s8sogsgg`) **solo es
+alcanzable desde dentro de la red de Coolify**, no desde tu PC. Por eso la forma
+más simple es cargar el esquema desde el contenedor de la app, que sí lo ve:
 
+**Opción A (recomendada) — script `db:init` desde el contenedor de la app:**
+
+1. Primero completa los Pasos 3 y 4 (crear la app y sus variables de entorno).
+2. Despliega la app una vez.
+3. En Coolify abre la app → pestaña **Terminal** (shell del contenedor) y corre:
+   ```bash
+   npm run db:init
+   ```
+   El script `scripts/init-db.js` usa las mismas variables (`DB_HOST`, etc.),
+   ejecuta `sql/schema_cloud.sql` y al final lista las tablas creadas.
+   Es idempotente (`CREATE TABLE IF NOT EXISTS`): puedes volver a correrlo sin
+   romper nada.
+
+**Opción B — desde tu PC con puerto público temporal:**
+
+En el recurso MySQL activa **"Public Port"**, y desde tu máquina (con cliente
+`mysql` instalado):
 ```bash
-mysql -h <IP_PUBLICA_COOLIFY> -P <PUERTO> -u bimest_app -p labs < creacionTabs.sql
+mysql -h <IP_PUBLICA_COOLIFY> -P <PUERTO_PUBLICO> -u bimest_app -p default < sql/schema_cloud.sql
 ```
+Desactiva el puerto público al terminar.
 
-**Opción B — desde la terminal del contenedor de la base (en Coolify):**
-
-Abre **Terminal** del recurso MySQL y pega el contenido de `creacionTabs.sql`,
-o sube el archivo y ejecútalo con `mysql -u bimest_app -p labs < creacionTabs.sql`.
-
-> `creacionTabs.sql` ya empieza con `use labs;`. Los archivos `labs_*.sql`
-> individuales son por tabla, por si necesitas recrear alguna puntualmente.
+> Cambia `default` por `labs` si así nombraste la base en el Paso 1.
 
 ---
 
@@ -112,7 +130,7 @@ DB_HOST=<hostname_interno_de_la_base_del_Paso_1>
 DB_PORT=3306
 DB_USER=bimest_app
 DB_PASSWORD=<password_de_la_base>
-DB_NAME=labs
+DB_NAME=default
 DB_SSL=false
 
 JWT_SECRET=<genera: openssl rand -hex 48>
