@@ -1,0 +1,37 @@
+# Dependencias (se reinstalan dentro de la imagen)
+node_modules
+
+# Control de versiones
+.git
+.gitignore
+
+# Variables de entorno (se inyectan en Coolify, NUNCA en la imagen)
+.env
+.env.local
+.env.*.local
+.env.cloud.example
+
+# Certificados y secretos
+certs
+
+# Logs y datos de runtime
+logs
+*.log
+npm-debug.log*
+
+# Firmas digitales (datos personales)
+imageFirma/*
+!imageFirma/.gitkeep
+
+# Documentacion e imagenes de presentacion (no necesarias en runtime)
+*.png
+presentacion.html
+coffeenezzi-*.html
+CHANGELOG-*.md
+
+# Editores / SO
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+desktop.ini
