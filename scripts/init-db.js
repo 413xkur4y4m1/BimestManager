@@ -42,21 +42,26 @@ const construirSsl = () => {
 
   let conexion;
   try {
+    // Conectamos SIN base fija para poder crearla si no existe.
     conexion = await mysql.createConnection({
       host,
       port: Number(process.env.DB_PORT) || 3306,
       user: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
-      database,
       ssl: construirSsl(),
       multipleStatements: true // necesario para ejecutar el .sql completo de una
     });
   } catch (err) {
-    console.error('No se pudo conectar a la base de datos:', err.message);
+    console.error('No se pudo conectar al servidor de base de datos:', err.message);
     process.exit(1);
   }
 
   try {
+    // Crea la base si no existe y la selecciona. Asi funciona aunque el
+    // nombre real difiera (default / labs) o la base aun no exista.
+    await conexion.query(`CREATE DATABASE IF NOT EXISTS \`${database}\`;`);
+    await conexion.changeUser({ database });
+
     console.log('Ejecutando schema_cloud.sql...');
     await conexion.query(sql);
 
