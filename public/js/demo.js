@@ -226,13 +226,15 @@
 
   const injectStyles = () => {
     const css = `
-      #demoPanel{position:fixed;right:18px;bottom:84px;width:300px;max-width:calc(100vw - 36px);z-index:99999;
+      /* Móvil: hoja superior, justo debajo del header y lejos de la barra inferior */
+      #demoPanel{position:fixed;left:12px;right:12px;top:calc(var(--header-h,60px) + env(safe-area-inset-top,0px) + 12px);
+        width:auto;z-index:99999;
         background:linear-gradient(180deg,rgba(16,52,62,.97),rgba(12,42,51,.97));color:#fff;border-radius:18px;
         border:1px solid rgba(255,255,255,.14);box-shadow:0 24px 60px -18px rgba(0,0,0,.6);
         backdrop-filter:blur(14px);font-family:var(--font,'Hanken Grotesk',system-ui,sans-serif);
-        overflow:hidden;transform-origin:bottom right;animation:demoIn .22s cubic-bezier(.22,1,.36,1);}
+        overflow:hidden;transform-origin:top center;animation:demoIn .22s cubic-bezier(.22,1,.36,1);}
       #demoPanel[hidden]{display:none}
-      @keyframes demoIn{from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:none}}
+      @keyframes demoIn{from{opacity:0;transform:translateY(-8px) scale(.98)}to{opacity:1;transform:none}}
       #demoPanel .dp-head{display:flex;align-items:center;gap:8px;padding:13px 15px;border-bottom:1px solid rgba(255,255,255,.1);
         font-family:var(--font-display,'Bricolage Grotesque',sans-serif);font-weight:800;font-size:15px;letter-spacing:-.01em}
       #demoPanel .dp-head .dp-dot{width:9px;height:9px;border-radius:50%;background:#ed8a4f;box-shadow:0 0 10px #ed8a4f}
@@ -247,12 +249,8 @@
       #demoPanel .dp-foot{padding:10px 14px;border-top:1px solid rgba(255,255,255,.1);font-size:11.5px;color:rgba(255,255,255,.7)}
       #demoPanel .dp-foot b{color:#f4a674}
       #demoPanel .dp-empty{padding:18px 14px;font-size:13px;color:rgba(255,255,255,.7);text-align:center}
-      #demoFab{position:fixed;right:18px;bottom:18px;z-index:99998;width:46px;height:46px;border-radius:50%;
-        background:linear-gradient(135deg,#3a8ea3,#e07338);color:#fff;display:grid;place-items:center;cursor:pointer;
-        box-shadow:0 10px 26px -8px rgba(0,0,0,.6);font-size:18px;border:1px solid rgba(255,255,255,.2);
-        transition:transform .2s ease}
-      #demoFab:hover{transform:scale(1.08) rotate(8deg)}
-      @media (min-width:900px){#demoFab{right:24px;bottom:24px}#demoPanel{right:24px;bottom:84px}}
+      /* Escritorio (con sidebar, sin barra inferior): esquina inferior derecha */
+      @media (min-width:900px){#demoPanel{left:auto;right:24px;top:auto;bottom:24px;width:300px;transform-origin:bottom right}}
       #demoToast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);z-index:99999;
         background:rgba(16,52,62,.96);color:#fff;padding:11px 18px;border-radius:999px;font-size:13px;font-weight:600;
         box-shadow:0 12px 30px -10px rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.14);
@@ -304,12 +302,19 @@
     document.body.appendChild(panel);
     listaEl = panel.querySelector('#demoLista');
 
-    const fab = document.createElement('div');
-    fab.id = 'demoFab';
-    fab.title = 'Scripts de demo (Ctrl+0)';
-    fab.innerHTML = '⚡';
-    fab.addEventListener('click', toggle);
-    document.body.appendChild(fab);
+    // En móvil no hay Ctrl+0: triple toque en el logo del header abre el menú.
+    // (El logo solo es visible/clicable en móvil, así que no estorba en escritorio.)
+    const logo = document.querySelector('.app-header__logo');
+    if (logo) {
+      let taps = 0, tapTimer;
+      logo.style.cursor = 'pointer';
+      logo.addEventListener('click', () => {
+        taps += 1;
+        clearTimeout(tapTimer);
+        tapTimer = setTimeout(() => { taps = 0; }, 600);
+        if (taps >= 3) { taps = 0; toggle(); }
+      });
+    }
   };
 
   const abrir = () => {

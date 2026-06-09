@@ -453,3 +453,15 @@ CALL `bm_migracion_practicas_labs`();
 DROP PROCEDURE IF EXISTS `bm_migracion_practicas_labs`;
 
 
+
+
+
+INSERT INTO `laboratorios` (`nombre`, `ubicacion`, `capacidad`)
+SELECT * FROM (SELECT 'Laboratorio de Química A' AS n, 'Edificio C · Planta baja' AS u, 30 AS c) AS t
+WHERE NOT EXISTS (SELECT 1 FROM `laboratorios` WHERE `nombre` = 'Laboratorio de Química A');
+
+INSERT INTO `laboratorios` (`nombre`, `ubicacion`, `capacidad`)
+SELECT * FROM (SELECT 'Laboratorio de Química B' AS n, 'Edificio C · Primer piso' AS u, 25 AS c) AS t
+WHERE NOT EXISTS (SELECT 1 FROM `laboratorios` WHERE `nombre` = 'Laboratorio de Química B');
+
+
