@@ -37,8 +37,17 @@ app.use(helmet({
     includeSubDomains: true
   } : false
 }));
+// Origenes permitidos para CORS. En la nube, la web vive en otro dominio
+// (ej. https://bimestmanager.com) y consume esta API en api.bimestmanager.com.
+// Define CORS_ORIGINS como lista separada por comas. Si no se define,
+// se refleja cualquier origen (comodo para desarrollo local).
+const origenesPermitidos = String(process.env.CORS_ORIGINS || '')
+  .split(',')
+  .map((o) => o.trim())
+  .filter(Boolean);
+
 app.use(cors({
-  origin: true,
+  origin: origenesPermitidos.length ? origenesPermitidos : true,
   credentials: true
 }));
 app.use(morgan('combined', { stream: logger.morganStream }));

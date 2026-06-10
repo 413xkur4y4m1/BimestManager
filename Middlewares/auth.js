@@ -33,12 +33,23 @@ const esFuenteTurismo = (usuario) => Boolean(usuario) && usuario.fuente === FUEN
 const esFuenteQuimica = (usuario) =>
   Boolean(usuario) && (usuario.fuente === FUENTES.QUIMICA || !usuario.fuente);
 
-const buildCookieOptions = () => ({
-  httpOnly: true,
-  sameSite: 'lax',
-  secure: process.env.NODE_ENV === 'production',
-  path: '/'
-});
+// Opciones de la cookie de sesion. Para que la web (bimestmanager.com) y la
+// API (api.bimestmanager.com) compartan la cookie, define COOKIE_DOMAIN=
+// .bimestmanager.com en la nube. En local se deja sin domain (host-only).
+const buildCookieOptions = () => {
+  const opts = {
+    httpOnly: true,
+    sameSite: process.env.COOKIE_SAMESITE || 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    path: '/'
+  };
+
+  if (process.env.COOKIE_DOMAIN) {
+    opts.domain = process.env.COOKIE_DOMAIN;
+  }
+
+  return opts;
+};
 
 const extraerToken = (req) => {
   const tokenCookie = req.cookies && req.cookies[TOKEN_COOKIE_NAME];
