@@ -144,41 +144,77 @@
       ]}
   ];
 
+  // Ejemplos de respuesta, indexados por "METODO ruta" para que un GET y un
+  // POST que comparten la misma ruta no muestren el mismo ejemplo.
   const respuestas = {
-    '/auth/login': '{\n  "message": "Inicio de sesion correcto.",\n  "redirectTo": "/admin",\n  "usuario": { "id": 1, "nombre": "Ana Vega", "email": "ana@ulsa.mx",\n               "rol": "ADMIN", "fuente": "QUIMICA", "grupo_id": null }\n}',
-    '/auth/registro-alumno': '{ "message": "Registro completado. Tu cuenta queda pendiente de autorizacion por un maestro.", "id": 42 }',
-    '/auth/registro-alumno-turismo': '{ "message": "Registro completado. Tu cuenta queda pendiente de autorizacion por un administrador.", "id": 18 }',
-    '/auth/logout': '{ "message": "Sesion cerrada correctamente." }',
-    '/auth/yo': '{ "usuario": { "id": 1, "nombre": "Ana Vega", "email": "ana@ulsa.mx", "rol": "MAESTRO", "fuente": "QUIMICA" } }',
-    '/salud': '{ "ok": true, "ts": "2026-06-10T07:30:00.000Z" }',
-    '/monitor/metricas': '{\n  "cpu": 12.4, "ramUsadaMB": 318, "ramTotalMB": 2048,\n  "discoLibreGB": 38.2, "dbLatenciaMs": 12, "uptimeSeg": 84213\n}',
-    '/estudiantes/mi-panel': '{\n  "sesion": { "id": 12, "practica": "Titulacion acido-base", "estado": "EN_CURSO" },\n  "equipo": { "id": 3, "nombre": "Equipo 03" },\n  "mi_firma_imagen": "/imageFirma/firma_u1_s1.png", "mi_firmado_at": "2026-06-10T16:05:00Z"\n}',
-    '/estudiantes/firmar': '{ "message": "Responsiva firmada.", "firma_imagen": "/imageFirma/firma_u1_s1.png" }',
-    '/estudiantes/pendientes': '[ { "id": 42, "nombre": "Luis Mora", "email": "luis@ulsa.mx", "is_active": 0 } ]',
-    '/maestro/resumen': '{ "sesionesHoy": 3, "alumnos": 128, "incidenciasAbiertas": 2 }',
-    '/maestro/materiales': '[ { "id": 1, "nombre": "Acido clorhidrico 100 mL", "stock": 42, "is_active": 1 } ]',
-    '/maestro/sesiones': '[ { "id": 12, "practica_id": 5, "grupo_id": 2, "fecha": "2026-06-12", "estado": "PROGRAMADA" } ]',
-    '/maestro/sesiones/:id': '{\n  "id": 12, "practica": "Titulacion acido-base", "laboratorio": "Lab Quimica A",\n  "estado": "PROGRAMADA", "equipos": [ { "id": 3, "nombre": "Equipo 03" } ]\n}',
-    '/maestro/practicas': '[ { "id": 5, "nombre": "Titulacion", "tipo": "QUIMICA", "creado_por": 1 } ]',
-    '/admin/resumen': '{ "usuarios": 134, "materiales": 512, "prestamosActivos": 9, "adeudosPendientes": 4 }',
-    '/admin/usuarios': '[ { "id": 1, "nombre": "Ana Vega", "email": "ana@ulsa.mx", "rol": "MAESTRO", "is_active": 1 } ]',
-    '/admin/materiales': '[ { "id": 1, "nombre": "Matraz Erlenmeyer 250 mL", "stock": 30, "is_active": 1 } ]',
-    '/admin/laboratorios': '[ { "id": 1, "nombre": "Laboratorio de Quimica A", "ubicacion": "Edificio C", "capacidad": 30, "is_active": 1 } ]',
-    '/admin/prestamos': '[ { "id": 7, "usuario_id": 42, "material_id": 1, "cantidad": 2, "estado": "ACTIVO" } ]',
-    '/admin/adeudos': '[ { "id": 3, "usuario_id": 42, "material_id": 1, "estado": "PENDIENTE" } ]',
-    '/turismo/estudiantes/mi-panel': '{ "sesion_activa": { "id": 8, "practica": "Salida de campo" }, "adeudos": 0 }',
-    '/turismo/admin/resumen': '{ "alumnos": 64, "materiales": 80, "solicitudesPendientes": 3 }',
-    '/turismo/admin/prestamos': '[ { "id": 5, "alumno_id": 18, "material_id": 2, "estado": "PRESTADO" } ]'
+    'POST /auth/login': '{\n  "message": "Inicio de sesion correcto.",\n  "redirectTo": "/admin",\n  "usuario": { "id": 1, "nombre": "Ana Vega", "email": "ana@ulsa.mx",\n               "rol": "ADMIN", "fuente": "QUIMICA", "grupo_id": null }\n}',
+    'POST /auth/registro-alumno': '{ "message": "Registro completado. Tu cuenta queda pendiente de autorizacion por un maestro.", "id": 42 }',
+    'POST /auth/registro-alumno-turismo': '{ "message": "Registro completado. Tu cuenta queda pendiente de autorizacion por un administrador.", "id": 18 }',
+    'POST /auth/logout': '{ "message": "Sesion cerrada correctamente." }',
+    'GET /auth/yo': '{ "usuario": { "id": 1, "nombre": "Ana Vega", "email": "ana@ulsa.mx", "rol": "MAESTRO", "fuente": "QUIMICA" } }',
+    'GET /salud': '{ "ok": true, "ts": "2026-06-10T07:30:00.000Z" }',
+    'GET /monitor/metricas': '{\n  "cpu": 12.4, "ramUsadaMB": 318, "ramTotalMB": 2048,\n  "discoLibreGB": 38.2, "dbLatenciaMs": 12, "uptimeSeg": 84213\n}',
+    'GET /estudiantes/mi-panel': '{\n  "sesion": { "id": 12, "practica": "Titulacion acido-base", "estado": "EN_CURSO" },\n  "equipo": { "id": 3, "nombre": "Equipo 03" },\n  "mi_firma_imagen": "/imageFirma/firma_u1_s1.png", "mi_firmado_at": "2026-06-10T16:05:00Z"\n}',
+    'POST /estudiantes/firmar': '{ "message": "Responsiva firmada.", "firma_imagen": "/imageFirma/firma_u1_s1.png" }',
+    'GET /estudiantes/pendientes': '[ { "id": 42, "nombre": "Luis Mora", "email": "luis@ulsa.mx", "is_active": 0 } ]',
+    'GET /maestro/resumen': '{ "sesionesHoy": 3, "alumnos": 128, "incidenciasAbiertas": 2 }',
+    'GET /maestro/materiales': '[ { "id": 1, "nombre": "Acido clorhidrico 100 mL", "stock": 42, "is_active": 1 } ]',
+    'GET /maestro/sesiones': '[ { "id": 12, "practica_id": 5, "grupo_id": 2, "fecha": "2026-06-12", "estado": "PROGRAMADA" } ]',
+    'GET /maestro/sesiones/:id': '{\n  "id": 12, "practica": "Titulacion acido-base", "laboratorio": "Lab Quimica A",\n  "estado": "PROGRAMADA", "equipos": [ { "id": 3, "nombre": "Equipo 03" } ]\n}',
+    'GET /maestro/practicas': '[ { "id": 5, "nombre": "Titulacion", "tipo": "QUIMICA", "creado_por": 1 } ]',
+    'GET /admin/resumen': '{ "usuarios": 134, "materiales": 512, "prestamosActivos": 9, "adeudosPendientes": 4 }',
+    'GET /admin/usuarios': '[ { "id": 1, "nombre": "Ana Vega", "email": "ana@ulsa.mx", "rol": "MAESTRO", "is_active": 1 } ]',
+    'GET /admin/materiales': '[ { "id": 1, "nombre": "Matraz Erlenmeyer 250 mL", "stock": 30, "is_active": 1 } ]',
+    'GET /admin/laboratorios': '[ { "id": 1, "nombre": "Laboratorio de Quimica A", "ubicacion": "Edificio C", "capacidad": 30, "is_active": 1 } ]',
+    'GET /admin/prestamos': '[ { "id": 7, "usuario_id": 42, "material_id": 1, "cantidad": 2, "estado": "ACTIVO" } ]',
+    'GET /admin/adeudos': '[ { "id": 3, "usuario_id": 42, "material_id": 1, "estado": "PENDIENTE" } ]',
+    'GET /turismo/estudiantes/mi-panel': '{ "sesion_activa": { "id": 8, "practica": "Salida de campo" }, "adeudos": 0 }',
+    'GET /turismo/admin/resumen': '{ "alumnos": 64, "materiales": 80, "solicitudesPendientes": 3 }',
+    'GET /turismo/admin/prestamos': '[ { "id": 5, "alumno_id": 18, "material_id": 2, "estado": "PRESTADO" } ]'
   };
 
+  // Respuesta tipica para mutaciones sin ejemplo especifico.
   const RES_GENERICA = {
     POST:   '{ "message": "Creado correctamente.", "id": 123 }',
     PATCH:  '{ "message": "Actualizado correctamente." }',
     DELETE: '{ "message": "Eliminado correctamente." }'
   };
-  const RES_ERRORES = '// 401  { "error": "Debes iniciar sesion." }\n// 403  { "error": "No tienes permisos para esta accion." }\n// 400  { "error": "Datos invalidos." }';
 
   function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+  // Ejemplo de respuesta de un endpoint (segun metodo + ruta).
+  function ejemploDe(e){
+    const k = e.m + ' ' + e.p;
+    if (respuestas[k]) return respuestas[k];
+    if (e.m !== 'GET') return RES_GENERICA[e.m] || '';
+    return '';
+  }
+
+  // Errores SOLO los que aplican a ese endpoint (no se repiten en todo).
+  function erroresDe(e){
+    const L = [];
+    if (e.f){
+      // Endpoints publicos: no dan 401/403 genericos.
+      if (e.p === '/auth/login'){
+        L.push(['400', 'Email y password son obligatorios.']);
+        L.push(['401', 'Credenciales invalidas.']);
+      } else if (e.p.indexOf('/auth/registro') === 0){
+        L.push(['400', 'Datos invalidos (nombre, email o password).']);
+        L.push(['409', 'Ya existe una cuenta con ese email.']);
+      }
+      // GET publicos (/salud, /monitor/metricas) -> sin errores comunes.
+    } else {
+      L.push(['401', 'Debes iniciar sesion.']);
+      L.push(['403', 'No tienes permisos para esta accion.']);
+      if (e.m === 'POST' || e.m === 'PATCH' || e.body){
+        L.push(['400', 'Datos invalidos.']);
+      }
+    }
+    return L;
+  }
+  function erroresTexto(e){
+    return erroresDe(e).map(function (er){ return '// ' + er[0] + '  { "error": "' + er[1] + '" }'; }).join('\n');
+  }
 
   // Ejecuta un GET y pinta el resultado. Si da 401/403 ofrece iniciar sesion.
   async function probar(path, outId){
@@ -225,9 +261,11 @@
         ? '<button class="try" data-p="' + esc(e.p) + '" data-out="' + outId + '">Probar ▶</button>'
         : '<span class="noexec">🔒 No ejecutable aquí · modifica datos</span>';
       const bodyEx = e.body ? '<div class="body-ex"><b>body</b> ' + esc(e.body) + '</div>' : '';
-      const ejemplo = respuestas[e.p] || (e.m !== 'GET' ? RES_GENERICA[e.m] : '');
-      const resEx = ejemplo
-        ? '<details class="resp"><summary>Respuesta de ejemplo</summary><pre class="resp-pre">' + esc(ejemplo) + '\n\n' + esc(RES_ERRORES) + '</pre></details>'
+      const ejemplo = ejemploDe(e);
+      const errTxt = erroresTexto(e);
+      const cuerpo = esc(ejemplo) + (ejemplo && errTxt ? '\n\n' : '') + esc(errTxt);
+      const resEx = cuerpo.trim()
+        ? '<details class="resp"><summary>Respuesta de ejemplo</summary><pre class="resp-pre">' + cuerpo + '</pre></details>'
         : '';
       cards +=
         '<article class="card">' +
@@ -248,10 +286,55 @@
         '<span class="section__base">' + esc(g.base) + '</span>' +
         '<span class="nav__spacer"></span>' +
         '<p class="section__desc">' + esc(g.desc) + '</p>' +
+        '<button class="copybtn copySec" data-g="' + g.id + '" title="Copiar esta sección en Markdown">📋 Copiar sección</button>' +
       '</div>' +
       '<div class="grid">' + cards + '</div>';
     cont.appendChild(sec);
   });
+
+  // ---- Exportar documentacion en Markdown (para pegar a una IA) ----
+  function mdEndpoint(e){
+    let s = '### `' + e.m + ' ' + e.p + '` ' + (e.f ? '(público)' : '(requiere JWT)') + '\n';
+    s += e.d + '\n';
+    if (e.body) s += '\n**Body:**\n```json\n' + e.body + '\n```\n';
+    const ej = ejemploDe(e);
+    if (ej) s += '\n**Respuesta de ejemplo:**\n```json\n' + ej + '\n```\n';
+    const errs = erroresDe(e);
+    if (errs.length) s += '\n**Errores:**\n' + errs.map(function (er){ return '- `' + er[0] + '` ' + er[1]; }).join('\n') + '\n';
+    return s;
+  }
+  function mdGrupo(g){
+    let s = '## ' + g.name + '  (`' + g.base + '`)\n' + g.desc + '\n\n';
+    s += g.eps.map(mdEndpoint).join('\n');
+    return s;
+  }
+  function mdTodo(){
+    let s = '# API Bimest Manager — Documentación\n\n';
+    s += '- **Base URL:** ' + API_BASE + '\n';
+    s += '- **Auth:** JWT (cookie httpOnly o header `Authorization: Bearer <token>`)\n';
+    s += '- **Content-Type:** application/json\n';
+    s += '- Las rutas marcadas `(requiere JWT)` necesitan sesión; las `(público)` no.\n\n';
+    s += groups.map(mdGrupo).join('\n\n---\n\n');
+    return s;
+  }
+
+  async function copiar(texto, btn){
+    try{
+      await navigator.clipboard.writeText(texto);
+    }catch(_){
+      const ta = document.createElement('textarea');
+      ta.value = texto; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); } catch (e2) {}
+      ta.remove();
+    }
+    if (btn){
+      const prev = btn.textContent;
+      btn.textContent = '✓ Copiado';
+      btn.classList.add('is-ok');
+      setTimeout(function (){ btn.textContent = prev; btn.classList.remove('is-ok'); }, 1600);
+    }
+  }
 
   // ---- Login real para probar con datos reales ----
   const elForm = document.getElementById('loginForm');
@@ -314,10 +397,20 @@
     }catch(_){}
   })();
 
-  // ---- Delegacion de clicks: Probar y "Iniciar sesion" ----
+  // ---- Delegacion de clicks: Probar, Iniciar sesion, Copiar ----
   document.addEventListener('click', (ev) => {
-    const btn = ev.target.closest('.try');
-    if (btn){ probar(btn.getAttribute('data-p'), btn.getAttribute('data-out')); return; }
+    const tryBtn = ev.target.closest('.try');
+    if (tryBtn){ probar(tryBtn.getAttribute('data-p'), tryBtn.getAttribute('data-out')); return; }
+
+    const copyAll = ev.target.closest('.copyAll');
+    if (copyAll){ copiar(mdTodo(), copyAll); return; }
+
+    const copySec = ev.target.closest('.copySec');
+    if (copySec){
+      const g = groups.find(function (x){ return x.id === copySec.getAttribute('data-g'); });
+      if (g) copiar(mdGrupo(g), copySec);
+      return;
+    }
 
     if (ev.target.closest('.goLogin')){
       const bar = document.getElementById('authbar');
