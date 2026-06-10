@@ -66,24 +66,16 @@ app.use(express.static(path.join(__dirname, 'public')));
 // La carpeta vive fuera de /public para que sea facil rotar/auditar sin tocar el resto.
 app.use('/imageFirma', express.static(path.join(__dirname, 'imageFirma')));
 
-app.get('/', (req, res) => {
-  res.redirect('/login');
+// La UI del sistema (login, dashboards) ya NO se sirve desde la API: vive en
+// la web (bimestmanager.com). Este host expone solo la API REST + una pagina
+// de documentacion en la raiz.
+app.get(['/', '/docs'], (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'api-docs.html'));
 });
 
 app.get('/salud', (req, res) => {
   res.json({ ok: true, ts: new Date().toISOString() });
 });
-
-// Vistas auth
-app.get('/login', (req, res) => res.render('auth/login'));
-app.get('/registro', (req, res) => res.render('auth/registro'));
-
-// Vistas dashboards (la auth real corre client-side via /auth/yo)
-app.get('/estudiante', (req, res) => res.render('estudiante'));
-app.get('/maestro', (req, res) => res.render('maestro'));
-app.get('/admin', (req, res) => res.render('admin'));
-app.get('/turismo/estudiante', (req, res) => res.render('turismo/estudiante'));
-app.get('/turismo/admin', (req, res) => res.render('turismo/admin'));
 
 // Dashboard de monitoreo (vista) + endpoints JSON
 app.get('/monitor', monitoreoControlador.verDashboard);
