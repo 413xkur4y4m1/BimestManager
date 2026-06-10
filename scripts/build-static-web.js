@@ -89,22 +89,33 @@ const paginas = [
 ];
 
 const HTACCESS = `# ============================================================
-#  BimestManager — sitio estatico (Hostinger / Apache)
-#  Generado por scripts/build-static-web.js — NO editar a mano.
+#  BimestManager - sitio estatico (Hostinger / Apache)
+#  Generado por scripts/build-static-web.js - NO editar a mano.
 # ============================================================
 
-# ── Forzar HTTPS ───────────────────────────────────────────
 RewriteEngine On
+
+# Forzar HTTPS (a prueba de proxy: si el proxy ya entrega por https, no redirige)
 RewriteCond %{HTTPS} off
+RewriteCond %{HTTP:X-Forwarded-Proto} !https
 RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-# ── URLs limpias: /login -> login.html, /turismo/admin -> turismo/admin.html
+# URLs limpias: /login -> login.html, /turismo/admin -> turismo/admin.html
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond %{REQUEST_FILENAME}.html -f
 RewriteRule ^(.+?)/?$ $1.html [L]
 
-# ── Compresion ─────────────────────────────────────────────
+# MIME correctos. Los ES modules de Vite (type="module") NO se ejecutan si el
+# servidor manda el .js como text/plain -> pagina en blanco. Esto lo evita.
+<IfModule mod_mime.c>
+  AddType application/javascript .js
+  AddType application/javascript .mjs
+  AddType text/css .css
+  AddType image/svg+xml .svg
+</IfModule>
+
+# Compresion
 <IfModule mod_deflate.c>
   AddOutputFilterByType DEFLATE text/html text/plain text/css text/javascript application/javascript application/json image/svg+xml
 </IfModule>

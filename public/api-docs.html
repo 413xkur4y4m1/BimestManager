@@ -88,6 +88,12 @@
     border-radius:10px;padding:11px 12px;overflow:auto;max-height:260px;white-space:pre-wrap;word-break:break-word}
   .body-ex{font-family:var(--mono);font-size:12px;color:var(--muted)}
   .body-ex b{color:var(--cream);font-weight:600}
+  .resp{border:1px solid var(--line);border-radius:9px;background:rgba(0,0,0,.18)}
+  .resp summary{cursor:pointer;font-family:var(--head);font-weight:700;font-size:12.5px;padding:8px 11px;color:var(--teal-2);list-style:none}
+  .resp summary::-webkit-details-marker{display:none}
+  .resp summary::before{content:'▸ ';color:var(--muted)}
+  .resp[open] summary::before{content:'▾ '}
+  .resp-pre{margin:0;border:none;border-top:1px solid var(--line);border-radius:0 0 9px 9px;background:transparent;max-height:none;color:#bfe0d9}
 
   footer{margin-top:46px;border-top:1px solid var(--line);padding:26px 0 50px;color:var(--muted);font-size:13px}
   footer a{color:var(--orange-2);text-decoration:none}
@@ -280,6 +286,61 @@
       ]}
   ];
 
+  // Ejemplos de respuesta (ilustrativos). Para los GET, "Probar ▶" trae la
+  // respuesta REAL en vivo; estos ejemplos sirven de referencia rapida.
+  const respuestas = {
+    '/auth/login': `{
+  "message": "Inicio de sesion correcto.",
+  "redirectTo": "/admin",
+  "usuario": { "id": 1, "nombre": "Ana Vega", "email": "ana@ulsa.mx",
+               "rol": "ADMIN", "fuente": "QUIMICA", "grupo_id": null }
+}`,
+    '/auth/registro-alumno': `{ "message": "Registro completado. Tu cuenta queda pendiente de autorizacion por un maestro.", "id": 42 }`,
+    '/auth/registro-alumno-turismo': `{ "message": "Registro completado. Tu cuenta queda pendiente de autorizacion por un administrador.", "id": 18 }`,
+    '/auth/logout': `{ "message": "Sesion cerrada correctamente." }`,
+    '/auth/yo': `{ "usuario": { "id": 1, "nombre": "Ana Vega", "email": "ana@ulsa.mx", "rol": "MAESTRO", "fuente": "QUIMICA" } }`,
+    '/salud': `{ "ok": true, "ts": "2026-06-10T07:30:00.000Z" }`,
+    '/monitor/metricas': `{
+  "cpu": 12.4, "ramUsadaMB": 318, "ramTotalMB": 2048,
+  "discoLibreGB": 38.2, "dbLatenciaMs": 12, "uptimeSeg": 84213
+}`,
+    '/estudiantes/mi-panel': `{
+  "sesion": { "id": 12, "practica": "Titulacion acido-base", "estado": "EN_CURSO" },
+  "equipo": { "id": 3, "nombre": "Equipo 03" },
+  "mi_firma_imagen": "/imageFirma/firma_u1_s1.png", "mi_firmado_at": "2026-06-10T16:05:00Z"
+}`,
+    '/estudiantes/firmar': `{ "message": "Responsiva firmada.", "firma_imagen": "/imageFirma/firma_u1_s1.png" }`,
+    '/estudiantes/pendientes': `[ { "id": 42, "nombre": "Luis Mora", "email": "luis@ulsa.mx", "is_active": 0 } ]`,
+    '/maestro/resumen': `{ "sesionesHoy": 3, "alumnos": 128, "incidenciasAbiertas": 2 }`,
+    '/maestro/materiales': `[ { "id": 1, "nombre": "Acido clorhidrico 100 mL", "stock": 42, "is_active": 1 } ]`,
+    '/maestro/sesiones': `[ { "id": 12, "practica_id": 5, "grupo_id": 2, "fecha": "2026-06-12", "estado": "PROGRAMADA" } ]`,
+    '/maestro/sesiones/:id': `{
+  "id": 12, "practica": "Titulacion acido-base", "laboratorio": "Lab Quimica A",
+  "estado": "PROGRAMADA", "equipos": [ { "id": 3, "nombre": "Equipo 03" } ]
+}`,
+    '/maestro/practicas': `[ { "id": 5, "nombre": "Titulacion", "tipo": "QUIMICA", "creado_por": 1 } ]`,
+    '/admin/resumen': `{ "usuarios": 134, "materiales": 512, "prestamosActivos": 9, "adeudosPendientes": 4 }`,
+    '/admin/usuarios': `[ { "id": 1, "nombre": "Ana Vega", "email": "ana@ulsa.mx", "rol": "MAESTRO", "is_active": 1 } ]`,
+    '/admin/materiales': `[ { "id": 1, "nombre": "Matraz Erlenmeyer 250 mL", "stock": 30, "is_active": 1 } ]`,
+    '/admin/laboratorios': `[ { "id": 1, "nombre": "Laboratorio de Quimica A", "ubicacion": "Edificio C", "capacidad": 30, "is_active": 1 } ]`,
+    '/admin/prestamos': `[ { "id": 7, "usuario_id": 42, "material_id": 1, "cantidad": 2, "estado": "ACTIVO" } ]`,
+    '/admin/adeudos': `[ { "id": 3, "usuario_id": 42, "material_id": 1, "estado": "PENDIENTE" } ]`,
+    '/turismo/estudiantes/mi-panel': `{ "sesion_activa": { "id": 8, "practica": "Salida de campo" }, "adeudos": 0 }`,
+    '/turismo/admin/resumen': `{ "alumnos": 64, "materiales": 80, "solicitudesPendientes": 3 }`,
+    '/turismo/admin/prestamos': `[ { "id": 5, "alumno_id": 18, "material_id": 2, "estado": "PRESTADO" } ]`
+  };
+
+  // Respuesta tipica para mutaciones sin ejemplo especifico.
+  const RES_GENERICA = {
+    POST:   `{ "message": "Creado correctamente.", "id": 123 }`,
+    PATCH:  `{ "message": "Actualizado correctamente." }`,
+    DELETE: `{ "message": "Eliminado correctamente." }`
+  };
+  // Errores estandar (mismos para toda la API).
+  const RES_ERRORES = `// 401  { "error": "Debes iniciar sesion." }
+// 403  { "error": "No tienes permisos para esta accion." }
+// 400  { "error": "Datos invalidos." }`;
+
   function esc(s){ return String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
 
   async function probar(btn, method, path, outId){
@@ -309,6 +370,10 @@
         ? `<button class="try" onclick="probar(this,'GET','${e.p}','${outId}')">Probar ▶</button>`
         : '';
       const bodyEx = e.body ? `<div class="body-ex"><b>body</b> ${esc(e.body)}</div>` : '';
+      const ejemplo = respuestas[e.p] || (e.m !== 'GET' ? RES_GENERICA[e.m] : '');
+      const resEx = ejemplo
+        ? `<details class="resp"><summary>Respuesta de ejemplo</summary><pre class="resp-pre">${esc(ejemplo)}\n\n${esc(RES_ERRORES)}</pre></details>`
+        : '';
       cards += `
         <article class="card">
           <div class="card__row">
@@ -318,6 +383,7 @@
           </div>
           <p class="card__desc">${esc(e.d)}</p>
           ${bodyEx}
+          ${resEx}
           ${tryBtn}
           <pre id="${outId}" style="display:none"></pre>
         </article>`;
