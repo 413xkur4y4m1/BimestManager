@@ -11,7 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#0c1719; --bg2:#0a1416; --teal:#1d5e6e; --teal-2:#2b8aa0;
+    --bg:#0c1719; --teal:#1d5e6e; --teal-2:#2b8aa0;
     --orange:#e07338; --orange-2:#ff7a1a; --cream:#f4e9dd;
     --ink:#eaf2f2; --muted:#9fb3b5; --line:rgba(255,255,255,.08);
     --card:rgba(255,255,255,.035);
@@ -31,46 +31,57 @@
   }
   a{color:inherit}
   .wrap{max-width:1080px;margin:0 auto;padding:0 22px}
-
-  /* NAV */
   .nav{display:flex;align-items:center;gap:16px;padding:20px 22px;max-width:1080px;margin:0 auto;flex-wrap:wrap}
   .nav__brand{display:flex;align-items:center;gap:11px;font-family:var(--head);font-weight:800;font-size:18px;text-decoration:none}
   .nav__brand img{width:34px;height:34px;border-radius:9px}
+  .nav__brand span{color:var(--muted);font-weight:600}
   .nav__spacer{flex:1}
   .nav__link{font-size:14px;color:var(--muted);text-decoration:none;padding:8px 12px;border-radius:10px}
   .nav__link:hover{color:var(--ink);background:rgba(255,255,255,.05)}
   .btn{display:inline-flex;align-items:center;gap:7px;font-family:var(--head);font-weight:700;font-size:14px;
     text-decoration:none;padding:9px 16px;border-radius:999px;border:1px solid transparent;cursor:pointer}
   .btn--orange{background:linear-gradient(180deg,var(--orange-2),var(--orange));color:#1a0f08}
-  .btn--ghost{border-color:var(--line);color:var(--ink);background:rgba(255,255,255,.03)}
+  .btn--ghost{border-color:var(--line);color:var(--ink);background:rgba(255,255,255,.04)}
+  .btn--sm{padding:7px 13px;font-size:13px}
 
-  /* HERO */
-  .hero{padding:46px 0 26px}
+  /* ── Barra de login (sticky arriba) ── */
+  .authbar{position:sticky;top:0;z-index:30;background:rgba(8,17,19,.9);backdrop-filter:blur(9px);border-bottom:1px solid var(--line)}
+  .authbar__inner{display:flex;align-items:center;gap:12px 14px;flex-wrap:wrap;max-width:1080px;margin:0 auto;padding:11px 22px}
+  .authbar__label{font-family:var(--head);font-weight:700;font-size:13.5px}
+  .authbar__hint{font-size:12.5px;color:var(--muted)}
+  .authbar form{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .authbar input{font-family:var(--body);font-size:14px;color:var(--ink);background:#06100f;border:1px solid var(--line);border-radius:9px;padding:8px 11px;min-width:170px}
+  .authbar input:focus{outline:none;border-color:rgba(224,115,56,.55)}
+  .authbar__msg{font-family:var(--mono);font-size:12.5px}
+  .authbar__msg.err{color:#e5897f}
+  .authbar__status{display:flex;align-items:center;gap:10px;font-size:14px;flex-wrap:wrap}
+  .authbar__status .dot{width:9px;height:9px;border-radius:50%;background:#3ddc84;box-shadow:0 0 0 4px rgba(61,220,132,.18)}
+
+  .hero{padding:40px 0 26px}
   .eyebrow{display:inline-block;font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;
     color:var(--orange-2);border:1px solid rgba(224,115,56,.35);border-radius:999px;padding:5px 12px;margin-bottom:18px}
   h1{font-family:var(--head);font-weight:800;font-size:clamp(34px,6vw,58px);line-height:1.02;margin:.1em 0 .25em}
   h1 em{font-style:normal;background:linear-gradient(90deg,var(--orange-2),var(--teal-2));-webkit-background-clip:text;background-clip:text;color:transparent}
   .lead{font-size:18px;color:var(--muted);max-width:62ch}
+  .lead a{color:var(--orange-2)}
   .baseurl{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:22px;font-family:var(--mono);font-size:14px}
   .baseurl code{background:#06100f;border:1px solid var(--line);border-radius:10px;padding:8px 12px;color:var(--cream)}
   .pill{font-family:var(--mono);font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:5px 11px}
-
-  /* SALUD widget */
   .health{margin-top:26px;display:grid;grid-template-columns:1fr;gap:12px;border:1px solid var(--line);
     border-radius:16px;padding:16px 18px;background:var(--card)}
   .health__top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .health__top strong{font-family:var(--head)}
   .dot{width:9px;height:9px;border-radius:50%;background:#3ddc84;box-shadow:0 0 0 4px rgba(61,220,132,.18)}
-  .health pre{margin:0}
 
-  /* SECTIONS */
   .section{padding:34px 0 8px}
   .section__head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:20px}
   .section__title{font-family:var(--head);font-weight:800;font-size:24px;margin:0}
   .section__base{font-family:var(--mono);font-size:13px;color:var(--orange-2)}
   .section__desc{font-size:14px;color:var(--muted);margin:0}
 
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
-  .card{border:1px solid var(--line);border-radius:14px;background:var(--card);padding:14px 15px;display:flex;flex-direction:column;gap:9px}
+  /* align-items:stretch => todas las tarjetas de una fila quedan a la misma altura */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px;align-items:stretch}
+  .card{border:1px solid var(--line);border-radius:14px;background:var(--card);padding:14px 15px;display:flex;flex-direction:column;gap:9px;min-height:150px}
   .card__row{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
   .m{font-family:var(--mono);font-weight:600;font-size:11px;letter-spacing:.04em;padding:4px 8px;border-radius:7px;color:#0c0c0c}
   .m.GET{background:#2b8aa0;color:#04181d}
@@ -79,23 +90,45 @@
   .m.DELETE{background:#e5534b;color:#270503}
   .path{font-family:var(--mono);font-size:13px;color:var(--cream);word-break:break-all}
   .card__desc{font-size:13.5px;color:var(--muted);margin:0}
+  .card__spacer{flex:1}
   .lock{font-size:11px;color:#caa46a;border:1px solid rgba(202,164,106,.3);border-radius:6px;padding:2px 7px;font-family:var(--mono)}
   .free{font-size:11px;color:#3ddc84;border:1px solid rgba(61,220,132,.3);border-radius:6px;padding:2px 7px;font-family:var(--mono)}
   .try{align-self:flex-start;font-family:var(--head);font-weight:700;font-size:12.5px;background:rgba(255,255,255,.05);
     border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:6px 11px;cursor:pointer}
   .try:hover{background:rgba(224,115,56,.16);border-color:rgba(224,115,56,.4)}
+  .noexec{align-self:flex-start;font-family:var(--mono);font-size:11.5px;color:#caa46a;
+    border:1px dashed rgba(202,164,106,.35);border-radius:8px;padding:5px 10px}
+  .copybtn{font-family:var(--head);font-weight:700;font-size:12.5px;cursor:pointer;white-space:nowrap;
+    background:rgba(255,255,255,.05);border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:7px 12px}
+  .copybtn:hover{background:rgba(224,115,56,.16);border-color:rgba(224,115,56,.4)}
+  .copybtn.is-ok{background:rgba(61,220,132,.18);border-color:rgba(61,220,132,.4);color:#bdf0cf}
+  .hero__tools{margin-top:16px;display:flex;gap:10px;flex-wrap:wrap}
+  .copyAll{font-size:13.5px;padding:9px 16px}
   pre{font-family:var(--mono);font-size:12px;line-height:1.45;color:#cfe7e2;background:#06100f;border:1px solid var(--line);
-    border-radius:10px;padding:11px 12px;overflow:auto;max-height:260px;white-space:pre-wrap;word-break:break-word}
+    border-radius:10px;padding:11px 12px;overflow:auto;max-height:260px;white-space:pre-wrap;word-break:break-word;margin:0}
   .body-ex{font-family:var(--mono);font-size:12px;color:var(--muted)}
   .body-ex b{color:var(--cream);font-weight:600}
-
+  .resp{border:1px solid var(--line);border-radius:9px;background:rgba(0,0,0,.18)}
+  .resp summary{cursor:pointer;font-family:var(--head);font-weight:700;font-size:12.5px;padding:8px 11px;color:var(--teal-2);list-style:none}
+  .resp summary::-webkit-details-marker{display:none}
+  .resp summary::before{content:'▸ ';color:var(--muted)}
+  .resp[open] summary::before{content:'▾ '}
+  .resp-pre{border:none;border-top:1px solid var(--line);border-radius:0 0 9px 9px;background:transparent;max-height:none;color:#bfe0d9}
+  .resp--err summary{color:#caa46a}
+  .resp--err .resp-pre{color:#d7b88e}
+  .out{display:flex;flex-direction:column;gap:8px}
+  .needauth{font-size:12.5px;color:#e8c99a;background:rgba(202,164,106,.08);border:1px solid rgba(202,164,106,.25);
+    border-radius:9px;padding:9px 11px;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+  .needauth .goLogin{font-family:var(--head);font-weight:700;font-size:12px;cursor:pointer;border:1px solid transparent;
+    border-radius:8px;padding:6px 11px;background:linear-gradient(180deg,var(--orange-2),var(--orange));color:#1a0f08}
+  .needauth .muted{color:var(--muted)}
   footer{margin-top:46px;border-top:1px solid var(--line);padding:26px 0 50px;color:var(--muted);font-size:13px}
   footer a{color:var(--orange-2);text-decoration:none}
 </style>
 </head>
 <body>
   <header class="nav">
-    <a class="nav__brand" href="/"><img src="/img/bimest-logo.png" alt="">Bimest Manager <span style="color:var(--muted);font-weight:600">API</span></a>
+    <a class="nav__brand" href="/"><img src="/img/bimest-logo.png" alt="">Bimest Manager <span>API</span></a>
     <span class="nav__spacer"></span>
     <a class="nav__link" href="#auth">Auth</a>
     <a class="nav__link" href="#maestro">Maestro</a>
@@ -104,14 +137,34 @@
     <a class="btn btn--orange" href="https://bimestmanager.com" target="_blank" rel="noopener">Ir a la plataforma →</a>
   </header>
 
+  <!-- Barra de login: inicia sesión real para probar las rutas con datos reales -->
+  <div class="authbar" id="authbar">
+    <div class="authbar__inner">
+      <span class="authbar__label">🔑 Probar con tu cuenta</span>
+      <form id="loginForm" autocomplete="on">
+        <input id="liEmail" type="email" placeholder="correo electrónico" autocomplete="username" required>
+        <input id="liPass" type="password" placeholder="contraseña" autocomplete="current-password" required>
+        <button class="btn btn--orange btn--sm" type="submit">Iniciar sesión</button>
+      </form>
+      <span class="authbar__hint">Inicia sesión para que los <b>Probar ▶</b> devuelvan datos reales.</span>
+      <span id="liMsg" class="authbar__msg"></span>
+      <div class="authbar__status" id="liStatus" style="display:none">
+        <span class="dot"></span>
+        <span id="liWho"></span>
+        <button class="btn btn--ghost btn--sm" id="liLogout" type="button">Cerrar sesión</button>
+      </div>
+    </div>
+  </div>
+
   <main class="wrap">
     <section class="hero">
       <span class="eyebrow">Referencia de la API · v1</span>
       <h1>La <em>API</em> de Bimest Manager.</h1>
       <p class="lead">
         Este host expone únicamente la API REST (JSON) de Bimest Manager. La interfaz de
-        usuario vive en <a href="https://bimestmanager.com" style="color:var(--orange-2)">bimestmanager.com</a>.
-        Aquí encuentras los endpoints, sus métodos y un botón para probar en vivo las rutas públicas.
+        usuario vive en <a href="https://bimestmanager.com">bimestmanager.com</a>.
+        Inicia sesión arriba para probar las rutas con datos reales, o revisa la
+        <b>Respuesta de ejemplo</b> de cada endpoint.
       </p>
       <div class="baseurl">
         <span class="pill">Base URL</span>
@@ -120,14 +173,18 @@
         <span class="pill">Content-Type: application/json</span>
       </div>
 
+      <div class="hero__tools">
+        <button class="copybtn copyAll" type="button" title="Copia toda la documentación en Markdown">📋 Copiar toda la documentación (para tu IA)</button>
+      </div>
+
       <div class="health">
         <div class="health__top">
           <span class="dot"></span>
-          <strong style="font-family:var(--head)">Estado del servicio</strong>
+          <strong>Estado del servicio</strong>
           <span class="path">GET /salud</span>
-          <button class="try" onclick="probar(this,'GET','/salud')">Probar de nuevo</button>
+          <button class="try" data-p="/salud" data-out="saludOut">Probar de nuevo</button>
         </div>
-        <pre id="saludOut">Cargando…</pre>
+        <div id="saludOut" class="out">Cargando…</div>
       </div>
     </section>
 
@@ -142,199 +199,6 @@
     </div>
   </footer>
 
-<script>
-  const API_BASE = location.origin;
-  document.getElementById('baseUrl').textContent = API_BASE;
-
-  // L = requiere login (JWT) · F = público (free)
-  const groups = [
-    { id:'auth', name:'Autenticación', base:'/auth',
-      desc:'Registro, inicio/cierre de sesión y usuario actual.',
-      eps:[
-        { m:'POST', p:'/auth/login', d:'Inicia sesión. Devuelve cookie de sesión y a dónde redirigir.', f:true, body:'{ "email": "...", "password": "..." }' },
-        { m:'POST', p:'/auth/registro-alumno', d:'Registra un alumno de Química (queda pendiente de autorización).', f:true, body:'{ "nombre": "...", "email": "...", "password": "..." }' },
-        { m:'POST', p:'/auth/registro-alumno-turismo', d:'Registra un alumno de Turismo.', f:true, body:'{ "nombre":"...", "email":"...", "password":"...", "grupo":"..." }' },
-        { m:'POST', p:'/auth/logout', d:'Cierra la sesión actual.', f:true },
-        { m:'GET',  p:'/auth/yo', d:'Devuelve el usuario autenticado (según la cookie/token).' }
-      ]},
-    { id:'estudiantes', name:'Estudiantes · Química', base:'/estudiantes',
-      desc:'Panel del alumno y gestión de pendientes (admin/maestro).',
-      eps:[
-        { m:'GET',  p:'/estudiantes/mi-panel', d:'Panel del alumno: su sesión, equipo y responsiva.' },
-        { m:'POST', p:'/estudiantes/firmar', d:'Firma la responsiva del equipo.' },
-        { m:'GET',  p:'/estudiantes/pendientes', d:'Alumnos pendientes de autorizar.' },
-        { m:'PATCH',p:'/estudiantes/:id/grupo', d:'Asigna un grupo al alumno.' },
-        { m:'PATCH',p:'/estudiantes/:id/activar', d:'Activa (autoriza) al alumno.' }
-      ]},
-    { id:'maestro', name:'Maestro · Química', base:'/maestro',
-      desc:'Grupos, prácticas, kits, laboratorios, sesiones e incidencias.',
-      eps:[
-        { m:'GET', p:'/maestro/resumen', d:'Resumen general del maestro.' },
-        { m:'GET', p:'/maestro/grupos', d:'Lista grupos.' },
-        { m:'POST',p:'/maestro/grupos', d:'Crea un grupo.' },
-        { m:'GET', p:'/maestro/grupos/:id/alumnos', d:'Alumnos de un grupo.' },
-        { m:'GET', p:'/maestro/alumnos', d:'Alumnos activos.' },
-        { m:'GET', p:'/maestro/materiales', d:'Materiales activos.' },
-        { m:'GET', p:'/maestro/equipos', d:'Todos los equipos.' },
-        { m:'GET', p:'/maestro/practicas', d:'Lista prácticas.' },
-        { m:'POST',p:'/maestro/practicas', d:'Crea una práctica.' },
-        { m:'GET', p:'/maestro/practicas/:id/kits', d:'Kits de una práctica.' },
-        { m:'POST',p:'/maestro/practicas/:id/kits', d:'Crea un kit en la práctica.' },
-        { m:'DELETE',p:'/maestro/kits/:id', d:'Elimina un kit.' },
-        { m:'POST',p:'/maestro/kits/:id/materiales', d:'Agrega material a un kit.' },
-        { m:'DELETE',p:'/maestro/kits/:kitId/materiales/:materialId', d:'Quita material de un kit.' },
-        { m:'GET', p:'/maestro/laboratorios', d:'Laboratorios disponibles.' },
-        { m:'GET', p:'/maestro/agenda', d:'Agenda (detección de choques de horario).' },
-        { m:'GET', p:'/maestro/sesiones', d:'Mis sesiones.' },
-        { m:'POST',p:'/maestro/sesiones', d:'Crea una sesión.' },
-        { m:'GET', p:'/maestro/sesiones/:id', d:'Detalle de una sesión.' },
-        { m:'PATCH',p:'/maestro/sesiones/:id/estado', d:'Cambia el estado de la sesión.' },
-        { m:'GET', p:'/maestro/sesiones/:id/alumnos', d:'Alumnos de la sesión.' },
-        { m:'POST',p:'/maestro/sesiones/:id/equipos', d:'Crea un equipo en la sesión.' },
-        { m:'DELETE',p:'/maestro/equipos/:id', d:'Elimina un equipo.' },
-        { m:'GET', p:'/maestro/sesiones/:id/incidencias', d:'Incidencias de la sesión.' },
-        { m:'POST',p:'/maestro/sesiones/:id/incidencias', d:'Registra una incidencia.' }
-      ]},
-    { id:'admin', name:'Admin · Química', base:'/admin',
-      desc:'Usuarios, materiales, laboratorios, préstamos, adeudos y reportes.',
-      eps:[
-        { m:'GET', p:'/admin/resumen', d:'Indicadores generales.' },
-        { m:'GET', p:'/admin/usuarios', d:'Lista usuarios.' },
-        { m:'POST',p:'/admin/usuarios', d:'Crea un usuario.' },
-        { m:'PATCH',p:'/admin/usuarios/:id/estado', d:'Activa/desactiva un usuario.' },
-        { m:'GET', p:'/admin/materiales', d:'Lista materiales.' },
-        { m:'POST',p:'/admin/materiales', d:'Crea material.' },
-        { m:'PATCH',p:'/admin/materiales/:id/stock', d:'Ajusta stock.' },
-        { m:'PATCH',p:'/admin/materiales/:id', d:'Edita material.' },
-        { m:'DELETE',p:'/admin/materiales/:id', d:'Desactiva material.' },
-        { m:'GET', p:'/admin/laboratorios', d:'Lista laboratorios.' },
-        { m:'POST',p:'/admin/laboratorios', d:'Crea laboratorio.' },
-        { m:'PATCH',p:'/admin/laboratorios/:id/estado', d:'Activa/desactiva laboratorio.' },
-        { m:'GET', p:'/admin/hoja-ruta', d:'Hoja de ruta diaria del laboratorista.' },
-        { m:'GET', p:'/admin/prestamos', d:'Lista préstamos.' },
-        { m:'POST',p:'/admin/prestamos', d:'Registra préstamo.' },
-        { m:'PATCH',p:'/admin/prestamos/:id/devolucion', d:'Marca préstamo devuelto.' },
-        { m:'GET', p:'/admin/adeudos', d:'Lista adeudos.' },
-        { m:'PATCH',p:'/admin/adeudos/:id/resolver', d:'Resuelve un adeudo.' },
-        { m:'GET', p:'/admin/incidencias', d:'Lista incidencias.' },
-        { m:'GET', p:'/admin/responsivas', d:'Lista responsivas (con firmas).' },
-        { m:'GET', p:'/admin/sesiones', d:'Lista sesiones.' }
-      ]},
-    { id:'turismo', name:'Turismo · Estudiante', base:'/turismo/estudiantes',
-      desc:'Panel, préstamos, adeudos, notificaciones y sugerencias del alumno de turismo.',
-      eps:[
-        { m:'GET', p:'/turismo/estudiantes/mi-panel', d:'Panel del alumno de turismo.' },
-        { m:'GET', p:'/turismo/estudiantes/mis-prestamos', d:'Mis préstamos.' },
-        { m:'GET', p:'/turismo/estudiantes/mis-adeudos', d:'Mis adeudos.' },
-        { m:'GET', p:'/turismo/estudiantes/mis-notificaciones', d:'Mis notificaciones.' },
-        { m:'PATCH',p:'/turismo/estudiantes/notificaciones/:id/leer', d:'Marca notificación como leída.' },
-        { m:'GET', p:'/turismo/estudiantes/sesion-activa', d:'Sesión activa.' },
-        { m:'GET', p:'/turismo/estudiantes/mis-sesiones', d:'Mis sesiones.' },
-        { m:'GET', p:'/turismo/estudiantes/materiales-disponibles', d:'Materiales disponibles.' },
-        { m:'GET', p:'/turismo/estudiantes/practicas/:practicaId/sugerencias', d:'Sugerencias de material por práctica.' },
-        { m:'POST',p:'/turismo/estudiantes/prestamos', d:'Solicita un préstamo.' },
-        { m:'GET', p:'/turismo/estudiantes/pendientes', d:'Alumnos pendientes (admin).' },
-        { m:'PATCH',p:'/turismo/estudiantes/:id/grupo', d:'Asigna grupo (admin).' },
-        { m:'PATCH',p:'/turismo/estudiantes/:id/activar', d:'Activa alumno (admin).' }
-      ]},
-    { id:'turismo-admin', name:'Turismo · Admin', base:'/turismo/admin',
-      desc:'Usuarios, materiales, prácticas, sugerencias, sesiones, préstamos e incidencias de turismo.',
-      eps:[
-        { m:'GET', p:'/turismo/admin/resumen', d:'Indicadores de turismo.' },
-        { m:'GET', p:'/turismo/admin/usuarios', d:'Lista usuarios.' },
-        { m:'POST',p:'/turismo/admin/usuarios', d:'Crea usuario.' },
-        { m:'PATCH',p:'/turismo/admin/usuarios/:id/estado', d:'Activa/desactiva usuario.' },
-        { m:'PATCH',p:'/turismo/admin/usuarios/:id/grupo', d:'Asigna grupo.' },
-        { m:'GET', p:'/turismo/admin/materiales', d:'Lista materiales.' },
-        { m:'POST',p:'/turismo/admin/materiales', d:'Crea material.' },
-        { m:'PATCH',p:'/turismo/admin/materiales/:id/stock', d:'Ajusta stock.' },
-        { m:'PATCH',p:'/turismo/admin/materiales/:id/estado', d:'Cambia estado del material.' },
-        { m:'PATCH',p:'/turismo/admin/materiales/:id', d:'Edita material.' },
-        { m:'DELETE',p:'/turismo/admin/materiales/:id', d:'Desactiva material.' },
-        { m:'GET', p:'/turismo/admin/practicas', d:'Lista prácticas.' },
-        { m:'POST',p:'/turismo/admin/practicas', d:'Crea práctica.' },
-        { m:'PATCH',p:'/turismo/admin/practicas/:id', d:'Actualiza práctica.' },
-        { m:'DELETE',p:'/turismo/admin/practicas/:id', d:'Desactiva práctica.' },
-        { m:'GET', p:'/turismo/admin/practicas/:id/sugerencias', d:'Sugerencias de la práctica.' },
-        { m:'POST',p:'/turismo/admin/practicas/:id/sugerencias', d:'Agrega sugerencia.' },
-        { m:'PATCH',p:'/turismo/admin/sugerencias/:id', d:'Actualiza sugerencia.' },
-        { m:'DELETE',p:'/turismo/admin/sugerencias/:id', d:'Elimina sugerencia.' },
-        { m:'GET', p:'/turismo/admin/sesiones', d:'Lista sesiones.' },
-        { m:'POST',p:'/turismo/admin/sesiones', d:'Crea sesión.' },
-        { m:'GET', p:'/turismo/admin/sesiones/:id', d:'Detalle de sesión.' },
-        { m:'PATCH',p:'/turismo/admin/sesiones/:id/estado', d:'Cambia estado de sesión.' },
-        { m:'GET', p:'/turismo/admin/prestamos', d:'Lista préstamos.' },
-        { m:'POST',p:'/turismo/admin/prestamos', d:'Registra préstamo.' },
-        { m:'PATCH',p:'/turismo/admin/prestamos/:id/aprobar', d:'Aprueba solicitud.' },
-        { m:'PATCH',p:'/turismo/admin/prestamos/:id/rechazar', d:'Rechaza solicitud.' },
-        { m:'PATCH',p:'/turismo/admin/prestamos/:id/devolucion', d:'Marca devuelto.' },
-        { m:'PATCH',p:'/turismo/admin/prestamos/:id/adeudo', d:'Marca como adeudo.' },
-        { m:'GET', p:'/turismo/admin/incidencias', d:'Lista incidencias.' },
-        { m:'PATCH',p:'/turismo/admin/incidencias/:id/resolver', d:'Resuelve incidencia.' }
-      ]},
-    { id:'monitor', name:'Monitoreo', base:'/monitor',
-      desc:'Salud y métricas del servicio.',
-      eps:[
-        { m:'GET', p:'/salud', d:'Health check del servicio.', f:true },
-        { m:'GET', p:'/monitor/metricas', d:'Métricas del sistema (CPU, RAM, disco, latencia DB).', f:true }
-      ]}
-  ];
-
-  function esc(s){ return String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
-
-  async function probar(btn, method, path, outId){
-    const pre = outId ? document.getElementById(outId) : document.getElementById('saludOut');
-    pre.textContent = 'Cargando…';
-    pre.style.display = 'block';
-    try{
-      const res = await fetch(API_BASE + path, { method, headers:{Accept:'application/json'}, credentials:'include' });
-      const txt = await res.text();
-      let body; try { body = JSON.stringify(JSON.parse(txt), null, 2); } catch { body = txt; }
-      pre.textContent = res.status + ' ' + res.statusText + '\n\n' + body;
-    }catch(e){
-      pre.textContent = 'Error de red: ' + e.message;
-    }
-  }
-
-  const cont = document.getElementById('docs');
-  groups.forEach((g) => {
-    const sec = document.createElement('section');
-    sec.className = 'section';
-    sec.id = g.id;
-    let cards = '';
-    g.eps.forEach((e, i) => {
-      const outId = g.id + '-' + i;
-      const tag = e.f ? '<span class="free">público</span>' : '<span class="lock">JWT</span>';
-      const tryBtn = (e.m === 'GET')
-        ? `<button class="try" onclick="probar(this,'GET','${e.p}','${outId}')">Probar ▶</button>`
-        : '';
-      const bodyEx = e.body ? `<div class="body-ex"><b>body</b> ${esc(e.body)}</div>` : '';
-      cards += `
-        <article class="card">
-          <div class="card__row">
-            <span class="m ${e.m}">${e.m}</span>
-            <span class="path">${esc(e.p)}</span>
-            ${tag}
-          </div>
-          <p class="card__desc">${esc(e.d)}</p>
-          ${bodyEx}
-          ${tryBtn}
-          <pre id="${outId}" style="display:none"></pre>
-        </article>`;
-    });
-    sec.innerHTML = `
-      <div class="section__head">
-        <h2 class="section__title">${esc(g.name)}</h2>
-        <span class="section__base">${esc(g.base)}</span>
-        <span class="nav__spacer"></span>
-        <p class="section__desc">${esc(g.desc)}</p>
-      </div>
-      <div class="grid">${cards}</div>`;
-    cont.appendChild(sec);
-  });
-
-  // Auto-probar /salud al cargar
-  probar(null, 'GET', '/salud');
-</script>
+  <script src="/js/api-docs.js" defer></script>
 </body>
 </html>

@@ -1,4 +1,5 @@
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const UsuarioModelo = require('../modelo/usuarioModelo');
 const EstudianteModelo = require('../modelo/estudianteModelo');
 const EstudianteTurismModelo = require('../modelo/estudianteTurismModelo');
@@ -7,6 +8,7 @@ const {
   guardarCookieSesion,
   limpiarCookieSesion,
   obtenerRedirectPorRol,
+  extraerToken,
   FUENTES
 } = require('../Middlewares/auth');
 
@@ -172,7 +174,33 @@ const authControlador = {
     return res.json({ message: 'Sesion cerrada correctamente.' });
   },
 
-  yo: async (req, res) => res.json({ usuario: req.usuario })
+  yo: async (req, res) => res.json({ usuario: req.usuario }),
+
+  // Variante "suave" de /yo: responde 200 con { usuario: null } cuando no hay
+  // sesion (en vez de 401). Util para que clientes consulten el estado de la
+  // sesion sin ensuciar la consola con errores 401.
+  sesion: async (req, res) => {
+    try {
+      const token = extraerToken(req);
+      if (!token) return res.json({ usuario: null });
+
+      let payload;
+      try {
+        payload = jwt.verify(token, process.env.JWT_SECRET);
+      } catch (_) {
+        return res.json({ usuario: null });
+      }
+
+      const fuente = payload.fuente || FUENTES.QUIMICA;
+      const usuario = await UsuarioModelo.obtenerResumenPorIdGlobal(payload.id, fuente);
+
+      if (!usuario || !usuario.is_active) return res.json({ usuario: null });
+
+      return res.json({ usuario });
+    } catch (error) {
+      return res.json({ usuario: null });
+    }
+  }
 };
 
 module.exports = authControlador;
