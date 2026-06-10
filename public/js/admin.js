@@ -54,7 +54,7 @@
         : '<span class="badge badge--warn">Pendiente</span>';
       const fecha = i.firmado_at ? formatFecha(i.firmado_at) : '';
       const img = tieneFirma
-        ? `<img class="signature-thumb" src="${esc(i.firma_imagen)}" alt="Firma de ${esc(i.nombre)}" loading="lazy">`
+        ? `<img class="signature-thumb" src="${esc(window.BM_apiUrl(i.firma_imagen))}" alt="Firma de ${esc(i.nombre)}" loading="lazy">`
         : '';
       return `
         <li>
