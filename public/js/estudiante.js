@@ -113,7 +113,7 @@
 
     if (yaFirmo) {
       const img = document.getElementById('firmaPreview');
-      img.src = equipo.mi_firma_imagen + '?t=' + Date.now(); // cache-bust
+      img.src = window.BM_apiUrl(equipo.mi_firma_imagen) + '?t=' + Date.now(); // cache-bust
       const fechaEl = document.getElementById('firmaFecha');
       fechaEl.textContent = equipo.mi_firmado_at
         ? 'Firmada el ' + formatFecha(equipo.mi_firmado_at)
