@@ -10,6 +10,9 @@
   let sesionEquiposActiva = null;
   let alumnosSesion = [];
   let materialesCache = [];
+  let practicasCache = [];
+  let laboratoriosCache = [];
+  let practicaSeleccionada = null;
 
   let sesionesCtl = null;
   let pendientesCtl = null;
@@ -19,24 +22,29 @@
 
   const cargar = async () => {
     clearFlash('flash');
-    const [resumen, sesiones, gruposRes, practicas, pendientes, materiales] = await Promise.all([
+    const [resumen, sesiones, gruposRes, practicas, pendientes, materiales, laboratorios] = await Promise.all([
       api('GET', '/maestro/resumen'),
       api('GET', '/maestro/sesiones'),
       api('GET', '/maestro/grupos'),
       api('GET', '/maestro/practicas?tipo=QUIMICA'),
       api('GET', '/estudiantes/pendientes'),
-      api('GET', '/maestro/materiales')
+      api('GET', '/maestro/materiales'),
+      api('GET', '/maestro/laboratorios')
     ]);
 
     if (resumen.ok) renderResumen(resumen.data);
     if (gruposRes.ok) { grupos = gruposRes.data || []; renderGrupos(grupos); }
-    if (practicas.ok) renderPracticas(practicas.data || []);
+    if (practicas.ok) { practicasCache = practicas.data || []; renderPracticas(practicasCache); renderPracticasList(practicasCache); }
     if (sesiones.ok) { sesionesCache = sesiones.data || []; renderSesiones(sesionesCache); }
     if (pendientes.ok) { pendientesCache = pendientes.data || []; renderPendientes(pendientesCache); }
     if (materiales.ok) { materialesCache = materiales.data || []; }
+    if (laboratorios.ok) { laboratoriosCache = laboratorios.data || []; renderLaboratorios(laboratoriosCache); }
 
     // Refrescar el bloque de armar equipos si hay sesion seleccionada
     if (sesionEquiposActiva) cargarAlumnosSesion(sesionEquiposActiva);
+
+    // Si hay una practica seleccionada en el tab Prácticas, refrescar sus kits
+    if (practicaSeleccionada) cargarKits(practicaSeleccionada);
 
     // Refrescar lista de alumnos activos
     cargarAlumnosActivos();
@@ -211,8 +219,222 @@
 
   const renderPracticas = (ps) => {
     const sel = document.getElementById('practicaSel');
+    if (!sel) return;
+    const valorActual = sel.value;
     sel.innerHTML = '<option value="">Selecciona...</option>' +
       ps.map((p) => `<option value="${p.id}">${esc(p.nombre)}</option>`).join('');
+    sel.value = valorActual;
+  };
+
+  // ===== Laboratorio (select de crear sesión) =====
+  const renderLaboratorios = (labs) => {
+    const sel = document.getElementById('laboratorioSel');
+    if (!sel) return;
+    const valorActual = sel.value;
+    sel.innerHTML = '<option value="">Sin asignar</option>' +
+      labs.map((l) => `<option value="${l.id}">${esc(l.nombre)}${l.ubicacion ? ' · ' + esc(l.ubicacion) : ''}</option>`).join('');
+    sel.value = valorActual;
+  };
+
+  // ===== Kit dependiente de la práctica (select de crear sesión) =====
+  const cargarKitsParaSesion = async (practicaId) => {
+    const sel = document.getElementById('kitSesionSel');
+    if (!sel) return;
+    if (!practicaId) {
+      sel.innerHTML = '<option value="">Sin kit específico</option>';
+      return;
+    }
+    const r = await api('GET', '/maestro/practicas/' + practicaId + '/kits');
+    const kits = (r.ok && r.data && r.data.kits) ? r.data.kits : [];
+    sel.innerHTML = '<option value="">Sin kit específico</option>' +
+      kits.map((k) => `<option value="${k.id}">${esc(k.nombre || ('Kit #' + k.id))} · ${(k.materiales || []).length} material(es)</option>`).join('');
+  };
+
+  // ===== Tab Prácticas: lista + gestión de kits =====
+  const renderPracticasList = (ps) => {
+    const list = document.getElementById('practicasList');
+    if (!list) return;
+    if (!ps.length) { list.innerHTML = '<li class="empty-state">Aún no hay prácticas. Crea la primera abajo.</li>'; return; }
+    list.innerHTML = ps.map((p) => `
+      <li class="card-row">
+        <div class="card-row__main">
+          <div class="card-row__title">${esc(p.nombre)} <span class="badge badge--info">${esc(p.tipo)}</span></div>
+          <div class="card-row__sub">${esc(p.descripcion || 'Sin descripción')}</div>
+        </div>
+        <button class="btn btn-mini btn-primary" data-kits="${p.id}">Kits</button>
+      </li>`).join('');
+    list.querySelectorAll('button[data-kits]').forEach((b) => {
+      b.addEventListener('click', () => abrirKits(Number(b.dataset.kits)));
+    });
+  };
+
+  const abrirKits = (practicaId) => {
+    practicaSeleccionada = practicaId;
+    const card = document.getElementById('kitsCard');
+    if (card) {
+      card.hidden = false;
+      card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    cargarKits(practicaId);
+  };
+
+  const cargarKits = async (practicaId) => {
+    const r = await api('GET', '/maestro/practicas/' + practicaId + '/kits');
+    if (!r.ok) { flash('flash', (r.data && r.data.error) || 'Error cargando kits', 'error'); return; }
+    renderKits(r.data);
+  };
+
+  const renderKits = (data) => {
+    const nombreEl = document.getElementById('kitsPracticaNombre');
+    if (nombreEl) nombreEl.textContent = (data.practica && data.practica.nombre) || '—';
+    const hintEl = document.getElementById('kitsHint');
+    if (hintEl) hintEl.textContent = 'Cada kit es la lista de materiales que se necesita para esta práctica.';
+    const cont = document.getElementById('kitsContainer');
+    if (!cont) return;
+
+    if (!data.kits || !data.kits.length) {
+      cont.innerHTML = '<div class="empty-state">Esta práctica aún no tiene kits.</div>';
+      return;
+    }
+
+    const opcionesMaterial = materialesCache
+      .filter((m) => m.is_active === undefined || m.is_active)
+      .map((m) => `<option value="${m.id}">${esc(m.nombre)} (stock ${m.stock})</option>`)
+      .join('');
+
+    cont.innerHTML = data.kits.map((kit) => {
+      const items = (kit.materiales || []).map((it) => `
+        <li class="card-row">
+          <div class="card-row__main">
+            <div class="card-row__title">${esc(it.material)} ${it.material_activo ? '' : '<span class="badge badge--neutral">INACTIVO</span>'}</div>
+            <div class="card-row__sub">Cantidad: ${it.cantidad} · Stock: ${it.stock}</div>
+          </div>
+          <button class="btn btn-mini btn-danger" data-quitar-mat="${kit.id}" data-mat-id="${it.material_id}" data-mat-nombre="${esc(it.material)}">Quitar</button>
+        </li>
+      `).join('');
+
+      return `
+        <div class="kit-block">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+            <h5 style="margin:0">${esc(kit.nombre || ('Kit #' + kit.id))}</h5>
+            <button class="btn btn-mini btn-danger" data-eliminar-kit="${kit.id}" data-kit-nombre="${esc(kit.nombre || ('Kit #' + kit.id))}">Eliminar kit</button>
+          </div>
+          <ul class="list">
+            ${items || '<li class="empty-state">Sin materiales en este kit.</li>'}
+          </ul>
+          <form class="form-card" data-kit-mat="${kit.id}" style="margin-top:8px">
+            <div class="field-tight"><select name="material_id" required><option value="">Material...</option>${opcionesMaterial}</select></div>
+            <div class="field-tight"><input name="cantidad" type="number" min="1" placeholder="Cantidad" required></div>
+            <button class="btn btn-mini btn-primary" type="submit">+ Agregar material al kit</button>
+          </form>
+        </div>
+      `;
+    }).join('');
+
+    cont.querySelectorAll('form[data-kit-mat]').forEach((form) => {
+      form.addEventListener('submit', (ev) => agregarMaterialAKit(ev, Number(form.dataset.kitMat)));
+    });
+    cont.querySelectorAll('button[data-eliminar-kit]').forEach((b) => {
+      b.addEventListener('click', () => eliminarKit(Number(b.dataset.eliminarKit), b.dataset.kitNombre));
+    });
+    cont.querySelectorAll('button[data-quitar-mat]').forEach((b) => {
+      b.addEventListener('click', () => quitarMaterialDeKit(
+        Number(b.dataset.quitarMat), Number(b.dataset.matId), b.dataset.matNombre
+      ));
+    });
+  };
+
+  const eliminarKit = async (kitId, nombre) => {
+    if (!window.confirm(`¿Eliminar el kit "${nombre}"? También se quitarán sus materiales asociados.`)) return;
+    const r = await api('DELETE', '/maestro/kits/' + kitId);
+    if (!r.ok) { flash('flash', (r.data && r.data.error) || 'No se pudo eliminar el kit', 'error'); return; }
+    flash('flash', 'Kit eliminado.', 'ok');
+    cargarKits(practicaSeleccionada);
+  };
+
+  const quitarMaterialDeKit = async (kitId, materialId, nombre) => {
+    if (!window.confirm(`¿Quitar "${nombre}" de este kit?`)) return;
+    const r = await api('DELETE', '/maestro/kits/' + kitId + '/materiales/' + materialId);
+    if (!r.ok) { flash('flash', (r.data && r.data.error) || 'No se pudo quitar el material', 'error'); return; }
+    flash('flash', 'Material quitado del kit.', 'ok');
+    cargarKits(practicaSeleccionada);
+  };
+
+  const agregarMaterialAKit = async (ev, kitId) => {
+    ev.preventDefault();
+    clearFlash('flash');
+    const fd = new FormData(ev.currentTarget);
+    const body = { material_id: Number(fd.get('material_id')), cantidad: Number(fd.get('cantidad')) };
+    const r = await api('POST', '/maestro/kits/' + kitId + '/materiales', body);
+    if (!r.ok) { flash('flash', (r.data && r.data.error) || 'No se pudo agregar', 'error'); return; }
+    flash('flash', 'Material agregado al kit.', 'ok');
+    ev.target.reset();
+    cargarKits(practicaSeleccionada);
+  };
+
+  const submitKit = async (ev) => {
+    ev.preventDefault();
+    clearFlash('flash');
+    if (!practicaSeleccionada) {
+      flash('flash', 'Selecciona primero una práctica (botón Kits) para crear el kit.', 'error');
+      return;
+    }
+    const fd = new FormData(ev.currentTarget);
+    const body = { nombre: String(fd.get('nombre') || '').trim() || null };
+    const r = await api('POST', '/maestro/practicas/' + practicaSeleccionada + '/kits', body);
+    if (!r.ok) { flash('flash', (r.data && r.data.error) || 'No se pudo crear el kit', 'error'); return; }
+    flash('flash', 'Kit creado.', 'ok');
+    ev.target.reset();
+    cargarKits(practicaSeleccionada);
+  };
+
+  const submitPractica = async (ev) => {
+    ev.preventDefault();
+    clearFlash('flash');
+    const fd = new FormData(ev.currentTarget);
+    const body = { nombre: fd.get('nombre'), descripcion: fd.get('descripcion') };
+    const r = await api('POST', '/maestro/practicas', body);
+    if (!r.ok) { flash('flash', (r.data && r.data.error) || 'No se pudo crear la práctica', 'error'); return; }
+    flash('flash', 'Práctica creada.', 'ok');
+    ev.target.reset();
+    cargar();
+  };
+
+  // ===== Agenda de ocupación de laboratorios =====
+  const cargarAgenda = async () => {
+    const input = document.getElementById('agendaFecha');
+    const cont = document.getElementById('agendaContainer');
+    if (!input || !cont) return;
+    const fecha = input.value;
+    if (!fecha) { cont.innerHTML = '<div class="empty-state">Elige una fecha para ver la ocupación.</div>'; return; }
+
+    const r = await api('GET', '/maestro/agenda?fecha=' + encodeURIComponent(fecha));
+    if (!r.ok) { cont.innerHTML = `<div class="empty-state">${esc((r.data && r.data.error) || 'No se pudo cargar la agenda.')}</div>`; return; }
+
+    const labs = (r.data && r.data.laboratorios) || [];
+    if (!labs.length) { cont.innerHTML = '<div class="empty-state">No hay laboratorios activos. Pide al admin que registre alguno.</div>'; return; }
+
+    cont.innerHTML = labs.map((lab) => {
+      const ocup = lab.ocupacion || [];
+      const filas = ocup.map((s) => {
+        const ini = s.hora_inicio ? String(s.hora_inicio).slice(0, 5) : '—';
+        const fin = s.hora_fin ? String(s.hora_fin).slice(0, 5) : '';
+        const estadoClass = s.estado === 'EN_CURSO' ? 'ok' : 'info';
+        return `
+          <li class="card-row">
+            <div class="card-row__main">
+              <div class="card-row__title" style="font-size:13px">${ini}${fin ? ' – ' + fin : ''} · ${esc(s.practica)}</div>
+              <div class="card-row__sub">${esc(s.grupo)} · ${esc(s.maestro)}</div>
+            </div>
+            <span class="badge badge--${estadoClass}">${esc(s.estado)}</span>
+          </li>`;
+      }).join('');
+      return `
+        <div class="kit-block" style="margin-bottom:10px">
+          <h5 style="margin:0 0 6px">${esc(lab.nombre)}${lab.ubicacion ? ` <span class="muted" style="font-weight:400;font-size:12px">· ${esc(lab.ubicacion)}</span>` : ''}</h5>
+          <ul class="list">${filas || '<li class="empty-state" style="font-size:12px">Libre todo el día.</li>'}</ul>
+        </div>`;
+    }).join('');
   };
 
   const renderSesiones = (ss) => {
@@ -236,7 +458,8 @@
     <li class="card-row">
       <div class="card-row__main">
         <div class="card-row__title">${esc(s.practica)} · ${esc(s.grupo)}</div>
-        <div class="card-row__sub">${esc(formatFecha(s.fecha))} ${s.hora_inicio ? esc(s.hora_inicio) : ''} · ${s.equipos_creados ?? 0}/${s.num_equipos ?? '—'} eq.</div>
+        <div class="card-row__sub">${esc(formatFecha(s.fecha))} ${s.hora_inicio ? esc(String(s.hora_inicio).slice(0, 5)) : ''} · ${s.equipos_creados ?? 0}/${s.num_equipos ?? '—'} eq.</div>
+        ${s.laboratorio ? `<div class="card-row__sub">🧪 ${esc(s.laboratorio)}${s.kit_solicitado ? ' · kit: ' + esc(s.kit_solicitado) : ''}</div>` : ''}
       </div>
       <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
         <span class="badge badge--${s.estado === 'EN_CURSO' ? 'ok' : s.estado === 'FINALIZADA' ? 'neutral' : 'info'}">${esc(s.estado)}</span>
@@ -665,6 +888,25 @@
     document.getElementById('formSesion').addEventListener('submit', submitSesion);
     document.getElementById('formGrupo').addEventListener('submit', submitGrupo);
     document.getElementById('formEquipo').addEventListener('submit', submitEquipo);
+
+    const formPractica = document.getElementById('formPractica');
+    if (formPractica) formPractica.addEventListener('submit', submitPractica);
+    const formKit = document.getElementById('formKit');
+    if (formKit) formKit.addEventListener('submit', submitKit);
+
+    // Al cambiar la práctica en "Crear sesión", recargar los kits disponibles.
+    const practicaSel = document.getElementById('practicaSel');
+    if (practicaSel) practicaSel.addEventListener('change', (ev) => cargarKitsParaSesion(Number(ev.target.value) || null));
+
+    // Agenda: fecha inicial = hoy.
+    const agendaFecha = document.getElementById('agendaFecha');
+    if (agendaFecha) {
+      agendaFecha.value = new Date().toISOString().slice(0, 10);
+      agendaFecha.addEventListener('change', cargarAgenda);
+    }
+    // Recargar la agenda al abrir su subpestaña.
+    const agendaBtn = document.querySelector('[data-tab="sesiones"] button[data-subtab="ses-agenda"]');
+    if (agendaBtn) agendaBtn.addEventListener('click', cargarAgenda);
     document.getElementById('sesionEquiposSel').addEventListener('change', (ev) => {
       const id = Number(ev.target.value);
       sesionEquiposActiva = Number.isInteger(id) && id > 0 ? id : null;

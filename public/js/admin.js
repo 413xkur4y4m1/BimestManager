@@ -5,9 +5,7 @@
 
   let usuario = null;
   let materialesCache = [];
-  let practicasCache = [];
-  let kitsAbiertosPorPractica = {};
-  let practicaSeleccionada = null;
+  let laboratoriosCache = [];
 
   let responsivasFiltro = '';
 
@@ -25,11 +23,11 @@
 
   const cargar = async () => {
     clearFlash('flash');
-    const [resumen, usuarios, materiales, practicas, prestamos, adeudos, incidencias, responsivas, sesiones] = await Promise.all([
+    const [resumen, usuarios, materiales, laboratorios, prestamos, adeudos, incidencias, responsivas, sesiones] = await Promise.all([
       api('GET', '/admin/resumen'),
       api('GET', '/admin/usuarios'),
       api('GET', '/admin/materiales?incluir_inactivos=true'),
-      api('GET', '/admin/practicas?tipo=QUIMICA'),
+      api('GET', '/admin/laboratorios?incluir_inactivos=true'),
       api('GET', '/admin/prestamos'),
       api('GET', '/admin/adeudos'),
       api('GET', '/admin/incidencias'),
@@ -40,15 +38,12 @@
     if (resumen.ok) renderResumen(resumen.data);
     if (usuarios.ok && usuariosCtl) usuariosCtl.setData(usuarios.data || []);
     if (materiales.ok) { materialesCache = materiales.data || []; renderMateriales(); }
-    if (practicas.ok) { practicasCache = practicas.data || []; renderPracticas(practicasCache); }
+    if (laboratorios.ok) { laboratoriosCache = laboratorios.data || []; renderLaboratorios(laboratoriosCache); }
     if (prestamos.ok && prestamosCtl) prestamosCtl.setData(prestamos.data || []);
     if (adeudos.ok && adeudosCtl) adeudosCtl.setData(adeudos.data || []);
     if (incidencias.ok && incidenciasCtl) incidenciasCtl.setData(incidencias.data || []);
     if (responsivas.ok && responsivasCtl) responsivasCtl.setData(responsivas.data || []);
     if (sesiones.ok && sesionesCtl) sesionesCtl.setData(sesiones.data || []);
-
-    // Si hay una practica seleccionada, refrescar sus kits
-    if (practicaSeleccionada) cargarKits(practicaSeleccionada);
   };
 
   const renderResponsivaItem = (r) => {
@@ -178,16 +173,27 @@
           <div class="card-row__title">${esc(m.nombre)} ${m.is_active ? '' : '<span class="badge badge--neutral">INACTIVO</span>'}</div>
           <div class="card-row__sub">Stock: ${m.stock}</div>
         </div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
-          <button class="btn btn-mini btn-secondary" data-stock="${m.id}" data-delta="1">+1</button>
-          <button class="btn btn-mini btn-secondary" data-stock="${m.id}" data-delta="-1">-1</button>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;align-items:center">
+          <input type="number" min="0" inputmode="numeric" value="${m.stock}" data-stock-input="${m.id}" aria-label="Stock de ${esc(m.nombre)}" title="Escribe el stock exacto y guarda" style="width:78px;padding:7px 10px;border-radius:10px;border:1px solid var(--c-line);font-size:13px;background:var(--c-cream-input);color:var(--c-teal-900)">
+          <button class="btn btn-mini btn-secondary" data-set-stock="${m.id}">Guardar</button>
           <button class="btn btn-mini btn-primary" data-editar="${m.id}">Editar</button>
           <button class="btn btn-mini btn-danger" data-eliminar="${m.id}">Eliminar</button>
         </div>
       </li>`).join('');
 
-    list.querySelectorAll('button[data-stock]').forEach((b) => {
-      b.addEventListener('click', () => ajustarStock(Number(b.dataset.stock), Number(b.dataset.delta)));
+    list.querySelectorAll('button[data-set-stock]').forEach((b) => {
+      b.addEventListener('click', () => {
+        const id = Number(b.dataset.setStock);
+        const input = list.querySelector(`input[data-stock-input="${id}"]`);
+        fijarStock(id, input ? input.value : '');
+      });
+    });
+
+    // Enter dentro del campo de stock también guarda
+    list.querySelectorAll('input[data-stock-input]').forEach((inp) => {
+      inp.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); fijarStock(Number(inp.dataset.stockInput), inp.value); }
+      });
     });
 
     list.querySelectorAll('button[data-editar]').forEach((b) => {
@@ -224,9 +230,16 @@
     if (next) next.addEventListener('click', () => { matsPagina++; renderMateriales(); });
   };
 
-  const ajustarStock = async (id, delta) => {
-    const r = await api('PATCH', '/admin/materiales/' + id + '/stock', { delta });
+  // Fija el stock al valor exacto escrito (reemplaza los antiguos +1 / -1)
+  const fijarStock = async (id, valor) => {
+    const stock = Number(valor);
+    if (!Number.isInteger(stock) || stock < 0) {
+      flash('flash', 'El stock debe ser un entero mayor o igual a 0.', 'error');
+      return;
+    }
+    const r = await api('PATCH', '/admin/materiales/' + id, { stock });
     if (!r.ok) { flash('flash', (r.data && r.data.error) || 'Error', 'error'); return; }
+    flash('flash', 'Stock actualizado.', 'ok');
     cargar();
   };
 
@@ -302,141 +315,96 @@
     cargar();
   };
 
-  const renderPracticas = (ps) => {
-    const list = document.getElementById('practicasList');
-    if (!ps.length) { list.innerHTML = '<li class="empty-state">Sin prácticas.</li>'; return; }
-    list.innerHTML = ps.map((p) => `
+  // ===== Aulas / laboratorios =====
+  const renderLaboratorios = (labs) => {
+    const list = document.getElementById('laboratoriosList');
+    if (!list) return;
+    if (!labs.length) { list.innerHTML = '<li class="empty-state">Sin laboratorios. Crea el primero abajo.</li>'; return; }
+    list.innerHTML = labs.map((l) => `
       <li class="card-row">
         <div class="card-row__main">
-          <div class="card-row__title">${esc(p.nombre)} <span class="badge badge--info">${esc(p.tipo)}</span></div>
-          <div class="card-row__sub">${esc(p.descripcion || '')}</div>
+          <div class="card-row__title">${esc(l.nombre)}${l.is_active ? '' : ' <span class="badge badge--neutral">INACTIVO</span>'}</div>
+          <div class="card-row__sub">${esc(l.ubicacion || 'Sin ubicación')}${l.capacidad ? ' · cap. ' + l.capacidad : ''} · ${l.sesiones_activas} sesión(es) activa(s)</div>
         </div>
-        <button class="btn btn-mini btn-primary" data-kits="${p.id}">Kits</button>
+        <button class="btn btn-mini ${l.is_active ? 'btn-ghost' : 'btn-secondary'}" data-lab-toggle="${l.id}" data-active="${l.is_active ? 1 : 0}">${l.is_active ? 'Desactivar' : 'Activar'}</button>
       </li>`).join('');
-    list.querySelectorAll('button[data-kits]').forEach((b) => {
-      b.addEventListener('click', () => abrirKits(Number(b.dataset.kits)));
+    list.querySelectorAll('button[data-lab-toggle]').forEach((b) => {
+      b.addEventListener('click', () => toggleLaboratorio(Number(b.dataset.labToggle), b.dataset.active === '0'));
     });
   };
 
-  const abrirKits = (practicaId) => {
-    practicaSeleccionada = practicaId;
-    document.getElementById('kitsCard').hidden = false;
-    document.getElementById('kitsCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    cargarKits(practicaId);
+  const toggleLaboratorio = async (id, activar) => {
+    const r = await api('PATCH', '/admin/laboratorios/' + id + '/estado', { activo: activar });
+    if (!r.ok) { flash('flash', (r.data && r.data.error) || 'Error', 'error'); return; }
+    flash('flash', activar ? 'Laboratorio activado.' : 'Laboratorio desactivado.', 'ok');
+    cargar();
   };
 
-  const cargarKits = async (practicaId) => {
-    const r = await api('GET', '/admin/practicas/' + practicaId + '/kits');
-    if (!r.ok) { flash('flash', (r.data && r.data.error) || 'Error cargando kits', 'error'); return; }
-    renderKits(r.data);
+  const submitLaboratorio = async (ev) => {
+    ev.preventDefault();
+    clearFlash('flash');
+    const fd = new FormData(ev.currentTarget);
+    const body = { nombre: fd.get('nombre') };
+    const ubic = String(fd.get('ubicacion') || '').trim();
+    const cap = String(fd.get('capacidad') || '').trim();
+    if (ubic) body.ubicacion = ubic;
+    if (cap) body.capacidad = Number(cap);
+    const r = await api('POST', '/admin/laboratorios', body);
+    if (!r.ok) { flash('flash', (r.data && r.data.error) || 'No se pudo crear el laboratorio', 'error'); return; }
+    flash('flash', 'Laboratorio creado.', 'ok');
+    ev.target.reset();
+    cargar();
   };
 
-  const renderKits = (data) => {
-    document.getElementById('kitsPracticaNombre').textContent = (data.practica && data.practica.nombre) || '—';
-    document.getElementById('kitsHint').textContent = 'Cada kit es la lista de materiales que se necesita para esta práctica.';
-    const cont = document.getElementById('kitsContainer');
+  // ===== Hoja de ruta del laboratorista =====
+  const cargarHojaRuta = async () => {
+    const input = document.getElementById('rutaFecha');
+    const cont = document.getElementById('rutaContainer');
+    if (!input || !cont) return;
+    const fecha = input.value;
+    if (!fecha) { cont.innerHTML = '<div class="empty-state">Elige una fecha para ver la hoja de ruta.</div>'; return; }
 
-    if (!data.kits || !data.kits.length) {
-      cont.innerHTML = '<div class="empty-state">Esta práctica aún no tiene kits.</div>';
-      return;
-    }
+    const r = await api('GET', '/admin/hoja-ruta?fecha=' + encodeURIComponent(fecha));
+    if (!r.ok) { cont.innerHTML = `<div class="empty-state">${esc((r.data && r.data.error) || 'No se pudo cargar la hoja de ruta.')}</div>`; return; }
 
-    const opcionesMaterial = materialesCache
-      .filter((m) => m.is_active)
-      .map((m) => `<option value="${m.id}">${esc(m.nombre)} (stock ${m.stock})</option>`)
-      .join('');
+    const sesiones = (r.data && r.data.sesiones) || [];
+    if (!sesiones.length) { cont.innerHTML = '<div class="empty-state">No hay sesiones programadas para este día.</div>'; return; }
 
-    cont.innerHTML = data.kits.map((kit) => {
-      const items = (kit.materiales || []).map((it) => `
-        <li class="card-row">
-          <div class="card-row__main">
-            <div class="card-row__title">${esc(it.material)} ${it.material_activo ? '' : '<span class="badge badge--neutral">INACTIVO</span>'}</div>
-            <div class="card-row__sub">Cantidad: ${it.cantidad} · Stock: ${it.stock}</div>
-          </div>
-          <button class="btn btn-mini btn-danger" data-quitar-mat="${kit.id}" data-mat-id="${it.material_id}" data-mat-nombre="${esc(it.material)}">Quitar</button>
-        </li>
-      `).join('');
+    cont.innerHTML = sesiones.map((s) => {
+      const ini = s.hora_inicio ? String(s.hora_inicio).slice(0, 5) : 'Sin hora';
+      const dur = s.duracion_min ? ' · ' + s.duracion_min + ' min' : '';
+      const lab = s.laboratorio ? esc(s.laboratorio) : '<span class="muted">Sin laboratorio</span>';
+      const estadoClass = s.estado === 'EN_CURSO' ? 'ok' : 'info';
+
+      const kitsHtml = (s.kits || []).map((kit) => {
+        const mats = (kit.materiales || []).map((m) => `
+          <li class="card-row">
+            <div class="card-row__main">
+              <div class="card-row__title" style="font-size:13px">${esc(m.material)} ${m.material_activo ? '' : '<span class="badge badge--neutral">INACTIVO</span>'}</div>
+              <div class="card-row__sub">Preparar: <strong>${m.cantidad}</strong> · Stock: ${m.stock}</div>
+            </div>
+          </li>`).join('');
+        return `
+          <div class="kit-block" style="margin-top:6px">
+            <strong style="font-size:13px;color:var(--c-teal-900)">${esc(kit.nombre || ('Kit #' + kit.id))} ${kit.solicitado ? '<span class="badge badge--info">solicitado</span>' : ''}</strong>
+            <ul class="list">${mats || '<li class="empty-state" style="font-size:12px">Kit sin materiales.</li>'}</ul>
+          </div>`;
+      }).join('') || '<div class="empty-state" style="font-size:12px">La práctica no tiene kits registrados.</div>';
 
       return `
-        <div class="kit-block">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
-            <h5 style="margin:0">${esc(kit.nombre || ('Kit #' + kit.id))}</h5>
-            <button class="btn btn-mini btn-danger" data-eliminar-kit="${kit.id}" data-kit-nombre="${esc(kit.nombre || ('Kit #' + kit.id))}">Eliminar kit</button>
-          </div>
-          <ul class="list">
-            ${items || '<li class="empty-state">Sin materiales en este kit.</li>'}
-          </ul>
-          <form class="form-card" data-kit-mat="${kit.id}" style="margin-top:8px">
-            <div class="field-tight"><select name="material_id" required><option value="">Material...</option>${opcionesMaterial}</select></div>
-            <div class="field-tight"><input name="cantidad" type="number" min="1" placeholder="Cantidad" required></div>
-            <button class="btn btn-mini btn-primary" type="submit">+ Agregar material al kit</button>
-          </form>
-        </div>
-      `;
+        <article class="card" style="margin-bottom:10px">
+          <h3 style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start">
+            <span>${ini}${dur} · ${esc(s.practica)}</span>
+            <span class="badge badge--${estadoClass}">${esc(s.estado)}</span>
+          </h3>
+          <div class="card-row__sub" style="margin-bottom:4px"><strong>Laboratorio:</strong> ${lab}</div>
+          <div class="card-row__sub" style="margin-bottom:6px"><strong>Grupo:</strong> ${esc(s.grupo)} · <strong>Maestro:</strong> ${esc(s.maestro)}</div>
+          <details>
+            <summary style="cursor:pointer;font-size:13px;color:var(--c-teal-900)"><strong>Materiales a preparar</strong></summary>
+            ${kitsHtml}
+          </details>
+        </article>`;
     }).join('');
-
-    cont.querySelectorAll('form[data-kit-mat]').forEach((form) => {
-      form.addEventListener('submit', (ev) => agregarMaterialAKit(ev, Number(form.dataset.kitMat)));
-    });
-
-    cont.querySelectorAll('button[data-eliminar-kit]').forEach((b) => {
-      b.addEventListener('click', () => eliminarKit(Number(b.dataset.eliminarKit), b.dataset.kitNombre));
-    });
-
-    cont.querySelectorAll('button[data-quitar-mat]').forEach((b) => {
-      b.addEventListener('click', () => quitarMaterialDeKit(
-        Number(b.dataset.quitarMat),
-        Number(b.dataset.matId),
-        b.dataset.matNombre
-      ));
-    });
-  };
-
-  const eliminarKit = async (kitId, nombre) => {
-    if (!confirm(`¿Eliminar el kit "${nombre}"? Tambien se quitaran todos sus materiales asociados.`)) return;
-    const r = await api('DELETE', '/admin/kits/' + kitId);
-    if (!r.ok) { flash('flash', (r.data && r.data.error) || 'No se pudo eliminar el kit', 'error'); return; }
-    flash('flash', 'Kit eliminado.', 'ok');
-    cargarKits(practicaSeleccionada);
-  };
-
-  const quitarMaterialDeKit = async (kitId, materialId, nombre) => {
-    if (!confirm(`¿Quitar "${nombre}" de este kit?`)) return;
-    const r = await api('DELETE', '/admin/kits/' + kitId + '/materiales/' + materialId);
-    if (!r.ok) { flash('flash', (r.data && r.data.error) || 'No se pudo quitar el material', 'error'); return; }
-    flash('flash', 'Material quitado del kit.', 'ok');
-    cargarKits(practicaSeleccionada);
-  };
-
-  const agregarMaterialAKit = async (ev, kitId) => {
-    ev.preventDefault();
-    clearFlash('flash');
-    const fd = new FormData(ev.currentTarget);
-    const body = {
-      material_id: Number(fd.get('material_id')),
-      cantidad: Number(fd.get('cantidad'))
-    };
-    const r = await api('POST', '/admin/kits/' + kitId + '/materiales', body);
-    if (!r.ok) { flash('flash', (r.data && r.data.error) || 'No se pudo agregar', 'error'); return; }
-    flash('flash', 'Material agregado al kit.', 'ok');
-    ev.target.reset();
-    cargarKits(practicaSeleccionada);
-  };
-
-  const submitKit = async (ev) => {
-    ev.preventDefault();
-    clearFlash('flash');
-    if (!practicaSeleccionada) {
-      flash('flash', 'Selecciona primero una práctica para crear el kit.', 'error');
-      return;
-    }
-    const fd = new FormData(ev.currentTarget);
-    const body = { nombre: String(fd.get('nombre') || '').trim() || null };
-    const r = await api('POST', '/admin/practicas/' + practicaSeleccionada + '/kits', body);
-    if (!r.ok) { flash('flash', (r.data && r.data.error) || 'No se pudo crear el kit', 'error'); return; }
-    flash('flash', 'Kit creado.', 'ok');
-    ev.target.reset();
-    cargarKits(practicaSeleccionada);
   };
 
   const renderPrestamoItem = (p) => `
@@ -530,11 +498,19 @@
       }).join('');
     }
 
+    const labTxt = s.laboratorio
+      ? esc(s.laboratorio)
+      : '<span class="muted">Sin laboratorio</span>';
+    const kitTxt = s.kit_solicitado
+      ? ` · <strong>Kit solicitado:</strong> ${esc(s.kit_solicitado)}`
+      : '';
+
     return `
       <li class="card-row">
         <div class="card-row__main" style="width:100%">
           <div class="card-row__title">${esc(s.practica)} ${estadoBadge}</div>
           <div class="card-row__sub"><strong>Fecha:</strong> ${fechaTxt}${horaTxt}${duracionTxt}</div>
+          <div class="card-row__sub"><strong>Laboratorio:</strong> ${labTxt}${kitTxt}</div>
           <div class="card-row__sub"><strong>Grupo:</strong> ${esc(s.grupo)} · <strong>Maestro:</strong> ${esc(s.maestro)}</div>
           <div class="card-row__sub">Equipos creados: ${s.equipos_creados} ${s.num_equipos ? '/ ' + s.num_equipos + ' planeados' : ''}</div>
           <details style="margin-top:6px">
@@ -577,30 +553,18 @@
     cargar();
   };
 
-  // Forzar tipo QUIMICA para todas las practicas creadas desde el admin de quimica.
-  const submitPractica = async (ev) => {
-    ev.preventDefault();
-    clearFlash('flash');
-    const fd = new FormData(ev.currentTarget);
-    const body = {
-      nombre: fd.get('nombre'),
-      descripcion: fd.get('descripcion'),
-      tipo: 'QUIMICA'
-    };
-    const r = await api('POST', '/admin/practicas', body);
-    if (!r.ok) { flash('flash', (r.data && r.data.error) || 'No se pudo crear', 'error'); return; }
-    flash('flash', 'Práctica creada.', 'ok');
-    ev.target.reset();
-    cargar();
-  };
-
+  // Subtabs genéricos: funcionan para cualquier sección que tenga .subtabs.
   const wireSubtabs = () => {
-    document.querySelectorAll('[data-tab="mats"] .subtabs button').forEach((b) => {
-      b.addEventListener('click', () => {
-        const key = b.dataset.subtab;
-        document.querySelectorAll('[data-tab="mats"] .subtabs button').forEach((x) => x.classList.toggle('is-active', x === b));
-        document.querySelectorAll('[data-tab="mats"] [data-subtab-panel]').forEach((p) => {
-          p.hidden = p.getAttribute('data-subtab-panel') !== key;
+    document.querySelectorAll('.subtabs').forEach((bar) => {
+      const buttons = bar.querySelectorAll('button[data-subtab]');
+      buttons.forEach((b) => {
+        b.addEventListener('click', () => {
+          const key = b.dataset.subtab;
+          buttons.forEach((x) => x.classList.toggle('is-active', x === b));
+          const seccion = bar.closest('[data-tab]');
+          seccion.querySelectorAll('[data-subtab-panel]').forEach((p) => {
+            p.hidden = p.getAttribute('data-subtab-panel') !== key;
+          });
         });
       });
     });
@@ -680,8 +644,20 @@
     initListas();
     document.getElementById('formUsuario').addEventListener('submit', submitUsuario);
     document.getElementById('formMaterial').addEventListener('submit', submitMaterial);
-    document.getElementById('formPractica').addEventListener('submit', submitPractica);
-    document.getElementById('formKit').addEventListener('submit', submitKit);
+
+    const formLab = document.getElementById('formLaboratorio');
+    if (formLab) formLab.addEventListener('submit', submitLaboratorio);
+
+    // Hoja de ruta: fecha inicial = hoy + recarga al abrir la subpestaña.
+    const rutaFecha = document.getElementById('rutaFecha');
+    if (rutaFecha) {
+      rutaFecha.value = new Date().toISOString().slice(0, 10);
+      rutaFecha.addEventListener('change', cargarHojaRuta);
+      cargarHojaRuta();
+    }
+    const rutaBtn = document.querySelector('[data-tab="labs"] button[data-subtab="labs-ruta"]');
+    if (rutaBtn) rutaBtn.addEventListener('click', cargarHojaRuta);
+
     cargar();
   });
 })();

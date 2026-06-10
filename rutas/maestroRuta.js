@@ -18,6 +18,15 @@ router.get('/materiales', protegerRutaMaestro, maestroControlador.listarMaterial
 router.get('/equipos', protegerRutaMaestro, maestroControlador.listarTodosLosEquipos);
 
 router.get('/practicas', protegerRutaMaestro, maestroControlador.listarPracticas);
+router.post('/practicas', protegerRutaMaestro, maestroControlador.crearPractica);
+router.get('/practicas/:id/kits', protegerRutaMaestro, maestroControlador.listarKitsPorPractica);
+router.post('/practicas/:id/kits', protegerRutaMaestro, maestroControlador.crearKit);
+router.delete('/kits/:id', protegerRutaMaestro, maestroControlador.eliminarKit);
+router.post('/kits/:id/materiales', protegerRutaMaestro, maestroControlador.agregarMaterialAKit);
+router.delete('/kits/:kitId/materiales/:materialId', protegerRutaMaestro, maestroControlador.quitarMaterialDeKit);
+
+router.get('/laboratorios', protegerRutaMaestro, maestroControlador.listarLaboratorios);
+router.get('/agenda', protegerRutaMaestro, maestroControlador.obtenerAgenda);
 
 router.get('/sesiones', protegerRutaMaestro, maestroControlador.listarMisSesiones);
 router.post('/sesiones', protegerRutaMaestro, maestroControlador.crearSesion);

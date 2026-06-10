@@ -1083,6 +1083,10 @@ const AdminModelo = {
           s.duracion_min,
           s.num_equipos,
           s.integrantes_por_equipo,
+          s.laboratorio_id,
+          lab.nombre AS laboratorio,
+          s.kit_id,
+          ks.nombre AS kit_solicitado,
           s.estado,
           (
             SELECT COUNT(*) FROM equipos e WHERE e.sesion_id = s.id
@@ -1091,6 +1095,8 @@ const AdminModelo = {
         INNER JOIN practicas p ON p.id = s.practica_id
         INNER JOIN grupos g    ON g.id = s.grupo_id
         INNER JOIN usuarios um ON um.id = s.maestro_id
+        LEFT JOIN laboratorios lab ON lab.id = s.laboratorio_id
+        LEFT JOIN kits ks ON ks.id = s.kit_id
         ${filtroEstado}
         ORDER BY s.fecha DESC, s.hora_inicio DESC, s.id DESC
       `,
@@ -1161,6 +1167,185 @@ const AdminModelo = {
       equipos_creados: Number(s.equipos_creados) || 0,
       kits: kitsPorPractica.get(s.practica_id) || []
     }));
+  },
+
+  // ===================== Laboratorios (aulas físicas) =====================
+
+  listarLaboratorios: async ({ incluirInactivos = false } = {}) => {
+    const where = incluirInactivos ? '' : 'WHERE is_active = TRUE';
+    const [rows] = await pool.query(
+      `
+        SELECT
+          l.id, l.nombre, l.ubicacion, l.capacidad, l.is_active, l.created_at,
+          (
+            SELECT COUNT(*) FROM sesiones s
+            WHERE s.laboratorio_id = l.id AND s.estado <> 'FINALIZADA'
+          ) AS sesiones_activas
+        FROM laboratorios l
+        ${where}
+        ORDER BY l.nombre ASC
+      `
+    );
+    return rows.map((r) => ({ ...r, sesiones_activas: Number(r.sesiones_activas) || 0 }));
+  },
+
+  crearLaboratorio: async ({ nombre, ubicacion, capacidad }) => {
+    const nombreLimpio = String(nombre || '').trim();
+    const ubicacionLimpia = ubicacion === undefined || ubicacion === null
+      ? null
+      : String(ubicacion).trim() || null;
+
+    if (!nombreLimpio) {
+      throw crearErrorDominio(400, 'El nombre del laboratorio es obligatorio.', 'LAB_NAME_REQUIRED');
+    }
+
+    let capacidadNum = null;
+    if (capacidad !== undefined && capacidad !== null && capacidad !== '') {
+      capacidadNum = Number(capacidad);
+      if (!Number.isInteger(capacidadNum) || capacidadNum <= 0) {
+        throw crearErrorDominio(400, 'La capacidad debe ser un entero positivo.', 'LAB_CAPACITY_INVALID');
+      }
+    }
+
+    const [existentes] = await pool.query(
+      `SELECT id FROM laboratorios WHERE LOWER(nombre) = LOWER(?) LIMIT 1`,
+      [nombreLimpio]
+    );
+
+    if (existentes.length) {
+      throw crearErrorDominio(409, 'Ya existe un laboratorio con ese nombre.', 'LAB_ALREADY_EXISTS');
+    }
+
+    const [result] = await pool.query(
+      `INSERT INTO laboratorios (nombre, ubicacion, capacidad) VALUES (?, ?, ?)`,
+      [nombreLimpio, ubicacionLimpia, capacidadNum]
+    );
+
+    return {
+      id: result.insertId,
+      nombre: nombreLimpio,
+      ubicacion: ubicacionLimpia,
+      capacidad: capacidadNum,
+      is_active: 1,
+      sesiones_activas: 0
+    };
+  },
+
+  cambiarEstadoLaboratorio: async ({ laboratorioId, activo }) => {
+    const [labs] = await pool.query(
+      `SELECT id, nombre, is_active FROM laboratorios WHERE id = ? LIMIT 1`,
+      [laboratorioId]
+    );
+
+    if (!labs.length) {
+      throw crearErrorDominio(404, 'El laboratorio no existe.', 'LAB_NOT_FOUND');
+    }
+
+    await pool.query(
+      `UPDATE laboratorios SET is_active = ? WHERE id = ?`,
+      [activo ? 1 : 0, laboratorioId]
+    );
+
+    return { id: Number(laboratorioId), nombre: labs[0].nombre, is_active: activo ? 1 : 0 };
+  },
+
+  // ===================== Hoja de ruta del laboratorista =====================
+  // Para una fecha: sesiones ordenadas por hora con el kit/materiales a preparar.
+  obtenerHojaRuta: async (fecha) => {
+    const [sesiones] = await pool.query(
+      `
+        SELECT
+          s.id, s.fecha, s.hora_inicio, s.duracion_min, s.estado,
+          s.practica_id, p.nombre AS practica,
+          s.grupo_id, g.nombre AS grupo,
+          s.maestro_id, um.nombre AS maestro,
+          s.laboratorio_id, lab.nombre AS laboratorio,
+          s.kit_id, ks.nombre AS kit_solicitado
+        FROM sesiones s
+        INNER JOIN practicas p ON p.id = s.practica_id
+        INNER JOIN grupos g    ON g.id = s.grupo_id
+        INNER JOIN usuarios um ON um.id = s.maestro_id
+        LEFT JOIN laboratorios lab ON lab.id = s.laboratorio_id
+        LEFT JOIN kits ks ON ks.id = s.kit_id
+        WHERE s.fecha = ? AND s.estado <> 'FINALIZADA'
+        ORDER BY s.hora_inicio ASC, s.id ASC
+      `,
+      [fecha]
+    );
+
+    if (!sesiones.length) return { fecha, sesiones: [] };
+
+    // Materiales a preparar: si la sesión tiene kit_id, ese kit; si no, todos
+    // los kits de la práctica. Cargamos los materiales de los kits involucrados.
+    const kitIdsDirectos = sesiones.filter((s) => s.kit_id).map((s) => s.kit_id);
+    const practicaSinKit = [...new Set(sesiones.filter((s) => !s.kit_id).map((s) => s.practica_id))];
+
+    let kitsPorPractica = new Map();
+    if (practicaSinKit.length) {
+      const ph = practicaSinKit.map(() => '?').join(',');
+      const [kits] = await pool.query(
+        `SELECT id, practica_id, nombre FROM kits WHERE practica_id IN (${ph}) ORDER BY id ASC`,
+        practicaSinKit
+      );
+      for (const k of kits) {
+        if (!kitsPorPractica.has(k.practica_id)) kitsPorPractica.set(k.practica_id, []);
+        kitsPorPractica.get(k.practica_id).push(k);
+      }
+    }
+
+    const todosKitIds = [
+      ...new Set([
+        ...kitIdsDirectos,
+        ...[...kitsPorPractica.values()].flat().map((k) => k.id)
+      ])
+    ];
+
+    const materialesPorKit = new Map();
+    if (todosKitIds.length) {
+      const ph = todosKitIds.map(() => '?').join(',');
+      const [items] = await pool.query(
+        `
+          SELECT km.kit_id, km.cantidad, m.nombre AS material, m.stock, m.is_active AS material_activo
+          FROM kit_materiales km
+          INNER JOIN materiales m ON m.id = km.material_id
+          WHERE km.kit_id IN (${ph})
+          ORDER BY m.nombre ASC
+        `,
+        todosKitIds
+      );
+      for (const it of items) {
+        if (!materialesPorKit.has(it.kit_id)) materialesPorKit.set(it.kit_id, []);
+        materialesPorKit.get(it.kit_id).push({
+          material: it.material,
+          cantidad: it.cantidad,
+          stock: it.stock,
+          material_activo: Boolean(it.material_activo)
+        });
+      }
+    }
+
+    return {
+      fecha,
+      sesiones: sesiones.map((s) => {
+        let kits;
+        if (s.kit_id) {
+          kits = [{
+            id: s.kit_id,
+            nombre: s.kit_solicitado,
+            solicitado: true,
+            materiales: materialesPorKit.get(s.kit_id) || []
+          }];
+        } else {
+          kits = (kitsPorPractica.get(s.practica_id) || []).map((k) => ({
+            id: k.id,
+            nombre: k.nombre,
+            solicitado: false,
+            materiales: materialesPorKit.get(k.id) || []
+          }));
+        }
+        return { ...s, kits };
+      })
+    };
   }
 };
 

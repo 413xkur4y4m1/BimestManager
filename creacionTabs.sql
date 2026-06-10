@@ -390,6 +390,16 @@ select * from equipo_integrantes
 
 
 
+CREATE TABLE IF NOT EXISTS `laboratorios` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(100) NOT NULL,
+  `ubicacion` varchar(150) DEFAULT NULL,
+  `capacidad` int DEFAULT NULL,
+  `is_active` tinyint(1) DEFAULT '1',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_laboratorio_nombre` (`nombre`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 
 
@@ -397,17 +407,61 @@ select * from equipo_integrantes
 
 
 
+DROP PROCEDURE IF EXISTS `bm_migracion_practicas_labs`;
+DELIMITER $$
+CREATE PROCEDURE `bm_migracion_practicas_labs`()
+BEGIN
+  -- practicas.creado_por -> maestro que creó la práctica
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'practicas' AND COLUMN_NAME = 'creado_por'
+  ) THEN
+    ALTER TABLE `practicas`
+      ADD COLUMN `creado_por` int DEFAULT NULL,
+      ADD KEY `idx_practicas_creado_por` (`creado_por`),
+      ADD CONSTRAINT `fk_practicas_creador`
+        FOREIGN KEY (`creado_por`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL;
+  END IF;
+
+  -- sesiones.laboratorio_id -> dónde se imparte la sesión (motor anti-choque)
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'sesiones' AND COLUMN_NAME = 'laboratorio_id'
+  ) THEN
+    ALTER TABLE `sesiones`
+      ADD COLUMN `laboratorio_id` int DEFAULT NULL,
+      ADD KEY `idx_sesiones_laboratorio` (`laboratorio_id`),
+      ADD CONSTRAINT `fk_sesiones_laboratorio`
+        FOREIGN KEY (`laboratorio_id`) REFERENCES `laboratorios` (`id`) ON DELETE SET NULL;
+  END IF;
+
+  -- sesiones.kit_id -> kit solicitado para que el laboratorista lo prepare
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'sesiones' AND COLUMN_NAME = 'kit_id'
+  ) THEN
+    ALTER TABLE `sesiones`
+      ADD COLUMN `kit_id` int DEFAULT NULL,
+      ADD KEY `idx_sesiones_kit` (`kit_id`),
+      ADD CONSTRAINT `fk_sesiones_kit`
+        FOREIGN KEY (`kit_id`) REFERENCES `kits` (`id`) ON DELETE SET NULL;
+  END IF;
+END $$
+DELIMITER ;
+
+CALL `bm_migracion_practicas_labs`();
+DROP PROCEDURE IF EXISTS `bm_migracion_practicas_labs`;
 
 
 
 
 
+INSERT INTO `laboratorios` (`nombre`, `ubicacion`, `capacidad`)
+SELECT * FROM (SELECT 'Laboratorio de Química A' AS n, 'Edificio C · Planta baja' AS u, 30 AS c) AS t
+WHERE NOT EXISTS (SELECT 1 FROM `laboratorios` WHERE `nombre` = 'Laboratorio de Química A');
 
-
-
-
-
-
-
+INSERT INTO `laboratorios` (`nombre`, `ubicacion`, `capacidad`)
+SELECT * FROM (SELECT 'Laboratorio de Química B' AS n, 'Edificio C · Primer piso' AS u, 25 AS c) AS t
+WHERE NOT EXISTS (SELECT 1 FROM `laboratorios` WHERE `nombre` = 'Laboratorio de Química B');
 
 
