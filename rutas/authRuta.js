@@ -10,5 +10,6 @@ router.post('/registro-alumno-turismo', authControlador.registrarAlumnoTurismo);
 router.post('/login', authControlador.login);
 router.post('/logout', authControlador.logout);
 router.get('/yo', autenticar, cargarUsuarioActual, authControlador.yo);
+router.get('/sesion', authControlador.sesion);
 
 module.exports = router;

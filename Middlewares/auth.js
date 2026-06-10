@@ -185,6 +185,7 @@ module.exports = {
   TOKEN_COOKIE_NAME,
   ROLES,
   FUENTES,
+  extraerToken,
   autenticar,
   autorizarRoles,
   autorizarFuentes,

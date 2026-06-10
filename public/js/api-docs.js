@@ -144,33 +144,124 @@
       ]}
   ];
 
-  // Ejemplos de respuesta, indexados por "METODO ruta" para que un GET y un
-  // POST que comparten la misma ruta no muestren el mismo ejemplo.
+  // Ejemplos de respuesta indexados por "METODO ruta". Tomados de los
+  // controladores reales (mensajes y forma de la respuesta verdaderos).
   const respuestas = {
-    'POST /auth/login': '{\n  "message": "Inicio de sesion correcto.",\n  "redirectTo": "/admin",\n  "usuario": { "id": 1, "nombre": "Ana Vega", "email": "ana@ulsa.mx",\n               "rol": "ADMIN", "fuente": "QUIMICA", "grupo_id": null }\n}',
+    // ---- Auth ----
+    'POST /auth/login': '{\n  "message": "Inicio de sesion correcto.",\n  "redirectTo": "/admin",\n  "usuario": { "id": 1, "nombre": "Ana Vega", "email": "ana@ulsa.mx", "rol": "ADMIN", "fuente": "QUIMICA", "grupo_id": null }\n}',
     'POST /auth/registro-alumno': '{ "message": "Registro completado. Tu cuenta queda pendiente de autorizacion por un maestro.", "id": 42 }',
     'POST /auth/registro-alumno-turismo': '{ "message": "Registro completado. Tu cuenta queda pendiente de autorizacion por un administrador.", "id": 18 }',
     'POST /auth/logout': '{ "message": "Sesion cerrada correctamente." }',
     'GET /auth/yo': '{ "usuario": { "id": 1, "nombre": "Ana Vega", "email": "ana@ulsa.mx", "rol": "MAESTRO", "fuente": "QUIMICA" } }',
-    'GET /salud': '{ "ok": true, "ts": "2026-06-10T07:30:00.000Z" }',
-    'GET /monitor/metricas': '{\n  "cpu": 12.4, "ramUsadaMB": 318, "ramTotalMB": 2048,\n  "discoLibreGB": 38.2, "dbLatenciaMs": 12, "uptimeSeg": 84213\n}',
-    'GET /estudiantes/mi-panel': '{\n  "sesion": { "id": 12, "practica": "Titulacion acido-base", "estado": "EN_CURSO" },\n  "equipo": { "id": 3, "nombre": "Equipo 03" },\n  "mi_firma_imagen": "/imageFirma/firma_u1_s1.png", "mi_firmado_at": "2026-06-10T16:05:00Z"\n}',
-    'POST /estudiantes/firmar': '{ "message": "Responsiva firmada.", "firma_imagen": "/imageFirma/firma_u1_s1.png" }',
+
+    // ---- Estudiantes (quimica) ----
+    'GET /estudiantes/mi-panel': '{\n  "sesion": { "id": 12, "practica": "Titulacion acido-base", "estado": "EN_CURSO" },\n  "equipo": { "id": 3, "nombre": "Equipo 03" },\n  "mi_firma_imagen": "/imageFirma/firma_u1_s1.png",\n  "mi_firmado_at": "2026-06-10T16:05:00.000Z"\n}',
+    'POST /estudiantes/firmar': '{ "message": "Firma registrada correctamente.", "firma_imagen": "/imageFirma/firma_u1_s1.png" }',
     'GET /estudiantes/pendientes': '[ { "id": 42, "nombre": "Luis Mora", "email": "luis@ulsa.mx", "is_active": 0 } ]',
+    'PATCH /estudiantes/:id/grupo': '{ "message": "Grupo asignado correctamente." }',
+    'PATCH /estudiantes/:id/activar': '{ "message": "Alumno autorizado correctamente." }',
+
+    // ---- Maestro ----
     'GET /maestro/resumen': '{ "sesionesHoy": 3, "alumnos": 128, "incidenciasAbiertas": 2 }',
+    'GET /maestro/grupos': '[ { "id": 1, "nombre": "3A" } ]',
+    'POST /maestro/grupos': '{ "message": "Grupo creado correctamente.", "grupo": { "id": 5, "nombre": "3A" } }',
+    'GET /maestro/grupos/:id/alumnos': '[ { "id": 8, "nombre": "Luis Mora", "email": "luis@ulsa.mx", "is_active": 1 } ]',
+    'GET /maestro/alumnos': '[ { "id": 8, "nombre": "Luis Mora", "grupo_id": 1, "is_active": 1 } ]',
     'GET /maestro/materiales': '[ { "id": 1, "nombre": "Acido clorhidrico 100 mL", "stock": 42, "is_active": 1 } ]',
-    'GET /maestro/sesiones': '[ { "id": 12, "practica_id": 5, "grupo_id": 2, "fecha": "2026-06-12", "estado": "PROGRAMADA" } ]',
-    'GET /maestro/sesiones/:id': '{\n  "id": 12, "practica": "Titulacion acido-base", "laboratorio": "Lab Quimica A",\n  "estado": "PROGRAMADA", "equipos": [ { "id": 3, "nombre": "Equipo 03" } ]\n}',
+    'GET /maestro/equipos': '[ { "id": 3, "sesion_id": 12, "nombre": "Equipo 03" } ]',
     'GET /maestro/practicas': '[ { "id": 5, "nombre": "Titulacion", "tipo": "QUIMICA", "creado_por": 1 } ]',
+    'POST /maestro/practicas': '{ "message": "Practica creada correctamente.", "practica": { "id": 5, "nombre": "Titulacion", "tipo": "QUIMICA" } }',
+    'GET /maestro/practicas/:id/kits': '[ { "id": 2, "practica_id": 5, "nombre": "Kit titulacion" } ]',
+    'POST /maestro/practicas/:id/kits': '{ "message": "Kit creado correctamente.", "kit": { "id": 2, "practica_id": 5, "nombre": "Kit titulacion" } }',
+    'DELETE /maestro/kits/:id': '{ "message": "Kit eliminado correctamente." }',
+    'POST /maestro/kits/:id/materiales': '{ "message": "Material agregado al kit correctamente." }',
+    'DELETE /maestro/kits/:kitId/materiales/:materialId': '{ "message": "Material quitado del kit correctamente." }',
+    'GET /maestro/laboratorios': '[ { "id": 1, "nombre": "Laboratorio de Quimica A", "ubicacion": "Edificio C", "capacidad": 30, "is_active": 1 } ]',
+    'GET /maestro/agenda': '[ { "laboratorio_id": 1, "fecha": "2026-06-12", "hora_inicio": "10:00", "duracion_min": 90, "sesion_id": 12 } ]',
+    'GET /maestro/sesiones': '[ { "id": 12, "practica_id": 5, "grupo_id": 2, "fecha": "2026-06-12", "estado": "PROGRAMADA" } ]',
+    'POST /maestro/sesiones': '{\n  "message": "Sesion programada correctamente. Se notifico a los alumnos del grupo.",\n  "sesion": { "id": 12, "practica_id": 5, "grupo_id": 2, "fecha": "2026-06-12", "estado": "PROGRAMADA" }\n}',
+    'GET /maestro/sesiones/:id': '{\n  "id": 12, "practica": "Titulacion acido-base", "laboratorio": "Lab Quimica A",\n  "estado": "PROGRAMADA", "equipos": [ { "id": 3, "nombre": "Equipo 03" } ]\n}',
+    'PATCH /maestro/sesiones/:id/estado': '{ "message": "Estado de la sesion actualizado." }',
+    'GET /maestro/sesiones/:id/alumnos': '[ { "id": 8, "nombre": "Luis Mora", "equipo_id": 3 } ]',
+    'POST /maestro/sesiones/:id/equipos': '{ "message": "Equipo creado correctamente.", "equipo": { "id": 3, "sesion_id": 12, "nombre": "Equipo 03" } }',
+    'DELETE /maestro/equipos/:id': '{ "message": "Equipo eliminado correctamente." }',
+    'GET /maestro/sesiones/:id/incidencias': '[ { "id": 4, "sesion_id": 12, "equipo_id": 3, "material_id": 1, "tipo": "ROTO" } ]',
+    'POST /maestro/sesiones/:id/incidencias': '{ "message": "Incidencia registrada. Se genero un adeudo al responsable." }',
+
+    // ---- Admin (quimica) ----
     'GET /admin/resumen': '{ "usuarios": 134, "materiales": 512, "prestamosActivos": 9, "adeudosPendientes": 4 }',
     'GET /admin/usuarios': '[ { "id": 1, "nombre": "Ana Vega", "email": "ana@ulsa.mx", "rol": "MAESTRO", "is_active": 1 } ]',
+    'POST /admin/usuarios': '{ "message": "Usuario creado correctamente.", "usuario": { "id": 7, "nombre": "Ana Vega", "email": "ana@ulsa.mx", "rol": "MAESTRO" } }',
+    'PATCH /admin/usuarios/:id/estado': '{ "message": "Usuario activado correctamente." }',
     'GET /admin/materiales': '[ { "id": 1, "nombre": "Matraz Erlenmeyer 250 mL", "stock": 30, "is_active": 1 } ]',
+    'POST /admin/materiales': '{ "message": "Material creado correctamente.", "material": { "id": 1, "nombre": "Matraz Erlenmeyer 250 mL", "stock": 30 } }',
+    'PATCH /admin/materiales/:id/stock': '{ "message": "Stock ajustado en +10.", "stock": 40 }',
+    'PATCH /admin/materiales/:id': '{ "message": "Material actualizado correctamente." }',
+    'DELETE /admin/materiales/:id': '{ "message": "Material desactivado correctamente." }',
     'GET /admin/laboratorios': '[ { "id": 1, "nombre": "Laboratorio de Quimica A", "ubicacion": "Edificio C", "capacidad": 30, "is_active": 1 } ]',
+    'POST /admin/laboratorios': '{ "message": "Laboratorio creado correctamente.", "laboratorio": { "id": 1, "nombre": "Laboratorio de Quimica A" } }',
+    'PATCH /admin/laboratorios/:id/estado': '{ "message": "Laboratorio activado correctamente." }',
+    'GET /admin/hoja-ruta': '[ { "sesion_id": 12, "laboratorio": "Lab Quimica A", "kit": "Kit titulacion", "fecha": "2026-06-12", "hora_inicio": "10:00" } ]',
     'GET /admin/prestamos': '[ { "id": 7, "usuario_id": 42, "material_id": 1, "cantidad": 2, "estado": "ACTIVO" } ]',
+    'POST /admin/prestamos': '{ "message": "Prestamo registrado correctamente.", "prestamo": { "id": 7, "usuario_id": 42, "material_id": 1, "cantidad": 2, "estado": "ACTIVO" } }',
+    'PATCH /admin/prestamos/:id/devolucion': '{ "message": "Prestamo marcado como devuelto." }',
     'GET /admin/adeudos': '[ { "id": 3, "usuario_id": 42, "material_id": 1, "estado": "PENDIENTE" } ]',
-    'GET /turismo/estudiantes/mi-panel': '{ "sesion_activa": { "id": 8, "practica": "Salida de campo" }, "adeudos": 0 }',
+    'PATCH /admin/adeudos/:id/resolver': '{ "message": "Adeudo resuelto." }',
+    'GET /admin/incidencias': '[ { "id": 4, "sesion_id": 12, "material_id": 1, "tipo": "ROTO" } ]',
+    'GET /admin/responsivas': '[ { "id": 9, "sesion_id": 12, "equipo_id": 3, "estado": "ACTIVA" } ]',
+    'GET /admin/sesiones': '[ { "id": 12, "practica_id": 5, "grupo_id": 2, "fecha": "2026-06-12", "estado": "PROGRAMADA" } ]',
+
+    // ---- Turismo · Estudiante ----
+    'GET /turismo/estudiantes/mi-panel': '{ "usuario": { "id": 18, "nombre": "Sara Ito", "grupo": "4B" }, "sesion_activa": { "id": 8, "practica": "Salida de campo" }, "adeudos": 0 }',
+    'GET /turismo/estudiantes/mis-prestamos': '[ { "id": 5, "material_id": 2, "cantidad": 1, "estado": "PRESTADO" } ]',
+    'GET /turismo/estudiantes/mis-adeudos': '[ { "id": 2, "material_id": 2, "estado": "PENDIENTE" } ]',
+    'GET /turismo/estudiantes/mis-notificaciones': '[ { "id": 11, "mensaje": "Tu solicitud fue aprobada.", "leido": 0 } ]',
+    'PATCH /turismo/estudiantes/notificaciones/:id/leer': '{ "message": "Notificacion marcada como leida." }',
+    'GET /turismo/estudiantes/sesion-activa': '{ "sesionActiva": { "id": 8, "practica_id": 3, "grupo": "4B", "estado": "EN_CURSO" } }',
+    'GET /turismo/estudiantes/mis-sesiones': '[ { "id": 8, "practica_id": 3, "grupo": "4B", "estado": "FINALIZADA" } ]',
+    'GET /turismo/estudiantes/materiales-disponibles': '[ { "id": 2, "nombre": "GPS Garmin 64s", "stock": 5, "estado": "DISPONIBLE" } ]',
+    'GET /turismo/estudiantes/practicas/:practicaId/sugerencias': '[ { "material_id": 2, "nombre": "GPS Garmin 64s", "cantidad_sugerida": 1 } ]',
+    'POST /turismo/estudiantes/prestamos': '{ "message": "Solicitud enviada. Queda en espera de aprobacion del administrador." }',
+    'GET /turismo/estudiantes/pendientes': '[ { "id": 22, "nombre": "Sara Ito", "email": "sara@ulsa.mx", "is_active": 0 } ]',
+    'PATCH /turismo/estudiantes/:id/grupo': '{ "message": "Grupo asignado correctamente." }',
+    'PATCH /turismo/estudiantes/:id/activar': '{ "message": "Alumno autorizado correctamente." }',
+
+    // ---- Turismo · Admin ----
     'GET /turismo/admin/resumen': '{ "alumnos": 64, "materiales": 80, "solicitudesPendientes": 3 }',
-    'GET /turismo/admin/prestamos': '[ { "id": 5, "alumno_id": 18, "material_id": 2, "estado": "PRESTADO" } ]'
+    'GET /turismo/admin/usuarios': '[ { "id": 18, "nombre": "Sara Ito", "email": "sara@ulsa.mx", "rol": "ALUMNO", "grupo": "4B", "is_active": 1 } ]',
+    'POST /turismo/admin/usuarios': '{ "message": "Usuario creado correctamente.", "usuario": { "id": 18, "nombre": "Sara Ito", "rol": "ALUMNO" } }',
+    'PATCH /turismo/admin/usuarios/:id/estado': '{ "message": "Usuario activado correctamente." }',
+    'PATCH /turismo/admin/usuarios/:id/grupo': '{ "message": "Grupo asignado correctamente." }',
+    'GET /turismo/admin/materiales': '[ { "id": 2, "nombre": "GPS Garmin 64s", "stock": 5, "estado": "DISPONIBLE", "is_active": 1 } ]',
+    'POST /turismo/admin/materiales': '{ "message": "Material creado correctamente.", "material": { "id": 2, "nombre": "GPS Garmin 64s", "stock": 5 } }',
+    'PATCH /turismo/admin/materiales/:id/stock': '{ "message": "Stock ajustado en +5.", "stock": 10 }',
+    'PATCH /turismo/admin/materiales/:id/estado': '{ "message": "Material marcado como DISPONIBLE." }',
+    'PATCH /turismo/admin/materiales/:id': '{ "message": "Material actualizado correctamente." }',
+    'DELETE /turismo/admin/materiales/:id': '{ "message": "Material desactivado correctamente." }',
+    'GET /turismo/admin/practicas': '[ { "id": 3, "nombre": "Salida de campo", "duracion_minutos": 240, "is_active": 1 } ]',
+    'POST /turismo/admin/practicas': '{ "message": "Practica creada correctamente.", "practica": { "id": 3, "nombre": "Salida de campo" } }',
+    'PATCH /turismo/admin/practicas/:id': '{ "message": "Practica actualizada correctamente." }',
+    'DELETE /turismo/admin/practicas/:id': '{ "message": "Practica desactivada correctamente." }',
+    'GET /turismo/admin/practicas/:id/sugerencias': '[ { "material_id": 2, "nombre": "GPS Garmin 64s", "cantidad_sugerida": 1 } ]',
+    'POST /turismo/admin/practicas/:id/sugerencias': '{ "message": "Sugerencia agregada correctamente." }',
+    'PATCH /turismo/admin/sugerencias/:id': '{ "message": "Sugerencia actualizada correctamente." }',
+    'DELETE /turismo/admin/sugerencias/:id': '{ "message": "Sugerencia eliminada correctamente." }',
+    'GET /turismo/admin/sesiones': '[ { "id": 8, "practica_id": 3, "grupo": "4B", "estado": "PROGRAMADA" } ]',
+    'POST /turismo/admin/sesiones': '{ "message": "Sesion creada correctamente.", "sesion": { "id": 8, "practica_id": 3, "grupo": "4B" } }',
+    'GET /turismo/admin/sesiones/:id': '{ "id": 8, "practica": "Salida de campo", "grupo": "4B", "estado": "PROGRAMADA" }',
+    'PATCH /turismo/admin/sesiones/:id/estado': '{ "message": "Sesion movida a EN_CURSO." }',
+    'GET /turismo/admin/prestamos': '[ { "id": 5, "alumno_id": 18, "material_id": 2, "estado": "PRESTADO" } ]',
+    'POST /turismo/admin/prestamos': '{ "message": "Prestamo registrado correctamente.", "prestamo": { "id": 5, "alumno_id": 18, "material_id": 2, "estado": "PRESTADO" } }',
+    'PATCH /turismo/admin/prestamos/:id/aprobar': '{ "message": "Solicitud aprobada." }',
+    'PATCH /turismo/admin/prestamos/:id/rechazar': '{ "message": "Solicitud rechazada." }',
+    'PATCH /turismo/admin/prestamos/:id/devolucion': '{ "message": "Prestamo marcado como devuelto." }',
+    'PATCH /turismo/admin/prestamos/:id/adeudo': '{ "message": "Prestamo marcado como adeudo." }',
+    'GET /turismo/admin/incidencias': '[ { "id": 6, "prestamo_id": 5, "tipo": "ROTO", "estado": "PENDIENTE" } ]',
+    'PATCH /turismo/admin/incidencias/:id/resolver': '{ "message": "Incidencia resuelta." }',
+
+    // ---- Monitoreo ----
+    'GET /salud': '{ "ok": true, "ts": "2026-06-10T08:53:28.176Z" }',
+    'GET /monitor/metricas': '{\n  "cpu": 12.4, "ramUsadaMB": 318, "ramTotalMB": 2048,\n  "discoLibreGB": 38.2, "dbLatenciaMs": 12, "uptimeSeg": 84213\n}'
   };
 
   // Respuesta tipica para mutaciones sin ejemplo especifico.
@@ -263,9 +354,13 @@
       const bodyEx = e.body ? '<div class="body-ex"><b>body</b> ' + esc(e.body) + '</div>' : '';
       const ejemplo = ejemploDe(e);
       const errTxt = erroresTexto(e);
-      const cuerpo = esc(ejemplo) + (ejemplo && errTxt ? '\n\n' : '') + esc(errTxt);
-      const resEx = cuerpo.trim()
-        ? '<details class="resp"><summary>Respuesta de ejemplo</summary><pre class="resp-pre">' + cuerpo + '</pre></details>'
+      // El ejemplo y los errores van por separado: el ejemplo solo si existe
+      // uno real (no un bloque que sea puro error).
+      const resEx = ejemplo
+        ? '<details class="resp"><summary>Respuesta de ejemplo</summary><pre class="resp-pre">' + esc(ejemplo) + '</pre></details>'
+        : '';
+      const errEx = errTxt
+        ? '<details class="resp resp--err"><summary>Errores posibles</summary><pre class="resp-pre">' + esc(errTxt) + '</pre></details>'
         : '';
       cards +=
         '<article class="card">' +
@@ -274,7 +369,7 @@
             '<span class="path">' + esc(e.p) + '</span>' + tag +
           '</div>' +
           '<p class="card__desc">' + esc(e.d) + '</p>' +
-          bodyEx + resEx +
+          bodyEx + resEx + errEx +
           '<div class="card__spacer"></div>' +
           tryBtn +
           '<div id="' + outId + '" class="out" style="display:none"></div>' +
@@ -392,7 +487,9 @@
   // ¿Ya hay sesion al cargar? (cookie existente)
   (async () => {
     try{
-      const r = await fetch(API_BASE + '/auth/yo', { headers:{Accept:'application/json'}, credentials:'include' });
+      // /auth/sesion responde 200 con { usuario: null } si no hay sesion
+      // (evita el 401 ruidoso de /auth/yo en la consola).
+      const r = await fetch(API_BASE + '/auth/sesion', { headers:{Accept:'application/json'}, credentials:'include' });
       if (r.ok){ const d = await r.json(); if (d && d.usuario) mostrarSesion(d.usuario); }
     }catch(_){}
   })();
