@@ -180,21 +180,36 @@
 
   function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
+  // Ejecuta un GET y pinta el resultado. Si da 401/403 ofrece iniciar sesion.
   async function probar(path, outId){
-    const pre = document.getElementById(outId);
-    if (!pre) return;
-    pre.style.display = 'block';
-    pre.textContent = 'Cargando…';
+    const box = document.getElementById(outId);
+    if (!box) return;
+    box.style.display = 'flex';
+    box.innerHTML = '<pre>Cargando…</pre>';
     try{
       const res = await fetch(API_BASE + path, { method:'GET', headers:{Accept:'application/json'}, credentials:'include' });
       const txt = await res.text();
       let body; try { body = JSON.stringify(JSON.parse(txt), null, 2); } catch (_) { body = txt; }
-      pre.textContent = res.status + ' ' + res.statusText + '\n\n' + body;
+      let html = '<pre>' + esc(res.status + ' ' + res.statusText + '\n\n' + body) + '</pre>';
+      if (res.status === 401){
+        html += '<div class="needauth">' +
+          '<span>🔒 Necesitas iniciar sesión para ver datos reales.</span>' +
+          '<button class="goLogin" type="button">Iniciar sesión ↑</button>' +
+          '<span class="muted">Si no, revisa la “Respuesta de ejemplo”.</span>' +
+        '</div>';
+      } else if (res.status === 403){
+        html += '<div class="needauth">' +
+          '<span>⛔ Tu rol no tiene acceso a esta ruta. Inicia sesión con una cuenta del rol adecuado.</span>' +
+          '<button class="goLogin" type="button">Cambiar de cuenta ↑</button>' +
+        '</div>';
+      }
+      box.innerHTML = html;
     }catch(e){
-      pre.textContent = 'Error de red: ' + e.message;
+      box.innerHTML = '<pre>Error de red: ' + esc(e.message) + '</pre>';
     }
   }
 
+  // ---- Render de las tarjetas ----
   const cont = document.getElementById('docs');
   groups.forEach((g) => {
     const sec = document.createElement('section');
@@ -204,9 +219,11 @@
     g.eps.forEach((e, i) => {
       const outId = g.id + '-' + i;
       const tag = e.f ? '<span class="free">público</span>' : '<span class="lock">JWT</span>';
+      // Solo los GET (lectura) son ejecutables. Los que MODIFICAN datos
+      // (POST/PATCH/DELETE) no se pueden probar aqui, a proposito.
       const tryBtn = (e.m === 'GET')
         ? '<button class="try" data-p="' + esc(e.p) + '" data-out="' + outId + '">Probar ▶</button>'
-        : '';
+        : '<span class="noexec">🔒 No ejecutable aquí · modifica datos</span>';
       const bodyEx = e.body ? '<div class="body-ex"><b>body</b> ' + esc(e.body) + '</div>' : '';
       const ejemplo = respuestas[e.p] || (e.m !== 'GET' ? RES_GENERICA[e.m] : '');
       const resEx = ejemplo
@@ -219,8 +236,10 @@
             '<span class="path">' + esc(e.p) + '</span>' + tag +
           '</div>' +
           '<p class="card__desc">' + esc(e.d) + '</p>' +
-          bodyEx + resEx + tryBtn +
-          '<pre id="' + outId + '" class="out" style="display:none"></pre>' +
+          bodyEx + resEx +
+          '<div class="card__spacer"></div>' +
+          tryBtn +
+          '<div id="' + outId + '" class="out" style="display:none"></div>' +
         '</article>';
     });
     sec.innerHTML =
@@ -234,11 +253,78 @@
     cont.appendChild(sec);
   });
 
-  // Delegacion: cualquier boton .try dispara la prueba (sin onclick inline)
+  // ---- Login real para probar con datos reales ----
+  const elForm = document.getElementById('loginForm');
+  const elStatus = document.getElementById('liStatus');
+  const elWho = document.getElementById('liWho');
+  const elMsg = document.getElementById('liMsg');
+
+  function mostrarSesion(u){
+    if (elForm) elForm.style.display = 'none';
+    if (elMsg) { elMsg.textContent = ''; elMsg.className = 'authbar__msg'; }
+    if (elWho) elWho.innerHTML = 'Sesión activa: <b>' + esc(u.nombre || u.email || 'usuario') + '</b> · ' + esc(u.rol || '') + (u.fuente ? ' · ' + esc(u.fuente) : '');
+    if (elStatus) elStatus.style.display = 'flex';
+  }
+  function limpiarSesion(){
+    if (elStatus) elStatus.style.display = 'none';
+    if (elForm) elForm.style.display = 'flex';
+  }
+
+  if (elForm){
+    elForm.addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const email = (document.getElementById('liEmail').value || '').trim();
+      const password = document.getElementById('liPass').value || '';
+      elMsg.className = 'authbar__msg';
+      elMsg.textContent = 'Entrando…';
+      try{
+        const res = await fetch(API_BASE + '/auth/login', {
+          method:'POST',
+          headers:{ 'Content-Type':'application/json', Accept:'application/json' },
+          credentials:'include',
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.usuario){
+          mostrarSesion(data.usuario);
+        } else {
+          elMsg.className = 'authbar__msg err';
+          elMsg.textContent = (data && data.error) || ('No se pudo entrar (' + res.status + ')');
+        }
+      }catch(_){
+        elMsg.className = 'authbar__msg err';
+        elMsg.textContent = 'Error de red al iniciar sesión.';
+      }
+    });
+  }
+
+  const elLogout = document.getElementById('liLogout');
+  if (elLogout){
+    elLogout.addEventListener('click', async () => {
+      try { await fetch(API_BASE + '/auth/logout', { method:'POST', credentials:'include' }); } catch (_) {}
+      limpiarSesion();
+    });
+  }
+
+  // ¿Ya hay sesion al cargar? (cookie existente)
+  (async () => {
+    try{
+      const r = await fetch(API_BASE + '/auth/yo', { headers:{Accept:'application/json'}, credentials:'include' });
+      if (r.ok){ const d = await r.json(); if (d && d.usuario) mostrarSesion(d.usuario); }
+    }catch(_){}
+  })();
+
+  // ---- Delegacion de clicks: Probar y "Iniciar sesion" ----
   document.addEventListener('click', (ev) => {
     const btn = ev.target.closest('.try');
-    if (!btn) return;
-    probar(btn.getAttribute('data-p'), btn.getAttribute('data-out'));
+    if (btn){ probar(btn.getAttribute('data-p'), btn.getAttribute('data-out')); return; }
+
+    if (ev.target.closest('.goLogin')){
+      const bar = document.getElementById('authbar');
+      if (bar) bar.scrollIntoView({ behavior:'smooth', block:'start' });
+      const em = document.getElementById('liEmail');
+      if (em) setTimeout(() => em.focus(), 300);
+    }
   });
 
   // Auto-probar /salud al cargar
