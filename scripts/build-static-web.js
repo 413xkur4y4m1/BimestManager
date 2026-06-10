@@ -95,6 +95,9 @@ const HTACCESS = `# ============================================================
 
 RewriteEngine On
 
+# Pagina 404 propia (reemplaza la default de Hostinger)
+ErrorDocument 404 /404.html
+
 # Forzar HTTPS (a prueba de proxy: si el proxy ya entrega por https, no redirige)
 RewriteCond %{HTTPS} off
 RewriteCond %{HTTP:X-Forwarded-Proto} !https
@@ -138,6 +141,52 @@ RewriteRule ^(.+?)/?$ $1.html [L]
 FileETag None
 `;
 
+const PAGINA_404 = `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>404 · Bimest Manager</title>
+<link rel="icon" type="image/png" href="/BimestLogo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;display:grid;place-items:center;text-align:center;padding:24px;
+    font-family:'Hanken Grotesk',system-ui,sans-serif;color:#eaf2f2;
+    background:radial-gradient(1000px 560px at 80% -10%,rgba(224,115,56,.18),transparent 60%),
+               radial-gradient(820px 480px at -10% 10%,rgba(29,94,110,.28),transparent 55%),#0c1719}
+  .code{font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:.18em;text-transform:uppercase;
+    color:#ff7a1a;border:1px solid rgba(224,115,56,.35);border-radius:999px;padding:6px 13px;display:inline-block}
+  h1{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:clamp(56px,16vw,140px);margin:18px 0 0;line-height:1}
+  h1 span{background:linear-gradient(90deg,#ff7a1a,#2b8aa0);-webkit-background-clip:text;background-clip:text;color:transparent}
+  h2{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:clamp(22px,4vw,30px);margin:6px 0 10px}
+  p{color:#9fb3b5;max-width:46ch;margin:0 auto 26px;font-size:16px}
+  .row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+  a.btn{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:15px;text-decoration:none;
+    padding:11px 20px;border-radius:999px;border:1px solid transparent}
+  .btn--p{background:linear-gradient(180deg,#ff7a1a,#e07338);color:#1a0f08}
+  .btn--g{border-color:rgba(255,255,255,.14);color:#eaf2f2;background:rgba(255,255,255,.03)}
+  .logo{width:52px;height:52px;border-radius:13px;margin-bottom:6px}
+</style>
+</head>
+<body>
+  <main>
+    <img class="logo" src="/BimestLogo.png" alt="Bimest Manager">
+    <div><span class="code">Error 404</span></div>
+    <h1><span>404</span></h1>
+    <h2>Esta página no existe</h2>
+    <p>La ruta que buscas no está aquí. Puede que el enlace esté roto o que la página se haya movido.</p>
+    <div class="row">
+      <a class="btn btn--p" href="/">Volver al inicio</a>
+      <a class="btn btn--g" href="/login">Entrar al sistema</a>
+    </div>
+  </main>
+</body>
+</html>
+`;
+
 function build() {
   console.log('API_BASE  =', API_BASE);
   console.log('OUT_DIR   =', OUT_DIR);
@@ -179,7 +228,11 @@ function build() {
     console.log('[ok] ' + p.vista + ' -> ' + p.salida);
   }
 
-  // 5) .htaccess (URLs limpias + cache) — sobreescribe el de la landing
+  // 5) Pagina 404 propia
+  fs.writeFileSync(path.join(OUT_DIR, '404.html'), PAGINA_404, 'utf8');
+  console.log('[ok] 404.html generado');
+
+  // 6) .htaccess (URLs limpias + cache + ErrorDocument) — sobreescribe el de la landing
   fs.writeFileSync(path.join(OUT_DIR, '.htaccess'), HTACCESS, 'utf8');
   console.log('[ok] .htaccess generado');
 

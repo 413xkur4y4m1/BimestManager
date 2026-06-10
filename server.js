@@ -31,7 +31,20 @@ app.disable('x-powered-by');
 // cuando la app corre en http://localhost o IP de LAN.
 const enProduccion = process.env.NODE_ENV === 'production';
 app.use(helmet({
-  contentSecurityPolicy: enProduccion ? undefined : false,
+  // En produccion servimos la pagina de documentacion (/) con su JS externo
+  // (/js/api-docs.js) + fuentes de Google + beacon de Cloudflare. Este CSP
+  // permite justo eso sin abrir 'unsafe-inline' para scripts.
+  contentSecurityPolicy: enProduccion ? {
+    useDefaults: true,
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", 'https://static.cloudflareinsights.com'],
+      styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+      fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+      imgSrc: ["'self'", 'data:'],
+      connectSrc: ["'self'", 'https://cloudflareinsights.com']
+    }
+  } : false,
   hsts: enProduccion ? {
     maxAge: 31536000,
     includeSubDomains: true
